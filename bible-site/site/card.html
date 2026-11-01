@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>經文卡片</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .card-controls { display: flex; gap: 1em; margin: 1.5em 0; flex-wrap: wrap; }
+    .card-controls label { display: flex; flex-direction: column; gap: 0.25em; font-size: 0.9em; color: var(--muted); }
+    .card-controls select { padding: 0.4em 0.6em; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font-size: 1em; }
+    #card-canvas { max-width: 100%; height: auto; display: block; margin: 1em 0; border: 1px solid var(--border); border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container">
+    <h1>經文卡片</h1>
+
+    <div class="card-controls">
+      <label>章
+        <select id="ch-select"></select>
+      </label>
+      <label>節
+        <select id="v-select"></select>
+      </label>
+    </div>
+
+    <canvas id="card-canvas"></canvas>
+
+    <button id="download-btn">下載圖片</button>
+  </main>
+
+  <footer>和合本 · 馬可福音</footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      Bible.nav("card.html");
+
+      const chSelect = document.getElementById("ch-select");
+      const vSelect = document.getElementById("v-select");
+      const canvas = document.getElementById("card-canvas");
+      const ctx = canvas.getContext("2d");
+      const downloadBtn = document.getElementById("download-btn");
+
+      let data = null;
+      let ch = 1;
+      let v = 1;
+
+      function findChapter(c) {
+        if (!data) return null;
+        for (let i = 0; i < data.chapters.length; i++) {
+          if (data.chapters[i].ch === c) return data.chapters[i];
+        }
+        return null;
+      }
+
+      function fillChapterSelect() {
+        chSelect.innerHTML = "";
+        for (let i = 1; i <= 16; i++) {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = "第 " + i + " 章";
+          chSelect.appendChild(opt);
+        }
+      }
+
+      function fillVerseSelect() {
+        vSelect.innerHTML = "";
+        const chapter = findChapter(ch);
+        if (!chapter) return;
+        for (let i = 0; i < chapter.verses.length; i++) {
+          const vv = chapter.verses[i];
+          const opt = document.createElement("option");
+          opt.value = String(vv.v);
+          opt.textContent = "第 " + vv.v + " 節";
+          vSelect.appendChild(opt);
+        }
+      }
+
+      function wrapText(text, maxWidth) {
+        const lines = [];
+        let line = "";
+        for (let i = 0; i < text.length; i++) {
+          const testLine = line + text.charAt(i);
+          if (line !== "" && ctx.measureText(testLine).width > maxWidth) {
+            lines.push(line);
+            line = text.charAt(i);
+          } else {
+            line = testLine;
+          }
+        }
+        if (line !== "") lines.push(line);
+        return lines;
+      }
+
+      function drawCard() {
+        const chapter = findChapter(ch);
+        let verse = null;
+        if (chapter) {
+          for (let i = 0; i < chapter.verses.length; i++) {
+            if (chapter.verses[i].v === v) { verse = chapter.verses[i]; break; }
+          }
+        }
+        if (!verse) return;
+
+        const text = verse.text;
+        const refText = Bible.ref(ch, v) + "（和合本）";
+
+        const W = 600;
+        const pad = 40;
+        const maxWidth = W - pad * 2;
+
+        ctx.font = "28px sans-serif";
+        const textLines = wrapText(text, maxWidth);
+        const lineHeight = 38;
+
+        ctx.font = "20px sans-serif";
+        const refLines = wrapText(refText, maxWidth);
+        const refLineHeight = 28;
+
+        const H = pad * 2 + refLines.length * refLineHeight + 16 + textLines.length * lineHeight;
+
+        canvas.width = W;
+        canvas.height = H;
+
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = "#999999";
+        ctx.font = "20px sans-serif";
+        for (let i = 0; i < refLines.length; i++) {
+          ctx.fillText(refLines[i], pad, pad + i * refLineHeight);
+        }
+
+        ctx.fillStyle = "#1a1a1a";
+        ctx.font = "28px sans-serif";
+        const textStartY = pad + refLines.length * refLineHeight + 16;
+        for (let i = 0; i < textLines.length; i++) {
+          ctx.fillText(textLines[i], pad, textStartY + i * lineHeight);
+        }
+      }
+
+      function downloadImage() {
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "mark-" + ch + "-" + v + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      function applySelection() {
+        chSelect.value = String(ch);
+        fillVerseSelect();
+        vSelect.value = String(v);
+        drawCard();
+      }
+
+      chSelect.addEventListener("change", function () {
+        const val = parseInt(chSelect.value, 10);
+        if (Number.isFinite(val) && val >= 1 && val <= 16) {
+          ch = val;
+          v = 1;
+          applySelection();
+        }
+      });
+
+      vSelect.addEventListener("change", function () {
+        const val = parseInt(vSelect.value, 10);
+        if (Number.isFinite(val)) {
+          v = val;
+          drawCard();
+        }
+      });
+
+      downloadBtn.addEventListener("click", downloadImage);
+
+      fillChapterSelect();
+
+      Bible.load().then(function (loaded) {
+        data = loaded;
+
+        const rawCh = Bible.param("ch");
+        const rawV = Bible.param("v");
+        let urlCh = parseInt(rawCh, 10);
+        let urlV = parseInt(rawV, 10);
+
+        if (!Number.isFinite(urlCh) || urlCh < 1 || urlCh > 16) {
+          urlCh = 1;
+        }
+        ch = urlCh;
+
+        const chapter = findChapter(ch);
+        let validV = false;
+        if (chapter && Number.isFinite(urlV)) {
+          for (let i = 0; i < chapter.verses.length; i++) {
+            if (chapter.verses[i].v === urlV) { validV = true; break; }
+          }
+        }
+        v = validV ? urlV : 1;
+
+        applySelection();
+      }).catch(function (err) {
+        Bible.fail(document.querySelector("main"), err);
+      });
+    })();
+  </script>
+</body>
+</html>

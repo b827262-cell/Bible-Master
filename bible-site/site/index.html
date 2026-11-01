@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>馬可福音</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container">
+    <h1>馬可福音（和合本）</h1>
+    <p>和合本馬可福音全文，共十六章。點選章節閱讀全文，或搜尋經文內容。</p>
+
+    <form method="get" action="search.html">
+      <input type="search" name="q" placeholder="搜尋經文內容">
+      <button type="submit">搜尋</button>
+    </form>
+
+    <div class="chapter-grid" id="chapters"></div>
+  </main>
+
+  <footer>和合本 · 馬可福音</footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      Bible.nav("index.html");
+
+      Bible.load().then(function (data) {
+        const grid = document.getElementById("chapters");
+        data.chapters.forEach(function (chapter) {
+          const a = document.createElement("a");
+          a.className = "chapter-card";
+          a.href = "chapter.html?ch=" + chapter.ch;
+
+          const title = document.createElement("span");
+          title.className = "ch-title";
+          title.textContent = "第 " + chapter.ch + " 章";
+
+          const count = document.createElement("span");
+          count.className = "ch-count";
+          count.textContent = "・" + chapter.verses.length + " 節";
+
+          a.appendChild(title);
+          a.appendChild(count);
+          grid.appendChild(a);
+        });
+      }).catch(function (err) {
+        Bible.fail(document.querySelector("main"), err);
+      });
+    })();
+  </script>
+</body>
+</html>

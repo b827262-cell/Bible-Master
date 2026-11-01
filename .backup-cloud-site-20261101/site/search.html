@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>經文搜尋</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="nav" aria-label="主要導覽"></nav>
+<main>
+  <h1>經文搜尋</h1>
+
+  <form class="searchbar" action="search.html" method="get" role="search">
+    <label for="q" hidden>搜尋關鍵字</label>
+    <input type="search" id="q" name="q" placeholder="輸入關鍵字，例如：耶穌" autocomplete="off">
+    <button type="submit">搜尋</button>
+  </form>
+
+  <p class="count" id="count"></p>
+  <ul class="results" id="results"></ul>
+  <p class="lede" id="hint">在全部 16 章中搜尋經文。結果會顯示出處，並可點擊前往該章。</p>
+</main>
+<footer>經文來源：和合本馬可福音。比對方式為單純子字串比對。</footer>
+<script src="app.js"></script>
+<script>
+(function () {
+  "use strict";
+  Bible.nav("search");
+
+  var input = document.getElementById("q");
+  var countEl = document.getElementById("count");
+  var listEl = document.getElementById("results");
+  var hintEl = document.getElementById("hint");
+
+  var initial = Bible.param("q") || "";
+  input.value = initial;
+
+  function highlight(text, q) {
+    if (!q) {
+      return Bible.escape(text);
+    }
+    var lowerText = text.toLowerCase();
+    var lowerQ = q.toLowerCase();
+    var out = "";
+    var i = 0;
+    var at;
+    while ((at = lowerText.indexOf(lowerQ, i)) !== -1) {
+      out += Bible.escape(text.slice(i, at));
+      out += "<mark>" + Bible.escape(text.slice(at, at + q.length)) + "</mark>";
+      i = at + q.length;
+    }
+    out += Bible.escape(text.slice(i));
+    return out;
+  }
+
+  function render(q) {
+    listEl.textContent = "";
+    countEl.textContent = "";
+
+    if (!q) {
+      hintEl.textContent = "請輸入關鍵字開始搜尋，例如「耶穌」。";
+      return;
+    }
+
+    Bible.load().then(function (data) {
+      var hits = [];
+      data.chapters.forEach(function (c) {
+        c.verses.forEach(function (v) {
+          if (v.text.toLowerCase().indexOf(q.toLowerCase()) !== -1) {
+            hits.push({ ch: c.ch, v: v.v, text: v.text });
+          }
+        });
+      });
+
+      countEl.textContent = "共 " + hits.length + " 筆";
+
+      if (!hits.length) {
+        hintEl.textContent = "找不到符合的經文。";
+        return;
+      }
+      hintEl.textContent = "";
+
+      var frag = document.createDocumentFragment();
+      hits.forEach(function (hit) {
+        var li = document.createElement("li");
+
+        var a = document.createElement("a");
+        a.className = "ref";
+        a.href = "chapter.html?ch=" + hit.ch + "#v" + hit.v;
+        a.textContent = Bible.ref(hit.ch, hit.v);
+
+        var span = document.createElement("span");
+        span.className = "text";
+        span.innerHTML = highlight(hit.text, q);
+
+        li.appendChild(a);
+        li.appendChild(span);
+        frag.appendChild(li);
+      });
+      listEl.appendChild(frag);
+    }).catch(function (err) {
+      Bible.fail(hintEl, err);
+    });
+  }
+
+  render(initial);
+
+  document.querySelector("form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var q = input.value.trim();
+    var url = q ? "search.html?q=" + encodeURIComponent(q) : "search.html";
+    history.pushState(null, "", url);
+    render(q);
+  });
+})();
+</script>
+</body>
+</html>

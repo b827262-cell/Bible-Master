@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>馬可福音</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container">
+    <h1 id="title"></h1>
+    <ul id="verses" class="verse-list"></ul>
+    <section class="notes" id="notes-area" hidden>
+      <h3>參照</h3>
+      <ul id="notes-list"></ul>
+    </section>
+  </main>
+
+  <div class="container">
+    <h3>章節導航</h3>
+    <ul class="nav-list" id="chapter-links"></ul>
+  </div>
+
+  <footer>和合本 · 馬可福音</footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      const rawCh = Bible.param("ch");
+      let ch = parseInt(rawCh, 10);
+      if (!Number.isFinite(ch) || ch < 1 || ch > 16) {
+        ch = 1;
+      }
+
+      Bible.nav("chapter.html");
+
+      function addLink(container, label, href) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = href;
+        a.textContent = label;
+        li.appendChild(a);
+        container.appendChild(li);
+      }
+
+      Bible.load().then(function (data) {
+        const chapter = Bible.chapterOf(data, ch);
+        if (!chapter || !chapter.verses) {
+          Bible.fail(document.querySelector("main"), "資料載入失敗");
+          return;
+        }
+
+        document.getElementById("title").textContent = "馬可福音 第 " + ch + " 章";
+
+        const list = document.getElementById("verses");
+        list.innerHTML = "";
+        chapter.verses.forEach(function (v) {
+          const li = document.createElement("li");
+          li.id = "v" + v.v;
+
+          const num = document.createElement("span");
+          num.className = "verse-num";
+          num.textContent = v.v;
+
+          const text = document.createElement("span");
+          text.className = "verse-text";
+          text.textContent = v.text;
+
+          li.appendChild(num);
+          li.appendChild(text);
+          list.appendChild(li);
+        });
+
+        const notesArea = document.getElementById("notes-area");
+        const notesList = document.getElementById("notes-list");
+        if (chapter.notes && chapter.notes.length > 0) {
+          notesList.innerHTML = chapter.notes.map(function (n) {
+            return "<li>" + Bible.escape(n) + "</li>";
+          }).join("");
+          notesArea.hidden = false;
+        } else {
+          notesArea.hidden = true;
+        }
+
+        const links = document.getElementById("chapter-links");
+        links.innerHTML = "";
+        if (ch > 1) {
+          addLink(links, "上一章", "chapter.html?ch=" + (ch - 1));
+        }
+        addLink(links, "回到目錄", "index.html");
+        if (ch < 16) {
+          addLink(links, "下一章", "chapter.html?ch=" + (ch + 1));
+        }
+
+        const hash = location.hash;
+        if (hash && hash.length > 1) {
+          const targetId = hash.charAt(0) === "#" ? hash.slice(1) : hash;
+          const el = document.getElementById(targetId);
+          if (el) {
+            el.scrollIntoView({ behavior: "auto", block: "center" });
+          }
+        }
+      }).catch(function (err) {
+        Bible.fail(document.querySelector("main"), err);
+      });
+    })();
+  </script>
+</body>
+</html>

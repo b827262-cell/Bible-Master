@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>馬可福音</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container">
+    <h1>經文搜尋</h1>
+
+    <form method="get" action="search.html">
+      <input type="search" name="q" id="search-q" placeholder="輸入關鍵字">
+      <button type="submit">搜尋</button>
+    </form>
+
+    <p id="result-info"></p>
+    <ul class="search-results" id="results"></ul>
+  </main>
+
+  <footer>和合本 · 馬可福音</footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      Bible.nav("search.html");
+
+      const input = document.getElementById("search-q");
+      const infoEl = document.getElementById("result-info");
+      const resultsEl = document.getElementById("results");
+
+      function highlight(text, q) {
+        const escText = Bible.escape(text);
+        const escQ = Bible.escape(q);
+        return escText.split(escQ).join("<mark>" + escQ + "</mark>");
+      }
+
+      function renderResult(m, q) {
+        const li = document.createElement("li");
+
+        const a = document.createElement("a");
+        a.className = "search-ref";
+        a.href = "chapter.html?ch=" + m.ch + "#v" + m.v;
+        a.textContent = Bible.ref(m.ch, m.v);
+
+        const span = document.createElement("span");
+        span.innerHTML = highlight(m.text, q);
+
+        li.appendChild(a);
+        li.appendChild(span);
+        return li;
+      }
+
+      function search(q) {
+        if (!q) {
+          infoEl.textContent = "請輸入關鍵字，搜尋經文內容。";
+          resultsEl.innerHTML = "";
+          return;
+        }
+
+        Bible.load().then(function (data) {
+          const matches = [];
+          data.chapters.forEach(function (chapter) {
+            chapter.verses.forEach(function (v) {
+              if (v.text.indexOf(q) !== -1) {
+                matches.push({ ch: chapter.ch, v: v.v, text: v.text });
+              }
+            });
+          });
+
+          resultsEl.innerHTML = "";
+          if (matches.length === 0) {
+            infoEl.textContent = "找不到符合的經文";
+            return;
+          }
+
+          infoEl.textContent = "共 " + matches.length + " 筆";
+          matches.forEach(function (m) {
+            resultsEl.appendChild(renderResult(m, q));
+          });
+        }).catch(function (err) {
+          Bible.fail(document.querySelector("main"), err);
+        });
+      }
+
+      const q0 = Bible.param("q");
+      let query = "";
+      if (q0 !== null && q0 !== undefined && q0 !== "") {
+        query = q0;
+        input.value = q0;
+      }
+      search(query);
+    })();
+  </script>
+</body>
+</html>

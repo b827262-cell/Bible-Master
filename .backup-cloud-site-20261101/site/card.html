@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>經文卡片</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="nav" aria-label="主要導覽"></nav>
+<main>
+  <h1>經文卡片</h1>
+  <p class="lede">選一章一節，預覽後可下載成 PNG 圖片。</p>
+
+  <form class="card-form" id="form">
+    <div>
+      <label for="ch">章</label>
+      <select id="ch"></select>
+    </div>
+    <div>
+      <label for="v">節</label>
+      <select id="v"></select>
+    </div>
+    <button type="button" id="download">下載圖片</button>
+  </form>
+
+  <div id="card-preview" aria-live="polite">
+    <p class="verse" id="verse">正在載入經文…</p>
+    <p class="source" id="source"></p>
+  </div>
+  <p class="lede" id="status"></p>
+</main>
+<footer>經文來源：和合本馬可福音。圖片由瀏覽器在本機產生，不上傳任何資料。</footer>
+<script src="app.js"></script>
+<script>
+(function () {
+  "use strict";
+  Bible.nav("card");
+
+  var MAX_CH = 16;
+  var chSel = document.getElementById("ch");
+  var vSel = document.getElementById("v");
+  var verseEl = document.getElementById("verse");
+  var sourceEl = document.getElementById("source");
+  var statusEl = document.getElementById("status");
+  var data = null;
+
+  function clampInt(value, min, max, fallback) {
+    var n = parseInt(value, 10);
+    if (!isFinite(n) || n < min || n > max) {
+      return fallback;
+    }
+    return n;
+  }
+
+  function fillChapters() {
+    chSel.textContent = "";
+    data.chapters.forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = String(c.ch);
+      opt.textContent = "第 " + c.ch + " 章";
+      chSel.appendChild(opt);
+    });
+  }
+
+  function fillVerses(ch, keep) {
+    var c = Bible.chapterOf(data, ch);
+    vSel.textContent = "";
+    if (!c) {
+      return;
+    }
+    c.verses.forEach(function (v) {
+      var opt = document.createElement("option");
+      opt.value = String(v.v);
+      opt.textContent = "第 " + v.v + " 節";
+      vSel.appendChild(opt);
+    });
+    var wanted = clampInt(keep, 1, c.verses.length, 1);
+    vSel.value = String(wanted);
+  }
+
+  function current() {
+    var ch = clampInt(chSel.value, 1, MAX_CH, 1);
+    var c = Bible.chapterOf(data, ch);
+    var v = c ? clampInt(vSel.value, 1, c.verses.length, 1) : 1;
+    var verse = c ? c.verses.filter(function (x) { return x.v === v; })[0] : null;
+    return { ch: ch, v: v, text: verse ? verse.text : "" };
+  }
+
+  function paint() {
+    var cur = current();
+    verseEl.textContent = cur.text;
+    sourceEl.textContent = Bible.ref(cur.ch, cur.v) + "（" + (data ? data.version : "") + "）";
+    statusEl.textContent = "";
+    var url = "card.html?ch=" + cur.ch + "&v=" + cur.v;
+    history.replaceState(null, "", url);
+  }
+
+  function wrapLines(ctx, text, maxWidth) {
+    var lines = [];
+    var line = "";
+    for (var i = 0; i < text.length; i++) {
+      var next = line + text[i];
+      if (ctx.measureText(next).width > maxWidth && line) {
+        lines.push(line);
+        line = text[i];
+      } else {
+        line = next;
+      }
+    }
+    if (line) {
+      lines.push(line);
+    }
+    return lines;
+  }
+
+  function download() {
+    var cur = current();
+    if (!cur.text) {
+      return;
+    }
+    var width = 1080;
+    var pad = 96;
+    var fontSize = 44;
+    var lineHeight = Math.round(fontSize * 1.75);
+
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+    var fontStack = '"Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif';
+    ctx.font = fontSize + "px " + fontStack;
+
+    var lines = wrapLines(ctx, cur.text, width - pad * 2);
+    var sourceText = Bible.ref(cur.ch, cur.v) + "（和合本）";
+    var height = Math.max(720, pad * 2 + lines.length * lineHeight + 120);
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = "#fbfaf7";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = "#8a5a2b";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(28, 28, width - 56, height - 56);
+
+    ctx.fillStyle = "#1f2328";
+    ctx.font = fontSize + "px " + fontStack;
+    ctx.textBaseline = "top";
+    lines.forEach(function (line, i) {
+      ctx.fillText(line, pad, pad + i * lineHeight);
+    });
+
+    ctx.fillStyle = "#5c6672";
+    ctx.font = Math.round(fontSize * 0.66) + "px " + fontStack;
+    ctx.textAlign = "right";
+    ctx.fillText(sourceText, width - pad, pad + lines.length * lineHeight + 32);
+
+    var name = "mark-" + cur.ch + "-" + cur.v + ".png";
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    statusEl.textContent = "已產生圖片：" + name;
+  }
+
+  Bible.load().then(function (loaded) {
+    data = loaded;
+    fillChapters();
+
+    var startCh = clampInt(Bible.param("ch"), 1, MAX_CH, 1);
+    fillVerses(startCh, Bible.param("v"));
+    chSel.value = String(startCh);
+    paint();
+
+    chSel.addEventListener("change", function () {
+      fillVerses(clampInt(chSel.value, 1, MAX_CH, 1), 1);
+      paint();
+    });
+    vSel.addEventListener("change", paint);
+    document.getElementById("download").addEventListener("click", download);
+  }).catch(function (err) {
+    Bible.fail(verseEl, err);
+    sourceEl.textContent = "";
+  });
+})();
+</script>
+</body>
+</html>

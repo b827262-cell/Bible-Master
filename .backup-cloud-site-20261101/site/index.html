@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>馬可福音（和合本）</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="nav" aria-label="主要導覽"></nav>
+<main>
+  <h1>馬可福音（和合本）</h1>
+  <p class="lede">全卷 16 章，共 678 節。選一章開始閱讀，或直接搜尋經文。</p>
+
+  <form class="searchbar" action="search.html" method="get" role="search">
+    <label for="q" class="visually-hidden" hidden>搜尋關鍵字</label>
+    <input type="search" id="q" name="q" placeholder="搜尋經文，例如：耶穌" autocomplete="off">
+    <button type="submit">搜尋</button>
+  </form>
+
+  <h2>章節目錄</h2>
+  <ul class="chapter-grid" id="chapters">
+    <li class="lede">正在載入章節…</li>
+  </ul>
+
+</main>
+<footer>經文來源：和合本馬可福音。資料由 <code>data/mark.json</code> 載入。</footer>
+<script src="app.js"></script>
+<script>
+(function () {
+  "use strict";
+  Bible.nav("index");
+  var host = document.getElementById("chapters");
+
+  Bible.load().then(function (data) {
+    host.textContent = "";
+
+    data.chapters.forEach(function (c) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "chapter.html?ch=" + c.ch;
+
+      var strong = document.createElement("strong");
+      strong.textContent = "第 " + c.ch + " 章";
+
+      var span = document.createElement("span");
+      span.textContent = c.verses.length + " 節";
+
+      a.appendChild(strong);
+      a.appendChild(span);
+      li.appendChild(a);
+      host.appendChild(li);
+    });
+  }).catch(function (err) {
+    Bible.fail(host, err);
+  });
+})();
+</script>
+</body>
+</html>
