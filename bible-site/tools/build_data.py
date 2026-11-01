@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Build data/mark.json from the verified Union Version text (.verify/mark.txt). No model involved.
 Each verse keeps its text exactly as in mark.txt (only the leading verse number is removed);
-the cross-reference note lines at the end of each chapter go into "notes"."""
+the cross-reference note lines at the end of each chapter go into "notes".
+Two rare Simplified glyphs (脚, 叙) are normalized to Traditional (腳, 敘) via NORMALIZE so the output is fully Traditional."""
 import json, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "..", ".verify", "mark.txt")
 OUT = os.path.join(HERE, "..", "data", "mark.json")
 NUM = "一二三四五六七八九十"
+NORMALIZE = {"脚": "腳", "叙": "敘"}
 
 
 def cn(s):
@@ -29,7 +31,10 @@ def parse(text):
         elif cur is None or not line.strip():
             continue
         elif (v := re.match(r"(\d+)(.*)$", line)):
-            cur["verses"].append({"v": int(v.group(1)), "text": v.group(2)})
+            t = v.group(2)
+            for src, dst in NORMALIZE.items():
+                t = t.replace(src, dst)
+            cur["verses"].append({"v": int(v.group(1)), "text": t})
         else:
             cur["notes"].append(line)
     return chapters

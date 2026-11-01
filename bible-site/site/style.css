@@ -89,7 +89,6 @@ body {
 .nav-list a:hover,
 .nav-list a:focus {
   background: var(--border);
-  outline: none;
 }
 
 .nav-list a.active {
@@ -153,7 +152,6 @@ p {
 
 .chapter-card:hover,
 .chapter-card:focus {
-  outline: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   transform: translateY(-1px);
 }
@@ -303,4 +301,10 @@ footer {
   color: var(--muted);
   font-size: 0.9em;
   text-align: center;
+}
+
+.nav-list a:focus-visible,
+.chapter-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
