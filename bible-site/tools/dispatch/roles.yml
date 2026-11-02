@@ -1,0 +1,41 @@
+# Roles for tools/dispatch.py. Providers/models are the ones already defined in the Harness web profile
+# (~/.dsh/profiles/web/cordis.patch.yml); dispatch.py copies the provider block from there into a headless overlay,
+# so nothing is typed twice. Smoke-tested 2026-11-01: `dsh --profile headless --patch <overlay> --json -`.
+dsh_bin: ~/.npm/_npx/7eff65a5cfe9d1d1/node_modules/.bin/dsh
+web_patch: ~/.dsh/profiles/web/cordis.patch.yml
+
+roles:
+  e500:                       # editor: hard files (RTX 3060, Bonsai 2 27B, 160K)
+    provider: bonsai-e500
+    model: /home/b827262/project/Bonsai-demo/models/bonsai2-gguf/27B/Ternary-Bonsai-2-27B-PQ2_0.gguf
+    health: http://127.0.0.1:8082/v1/models
+    timeout_min: 45
+    max_files: 2
+    escalate_to: cloud
+  a16:                        # reviewer / small edits (TUF A16, Bonsai 2 9B, 128K)
+    provider: bonsai-a16-64k
+    model: bonsai2-9b-q2-tufa16-128k
+    health: http://127.0.0.1:18083/v1/models
+    timeout_min: 30
+    max_files: 2
+    escalate_to: e500
+  de1050:                     # tests / one-line edits (GTX 1050 Ti, Qwen3.5 4B, 48K, no-think, greedy)
+    provider: qwen35-de1050
+    model: qwen35-4b-fast-48k
+    reasoning: "off"
+    health: http://127.0.0.1:18087/v1/models
+    timeout_min: 20
+    max_files: 1
+    escalate_to: e500
+  cloud:                      # 貓聽 / DeepSeek cloud model: never called by the script (uses quota); the task is reported as needs-cloud
+    manual: true
+
+# Files that dispatch itself, the checks, or the models may legitimately rewrite while a task runs.
+ignore_changes:
+  - bible-site/DISPATCH-REPORT.md
+  - bible-site/PROGRESS.md
+  - bible-site/TEST-REPORT.md
+  - bible-site/FAILS.md
+  - bible-site/logs/
+  - bible-site/tools/dispatch/generated/
+  - __pycache__/
