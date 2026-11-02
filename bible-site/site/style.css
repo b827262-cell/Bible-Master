@@ -1,5 +1,5 @@
 /* 馬可福音網站共用樣式（和合本）。
-   手機優先；深淺色依系統設定切換；不載入任何外部資源。 */
+    手機優先；深淺色依系統設定切換；不載入任何外部資源。 */
 
 /* ===== 顏色變數：淺色為預設，深色依系統設定切換 ===== */
 :root {
@@ -78,7 +78,9 @@ body {
 }
 
 .nav-list a {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding: 0.6em 1em;
   color: var(--fg);
   text-decoration: none;
@@ -94,18 +96,27 @@ body {
 .nav-list a.active {
   background: var(--accent);
   color: var(--accent-fg);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+#chapter-links a {
+  min-height: 48px;
 }
 
 /* ===== 頁面標題與說明 ===== */
 h1 {
-  font-size: 1.6em;
-  line-height: 1.3;
+  font-size: 1.375rem;
+  line-height: 1.35;
+  font-weight: 700;
   margin: 0.5em 0 0.75em;
 }
 
 h2 {
-  font-size: 1.3em;
-  line-height: 1.3;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 600;
   margin: 1.25em 0 0.5em;
 }
 
@@ -141,6 +152,7 @@ p {
 
 .chapter-card {
   display: block;
+  min-height: 48px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -181,8 +193,11 @@ p {
 }
 
 .verse-num {
-  flex: 0 0 auto;
-  min-width: 2.2em;
+  flex: 0 0 3rem;
+  width: 3rem;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 0.8125rem;
   text-align: right;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -239,6 +254,7 @@ button,
 input[type="submit"] {
   font: inherit;
   display: inline-block;
+  min-height: 44px;
   background: var(--accent);
   color: var(--accent-fg);
   border: none;
@@ -265,6 +281,7 @@ input[type="text"],
 input[type="search"] {
   font: inherit;
   width: 100%;
+  min-height: 44px;
   padding: 0.55em 0.8em;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -277,6 +294,16 @@ input[type="search"]:focus {
   outline: 2px solid var(--focus);
   outline-offset: 0;
   border-color: var(--focus);
+}
+
+select {
+  font: inherit;
+  min-height: 44px;
+  padding: 0.4em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
 }
 
 /* ===== 錯誤訊息 ===== */
@@ -303,8 +330,73 @@ footer {
   text-align: center;
 }
 
-.nav-list a:focus-visible,
-.chapter-card:focus-visible {
+.nav-list a:focus-visible,.chapter-card:focus-visible,.book-tabs a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ===== 書卷連結（四福音版）：橫向排列，手機可自動換行 ===== */
+.book-tabs {
+  list-style: none;
+  margin: 0.5em 0 0.75em;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+
+.book-tabs li {
+  margin: 0;
+}
+
+.book-tabs a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.45em 0.9em;
+  color: var(--fg);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  line-height: 1.3;
+}
+
+.book-tabs a:hover,
+.book-tabs a:focus {
+  background: var(--border);
+}
+
+/* 目前這卷：明顯的目前狀態 */
+.book-tabs a.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ===== 桌面：增大標題、經文與容器留白（≥48em） ===== */
+@media (min-width: 48em) {
+  h1 {
+    font-size: 1.625rem;
+  }
+
+  .verse-text {
+    font-size: 1.0625rem;
+  }
+
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }

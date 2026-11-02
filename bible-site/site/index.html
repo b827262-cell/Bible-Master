@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>馬可福音</title>
+  <title>四福音（和合本）</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
 </head>
@@ -11,30 +11,47 @@
   <nav id="nav"></nav>
 
   <main class="container">
-    <h1>馬可福音（和合本）</h1>
-    <p>和合本馬可福音全文，共十六章。點選章節閱讀全文，或搜尋經文內容。</p>
+    <h1>四福音（和合本）</h1>
+    <p>四福音全文，共四卷。點選章節閱讀全文，或搜尋經文內容。</p>
+
+    <div id="book-tabs"></div>
 
     <form method="get" action="search.html">
-      <input type="search" name="q" placeholder="搜尋經文內容">
+      <input type="search" name="q" placeholder="搜尋經文內容" aria-label="搜尋關鍵字">
+      <select name="book" id="search-book" aria-label="搜尋範圍">
+        <option value="all">全部四卷</option>
+      </select>
       <button type="submit">搜尋</button>
     </form>
 
     <div class="chapter-grid" id="chapters"></div>
   </main>
 
-  <footer>和合本 · 馬可福音</footer>
+  <footer>四福音 · 和合本</footer>
 
   <script src="app.js"></script>
   <script>
     (function () {
       Bible.nav("index.html");
 
-      Bible.load().then(function (data) {
+      const key = Bible.bookKey(Bible.param("book"));
+      Bible.bookTabs("book-tabs", key, "index.html");
+
+      // Initialize the book select dropdown with all options
+      const select = document.getElementById("search-book");
+      select.innerHTML = "";
+      select.add(new Option("全部四卷", "all"));
+      Bible.BOOKS.forEach(function (book) {
+        select.add(new Option(book.name, book.key));
+      });
+      select.value = Bible.bookKey(Bible.param("book"));
+
+      Bible.load(key).then(function (data) {
         const grid = document.getElementById("chapters");
         data.chapters.forEach(function (chapter) {
           const a = document.createElement("a");
           a.className = "chapter-card";
-          a.href = "chapter.html?ch=" + chapter.ch;
+          a.href = "chapter.html?book=" + key + "&ch=" + chapter.ch;
 
           const title = document.createElement("span");
           title.className = "ch-title";

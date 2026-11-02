@@ -20,6 +20,9 @@
     <h1>經文卡片</h1>
 
     <div class="card-controls">
+      <label>書卷
+        <select id="book-select"></select>
+      </label>
       <label>章
         <select id="ch-select"></select>
       </label>
@@ -33,13 +36,14 @@
     <button id="download-btn">下載圖片</button>
   </main>
 
-  <footer>和合本 · 馬可福音</footer>
+  <footer>四福音 · 和合本</footer>
 
   <script src="app.js"></script>
   <script>
     (function () {
       Bible.nav("card.html");
 
+      const bookSelect = document.getElementById("book-select");
       const chSelect = document.getElementById("ch-select");
       const vSelect = document.getElementById("v-select");
       const canvas = document.getElementById("card-canvas");
@@ -47,20 +51,41 @@
       const downloadBtn = document.getElementById("download-btn");
 
       let data = null;
+      let book = "mat";
       let ch = 1;
       let v = 1;
 
       function findChapter(c) {
-        if (!data) return null;
+        if (!data || !Array.isArray(data.chapters)) return null;
         for (let i = 0; i < data.chapters.length; i++) {
-          if (data.chapters[i].ch === c) return data.chapters[i];
+          if (Number(data.chapters[i].ch) === Number(c)) return data.chapters[i];
         }
         return null;
       }
 
+      function findVerse(verses, v) {
+        for (let i = 0; i < verses.length; i++) {
+          if (Number(verses[i].v) === Number(v)) return verses[i];
+        }
+        return null;
+      }
+
+      function fillBookSelect() {
+        bookSelect.innerHTML = "";
+        for (let i = 0; i < Bible.BOOKS.length; i++) {
+          const bk = Bible.BOOKS[i];
+          const opt = document.createElement("option");
+          opt.value = bk.key;
+          opt.textContent = bk.name;
+          bookSelect.appendChild(opt);
+        }
+      }
+
       function fillChapterSelect() {
         chSelect.innerHTML = "";
-        for (let i = 1; i <= 16; i++) {
+        if (!data) return;
+        const numChapters = data.chapters.length;
+        for (let i = 1; i <= numChapters; i++) {
           const opt = document.createElement("option");
           opt.value = String(i);
           opt.textContent = "第 " + i + " 章";
@@ -75,8 +100,8 @@
         for (let i = 0; i < chapter.verses.length; i++) {
           const vv = chapter.verses[i];
           const opt = document.createElement("option");
-          opt.value = String(vv.v);
-          opt.textContent = "第 " + vv.v + " 節";
+          opt.value = vv.v;
+          opt.textContent = Bible.verseLabel(vv);
           vSelect.appendChild(opt);
         }
       }
@@ -101,14 +126,12 @@
         const chapter = findChapter(ch);
         let verse = null;
         if (chapter) {
-          for (let i = 0; i < chapter.verses.length; i++) {
-            if (chapter.verses[i].v === v) { verse = chapter.verses[i]; break; }
-          }
+          verse = findVerse(chapter.verses, v);
         }
         if (!verse) return;
 
         const text = verse.text;
-        const refText = Bible.ref(ch, v) + "（和合本）";
+        const refText = Bible.ref(book, ch, verse) + "（和合本）";
 
         const W = 600;
         const pad = 40;
@@ -143,19 +166,22 @@
         for (let i = 0; i < textLines.length; i++) {
           ctx.fillText(textLines[i], pad, textStartY + i * lineHeight);
         }
+
+        canvas.setAttribute("data-ref", refText);
       }
 
       function downloadImage() {
         const url = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = url;
-        link.download = "mark-" + ch + "-" + v + ".png";
+        link.download = book + "-" + ch + "-" + v + ".png";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
 
       function applySelection() {
+        bookSelect.value = book;
         chSelect.value = String(ch);
         fillVerseSelect();
         vSelect.value = String(v);
@@ -164,7 +190,7 @@
 
       chSelect.addEventListener("change", function () {
         const val = parseInt(chSelect.value, 10);
-        if (Number.isFinite(val) && val >= 1 && val <= 16) {
+        if (Number.isFinite(val) && val >= 1) {
           ch = val;
           v = 1;
           applySelection();
@@ -179,32 +205,46 @@
         }
       });
 
+      bookSelect.addEventListener("change", function () {
+        const selectedBookKey = bookSelect.value;
+        Bible.load(selectedBookKey).then(function (loaded) {
+          data = loaded;
+          book = selectedBookKey;
+          ch = 1;
+          v = 1;
+          fillChapterSelect();
+          applySelection();
+        }).catch(function (err) {
+          Bible.fail(document.querySelector("main"), err);
+        });
+      });
+
       downloadBtn.addEventListener("click", downloadImage);
 
-      fillChapterSelect();
+      fillBookSelect();
 
-      Bible.load().then(function (loaded) {
+      const rawBook = Bible.param("book");
+      const rawCh = Bible.param("ch");
+      const rawV = Bible.param("v");
+      book = Bible.bookKey(rawBook);
+
+      Bible.load(book).then(function (loaded) {
         data = loaded;
 
-        const rawCh = Bible.param("ch");
-        const rawV = Bible.param("v");
         let urlCh = parseInt(rawCh, 10);
-        let urlV = parseInt(rawV, 10);
-
-        if (!Number.isFinite(urlCh) || urlCh < 1 || urlCh > 16) {
+        if (!Number.isFinite(urlCh) || urlCh < 1 || urlCh > data.chapters.length) {
           urlCh = 1;
         }
         ch = urlCh;
 
         const chapter = findChapter(ch);
-        let validV = false;
-        if (chapter && Number.isFinite(urlV)) {
-          for (let i = 0; i < chapter.verses.length; i++) {
-            if (chapter.verses[i].v === urlV) { validV = true; break; }
-          }
+        let urlV = parseInt(rawV, 10);
+        if (!chapter || !Number.isFinite(urlV) || urlV < 1 || !findVerse(chapter.verses, urlV)) {
+          urlV = 1;
         }
-        v = validV ? urlV : 1;
+        v = urlV;
 
+        fillChapterSelect();
         applySelection();
       }).catch(function (err) {
         Bible.fail(document.querySelector("main"), err);

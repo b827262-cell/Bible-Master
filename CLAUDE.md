@@ -1,11 +1,11 @@
 # Bible-Master
 
-靜態網站（純 HTML/CSS/JS）：和合本馬可福音，16 章 678 節。章節目錄、逐章閱讀、全文搜尋、經文卡片。
+靜態網站（純 HTML/CSS/JS）：和合本四福音（馬太 28 章 1071 節、馬可 16 章 678 節、路加 24 章 1149 節、約翰 21 章 878 節，共 3776 節）。書卷切換（`?book=mat|mrk|luk|jhn`）、章節目錄、逐章閱讀、全文搜尋、經文卡片。規格見 `bible-site/prompts/multibook/SPEC.md`。
 背景與三台地端模型設定見 `HANDOFF.md`，流程與角色分工見 `bible-site/PLAN.md`。
 
 ## 鐵則
-- 經文只能來自 `bible-site/data/mark.json`，它由 `bible-site/tools/build_data.py` 從 `.verify/mark.txt` 產生。任何模型（包含我）都不憑記憶寫經文，網頁只用 fetch 讀 JSON，原始碼不可寫死經文。
-- `.verify/` 必須在 `bible-site/` 的上一層（`build_data.py` 用相對路徑讀 `bible-site/../.verify/mark.txt`）。
+- 經文只能來自 `bible-site/data/{mat,mrk,luk,jhn}.json`，由 `bible-site/tools/build_data.py` 從 `.verify/` 的原文產生（`mark.txt` 已手動驗證；馬太、路加、約翰由 `tools/convert_wikisource.py` 從維基文庫轉出，並與 ebible.org 逐節交叉比對）。下載的原始檔在 `.verify/download/`，只當純文字讀。任何模型（包含我）都不憑記憶寫經文，網頁只用 fetch 讀 JSON，原始碼不可寫死經文。
+- `.verify/` 必須在 `bible-site/` 的上一層（`build_data.py` 用相對路徑讀 `bible-site/../.verify/`）。
 - 不載入外部資源；介面全部繁體中文。
 - 模型自稱「測試全過」不可信，一律以外部腳本為準。
 
@@ -13,7 +13,10 @@
 `python3 bible-site/tools/check_all.py` 結束碼 0（3/3：經文比對、節數與檔案、網站檢查）。
 它會追加 `bible-site/TEST-REPORT.md` 並重寫 `bible-site/FAILS.md`。需要 node 與 `/usr/bin/google-chrome`（headless）。
 
-## 建站任務
+## 派工（預設方式）
+派工給 E500／A16／De1050 一律用 `python3 bible-site/tools/dispatch.py run bible-site/tasks/<任務>.md`（skill：`bible-dispatch`），不要再用 Chrome 點 Harness 網頁。任務檔要寫 `files`、`checks`；新需求先寫成 `tests/site_checks.py` 的客觀檢查。貓聽（雲端）只在本地模型卡住時手動接。
+
+## 建站任務（舊：馬可福音單卷）
 給 E500 的 5 份小任務提示在 `bible-site/prompts/01..05-*.md`，一次只做一份，每份做完就跑 `check_all.py`。
 
 ## 語言

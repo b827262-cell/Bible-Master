@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>馬可福音</title>
+  <title>和合本</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
 </head>
@@ -12,6 +12,7 @@
 
   <main class="container">
     <h1 id="title"></h1>
+    <div id="book-tabs"></div>
     <ul id="verses" class="verse-list"></ul>
     <section class="notes" id="notes-area" hidden>
       <h3>參照</h3>
@@ -24,18 +25,19 @@
     <ul class="nav-list" id="chapter-links"></ul>
   </div>
 
-  <footer>和合本 · 馬可福音</footer>
+  <footer id="footer"></footer>
 
   <script src="app.js"></script>
   <script>
     (function () {
-      const rawCh = Bible.param("ch");
-      let ch = parseInt(rawCh, 10);
-      if (!Number.isFinite(ch) || ch < 1 || ch > 16) {
+      const key = Bible.bookKey(Bible.param("book"));
+      let ch = parseInt(Bible.param("ch"), 10);
+      if (!Number.isFinite(ch) || ch < 1) {
         ch = 1;
       }
 
       Bible.nav("chapter.html");
+      Bible.bookTabs("book-tabs", key, "chapter.html");
 
       function addLink(container, label, href) {
         const li = document.createElement("li");
@@ -46,14 +48,25 @@
         container.appendChild(li);
       }
 
-      Bible.load().then(function (data) {
+      Bible.load(key).then(function (data) {
+        if (!data || !Array.isArray(data.chapters)) {
+          Bible.fail(document.querySelector("main"), "資料載入失敗");
+          return;
+        }
+        const totalChapters = data.chapters.length;
+        if (ch < 1 || ch > totalChapters) {
+          ch = 1;
+        }
+
         const chapter = Bible.chapterOf(data, ch);
         if (!chapter || !chapter.verses) {
           Bible.fail(document.querySelector("main"), "資料載入失敗");
           return;
         }
 
-        document.getElementById("title").textContent = "馬可福音 第 " + ch + " 章";
+        document.getElementById("title").textContent = Bible.bookName(key) + " 第 " + ch + " 章";
+        document.title = Bible.bookName(key) + " 第 " + ch + " 章";
+        document.getElementById("footer").textContent = "和合本 · " + Bible.bookName(key);
 
         const list = document.getElementById("verses");
         list.innerHTML = "";
@@ -63,7 +76,7 @@
 
           const num = document.createElement("span");
           num.className = "verse-num";
-          num.textContent = v.v;
+          num.textContent = Bible.verseLabel(v);
 
           const text = document.createElement("span");
           text.className = "verse-text";
@@ -71,6 +84,13 @@
 
           li.appendChild(num);
           li.appendChild(text);
+
+          if (v.end != null) {
+            const anchor = document.createElement("span");
+            anchor.id = "v" + v.end;
+            li.appendChild(anchor);
+          }
+
           list.appendChild(li);
         });
 
@@ -88,11 +108,11 @@
         const links = document.getElementById("chapter-links");
         links.innerHTML = "";
         if (ch > 1) {
-          addLink(links, "上一章", "chapter.html?ch=" + (ch - 1));
+          addLink(links, "上一章", "chapter.html?book=" + key + "&ch=" + (ch - 1));
         }
-        addLink(links, "回到目錄", "index.html");
-        if (ch < 16) {
-          addLink(links, "下一章", "chapter.html?ch=" + (ch + 1));
+        addLink(links, "回到目錄", "index.html?book=" + key);
+        if (ch < totalChapters) {
+          addLink(links, "下一章", "chapter.html?book=" + key + "&ch=" + (ch + 1));
         }
 
         const hash = location.hash;
