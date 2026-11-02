@@ -4,11 +4,11 @@
 環境檢查與基準線：`bash bible-site/tools/pm_setup.sh`；更新狀態：`python3 bible-site/tools/pm_status.py`。
 
 <!-- pm:auto:start -->
-更新時間：2026-11-01 18:36（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
+更新時間：2026-11-01 23:01（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
 
 | 步驟 | 狀態 |
 |---|---|
-| 0 資料產生（mark.json 678 節） | 完成 |
+| 0 資料產生（mark.json 678 節） | 未完成 |
 | 1 建站（site/ 6 個檔案） | 完成 |
 | 2 自動檢查 check_all.py 全過 | 完成 |
 | 3 審核（REVIEW.md） | 完成 |
@@ -17,7 +17,7 @@
 
 - site 檔案：6/6（缺：無）
 - check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過
-- 審核：通過 7 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）
+- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）
 - TODO.md 未完成項目：沒有 TODO.md
 <!-- pm:auto:end -->
 
@@ -50,3 +50,21 @@
 - 2026-11-01 20:4x　第二階段 Tailscale（100.76.46.86:8090）由使用者親自測試，結果 OK；伺服器已由使用者停止。待決：E6／E4 是否交 E500 修、E7 是否修正原文、E2 由誰目視。
 - 2026-11-01 21:00　前台修正第一輪完成。E6（De1050）、E4（A16）、E7（E500）都一次完成，無需貓聽。PM 複驗：4 頁 0 個 favicon 請求、0 筆 Console 錯誤；Tab 焦點 2px `--focus` 外框；`mark.json` 0 個「脚／叙」，8 個「腳」1 個「敘」；`.verify/mark.txt` 未改；`check_all.py` 3/3。下一步：Front-end Engineer 複審。
 - 2026-11-01 21:25　Front-end Engineer 複審（`FRONTEND-REVIEW-ROUND2.md`）：31 案，通過 30、不通過 0、需人工 1（E2 深色外觀）。E6、E7 由不通過轉通過，E4 由需人工轉通過，其餘 27 案無回歸。待：E2 真人目視、commit。
+- 2026-11-01 22:18　dispatch：20-chapter-html 通過（e500）。
+- 2026-11-01 22:32　dispatch：21-search-html 通過（e500）。
+- 2026-11-01 22:33　dispatch：30-review 通過（a16）。
+- 2026-11-01 22:34　dispatch：31-test 通過（de1050 → de1050）。
+- 2026-11-01 22:55　dispatch：12-card-html 通過（e500）。
+- 2026-11-01 22:58　dispatch：11-index-html 通過（a16 → a16 → e500）。
+- 2026-11-01 23:00　dispatch：30-review 通過（a16）。
+- 2026-11-01 23:00　dispatch：31-test 通過（de1050）。
+- 2026-11-01 23:00　四大福音全部加入：原文自維基文庫轉出並與 ebible.org 交叉比對，`build_data.py`／`verify_text.py`／`smoke.js`／`site_checks.py` 改為四卷；網站改為 `?book=` 書卷切換。新增派工腳本 `tools/dispatch.py`（headless、範圍檢查、重試與升級，skill `bible-dispatch`）。E500 寫 chapter／search／card，A16 改 index（失敗後升級 E500），A16 審核、De1050 測試。`check_all.py` 3/3（含 index、card 檢查），375px 6 頁無橫向捲動。待：前端工程師複審、commit。
+- 2026-11-01 23:15　dispatch：14-booktabs-focus 通過（a16 → a16）。
+- 2026-11-01 23:15　dispatch：13-card-footer 通過（de1050）。
+- 2026-11-01 23:15　Front-end Engineer 四福音複審（`FRONTEND-REVIEW-4G.md`）：37 案，通過 35、不通過 1（A7 卡片頁尾寫死「馬可福音」）、需人工 1（深色外觀）。PM 複驗屬實，加上 `site_checks.py` 的「頁尾沒有寫死單一書卷名稱」檢查，經 dispatch 修正：De1050 改 card.html 頁尾，A16 補 `.book-tabs a:focus-visible`，都一次通過。`check_all.py` 3/3。待：深色外觀真人目視、commit。
+- 2026-11-02 11:07　dispatch：40-focus-css 通過（a16）。
+- 2026-11-02 11:08　dispatch：41-index-labels 通過（de1050）。
+- 2026-11-02 11:08　dispatch：42-search-labels 通過（de1050）。
+- 2026-11-02 11:23　dispatch：43-layout-css 通過（e500）。
+- 2026-11-02 11:25 視覺優化（FRONTEND-VISUAL-OPTIMIZATION-PLAN.md）：新增 tests/visual_checks.py（淺深色、320/375/768/1440px）；派工 40 A16 焦點外框、41/42 De1050 表單 aria-label、43 E500 觸控區域／目前位置／字級／經文對齊，四項一次通過；visual_checks 全過、check_all 3/3。待：Front-end Engineer 複審、深色目視、commit。
+- 2026-11-02 12:40　PM 獨立複驗（不憑模型自述，全部以腳本與實測為準）：`check_all.py` 3/3（四卷 3776/3776）、`visual_checks.py` 47/47。R2 的兩項不通過已確認修好：E8 的 `306:` 行號污染已不存在（`style.css` 無行號殘留），CSSOM 50 條規則中 `:focus-visible` 有 2 條且生效；E6 六類元素 computed outline 皆 `solid 2px`（淺色 `rgb(179,84,0)`、深色 `rgb(224,164,92)`）。E5 深色外觀以客觀量測替代目視：深色變數確實生效（背景 `#171614`／`#21201d`），本文 13.05–14.48:1、次要文字 6.17–6.85:1、焦點 7.47–8.30:1，全部 ≥4.5:1。另測：搜尋 XSS 四種 payload 皆無節點注入、無 `__xss` 觸發；16 種不合法 `book`／`ch`／`v` 都退回預設且 0 個 Console 錯誤；合併節錨點 `#v2`／`#v35`／`#v25` 齊備且 `id` 無重複。待辦只剩 commit。

@@ -469,3 +469,1103 @@
 結果：全部通過
 ```
 **總結：3/3 項檢查通過**
+
+## 2026-11-01 22:33
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:33
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:33
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:34
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:34
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:34
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:35
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:48
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：不通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+不通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音（實際 {"cards": 28, "last": "第 28 章・20 節", "tabs": "馬太福音*|馬可福音|路加福音|約翰福音", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+不通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音（實際 {"cards": 16, "last": "第 16 章・20 節", "tabs": "馬太福音|馬可福音*|路加福音|約翰福音", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+不通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音（實際 {"cards": 24, "last": "第 24 章・53 節", "tabs": "馬太福音|馬可福音|路加福音*|約翰福音", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+不通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音（實際 {"cards": 21, "last": "第 21 章・25 節", "tabs": "馬太福音|馬可福音|路加福音|約翰福音*", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+不通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音（實際 {"cards": 28, "last": "第 28 章・20 節", "tabs": "馬太福音*|馬可福音|路加福音|約翰福音", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+不通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音（實際 {"cards": 28, "last": "第 28 章・20 節", "tabs": "馬太福音*|馬可福音|路加福音|約翰福音", "selects": {"search-book": {"value": "", "options": 5, "values": "全部四卷,馬太福音,馬可福音,路加福音,約翰福音"}}, "ref": ""}）
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：不通過（6 項）
+```
+**總結：2/3 項檢查通過**
+
+## 2026-11-01 22:58
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:58
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 22:59
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 23:00
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 23:00
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-01 23:15
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 09:05
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 09:06
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 11:23
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 12:32
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 12:37
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 12:38
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-02 18:02
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
