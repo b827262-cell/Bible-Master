@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 bible-site/tools/dispatch/generated/
 bible-site/logs/
+logs/
+*.pid
 
 # ebible.org zip unpacked; identical copy of .verify/download/ebible/cmn-cu89t_usfm.zip
 .verify/download/ebible/x/

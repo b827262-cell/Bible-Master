@@ -4,7 +4,7 @@
 環境檢查與基準線：`bash bible-site/tools/pm_setup.sh`；更新狀態：`python3 bible-site/tools/pm_status.py`。
 
 <!-- pm:auto:start -->
-更新時間：2026-11-01 23:01（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
+更新時間：2026-11-02 19:42（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
 
 | 步驟 | 狀態 |
 |---|---|
@@ -68,3 +68,8 @@
 - 2026-11-02 11:23　dispatch：43-layout-css 通過（e500）。
 - 2026-11-02 11:25 視覺優化（FRONTEND-VISUAL-OPTIMIZATION-PLAN.md）：新增 tests/visual_checks.py（淺深色、320/375/768/1440px）；派工 40 A16 焦點外框、41/42 De1050 表單 aria-label、43 E500 觸控區域／目前位置／字級／經文對齊，四項一次通過；visual_checks 全過、check_all 3/3。待：Front-end Engineer 複審、深色目視、commit。
 - 2026-11-02 12:40　PM 獨立複驗（不憑模型自述，全部以腳本與實測為準）：`check_all.py` 3/3（四卷 3776/3776）、`visual_checks.py` 47/47。R2 的兩項不通過已確認修好：E8 的 `306:` 行號污染已不存在（`style.css` 無行號殘留），CSSOM 50 條規則中 `:focus-visible` 有 2 條且生效；E6 六類元素 computed outline 皆 `solid 2px`（淺色 `rgb(179,84,0)`、深色 `rgb(224,164,92)`）。E5 深色外觀以客觀量測替代目視：深色變數確實生效（背景 `#171614`／`#21201d`），本文 13.05–14.48:1、次要文字 6.17–6.85:1、焦點 7.47–8.30:1，全部 ≥4.5:1。另測：搜尋 XSS 四種 payload 皆無節點注入、無 `__xss` 觸發；16 種不合法 `book`／`ch`／`v` 都退回預設且 0 個 Console 錯誤；合併節錨點 `#v2`／`#v35`／`#v25` 齊備且 `id` 無重複。待辦只剩 commit。
+- 2026-11-02 20:37　dispatch：50-admin-server 通過（e500）。
+- 2026-11-02 21:06　dispatch：51-admin-ui 通過（e500）。
+- 2026-11-02 21:34　dispatch：52-start-sh 通過（e500）。
+- 2026-11-02 22:10　dispatch：53-admin-review-fixes 通過（e500）。
+- 2026-11-02 22:42　dispatch：54-start-sh-realpath 通過（e500）。

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible-Master 聖經管理與運維後台</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-badge">📖</div>
+        <div>
+          <h1>Bible-Master 後台管理與運維中心</h1>
+          <p>和合本四福音靜態網站 · 本地模型派工與自動化驗證控制台</p>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <a href="#" id="frontend-link" target="_blank" class="btn btn-primary">
+          🌐 前往前台網站 ↗
+        </a>
+        <button id="btn-refresh-models" class="btn btn-outline">
+          🔄 重新整理狀態
+        </button>
+      </div>
+    </header>
+
+    <!-- 頂部即時狀態條 -->
+    <div class="status-bar">
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>前台網站 (Port 8090)</h3>
+          <div class="val" id="frontend-val">
+            <span id="status-frontend" class="pill pill-warning">檢測中...</span>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>四福音總節數</h3>
+          <div class="val" id="status-verses">3776 / 3776 節</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>資料庫校驗</h3>
+          <div class="val">
+            <span id="status-db" class="pill pill-success">100% 完整相符</span>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>最新體檢判定</h3>
+          <div class="val">
+            <span id="status-fails" class="pill pill-success">全部通過</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主區塊第一排：四福音概況 + 地端模型監控 -->
+    <div class="grid-2">
+      <!-- 卡片：四福音資料庫 -->
+      <div class="card">
+        <div class="card-header">
+          <h2>📚 四福音經文現況</h2>
+          <button id="btn-verify-text" class="btn btn-outline" style="font-size:0.8rem; padding:4px 10px;">
+            🔍 原文比對
+          </button>
+        </div>
+        <table class="book-table">
+          <thead>
+            <tr>
+              <th>書卷</th>
+              <th>章數</th>
+              <th>節數</th>
+              <th>狀態</th>
+              <th>快速閱讀</th>
+            </tr>
+          </thead>
+          <tbody id="books-tbody">
+            <tr>
+              <td colspan="5" style="text-align:center; color:var(--text-muted);">載入中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 卡片：地端 AI 模型節點 -->
+      <div class="card">
+        <div class="card-header">
+          <h2>🤖 地端 AI 模型叢集監控</h2>
+          <span style="font-size:0.8rem; color:var(--text-muted);">每 15 秒自動探測</span>
+        </div>
+        <div class="node-list" id="model-node-list">
+          <div style="text-align:center; padding:20px; color:var(--text-muted);">探測模型節點中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主區塊第二排：一鍵自動化測試與體檢控制台 -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <h2>⚡ 一鍵品質檢驗與體檢控制台</h2>
+        <span id="terminal-status" style="font-size:0.85rem; color:var(--text-muted);">系統就緒</span>
+      </div>
+      <div class="test-actions">
+        <button id="btn-check-all" class="btn btn-success">
+          🚀 執行全部檢查 (check_all.py 3/3)
+        </button>
+        <button id="btn-visual-checks" class="btn btn-outline">
+          🎨 視覺與無障礙檢驗 (visual_checks.py)
+        </button>
+        <button id="btn-smoke" class="btn btn-outline">
+          💨 冒煙測試 (smoke.js)
+        </button>
+      </div>
+      <div class="terminal-header">
+        <span>控制台輸出日誌 (Console Output)</span>
+        <span>純文字 / 即時串流</span>
+      </div>
+      <pre class="terminal" id="terminal-output">點擊上方按鈕執行自動化檢驗，輸出將即時顯示於此處...</pre>
+    </div>
+
+    <!-- 主區塊第三排：專案報告與任務日誌 -->
+    <div class="card">
+      <div class="card-header">
+        <h2>📄 專案報告與任務追蹤</h2>
+      </div>
+      <div class="tab-row">
+        <button class="tab-btn active" data-report="TEST-REPORT.md">測試報告 (TEST-REPORT.md)</button>
+        <button class="tab-btn" data-report="FAILS.md">待修項目 (FAILS.md)</button>
+        <button class="tab-btn" data-report="DISPATCH-REPORT.md">派工日誌 (DISPATCH-REPORT.md)</button>
+        <button class="tab-btn" data-report="PROGRESS.md">專案進度 (PROGRESS.md)</button>
+        <button class="tab-btn" data-report="CHANGELOG.md">更新日誌 (CHANGELOG.md)</button>
+      </div>
+      <pre class="terminal" id="report-content" style="height: 320px;">載入報告中...</pre>
+    </div>
+
+    <footer>
+      Bible-Master · 和合本四福音靜態專案 · 地端 AI 協作開發系統<br>
+      前台：<a href="#" id="frontend-url">…</a> ｜ 後台：<a href="#" id="backend-url">…</a>
+    </footer>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

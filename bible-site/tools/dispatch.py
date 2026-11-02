@@ -154,15 +154,17 @@ def ignored(rel):
 
 
 def snapshot():
+    # bible-site/ recursively plus the regular files at the project root (start.sh); symlinks are skipped so an
+    # edit to start.sh is not also reported through its bible-site/start.sh link
     snap = {}
-    for base in (SITE_ROOT,):
-        for dp, dn, fs in os.walk(base):
-            dn[:] = [d for d in dn if d not in ("__pycache__", ".git")]
-            for f in fs:
-                p = os.path.join(dp, f)
-                rel = os.path.relpath(p, ROOT)
-                if not ignored(rel):
-                    snap[rel] = hashlib.sha1(open(p, "rb").read()).hexdigest()
+    paths = [os.path.join(ROOT, f) for f in os.listdir(ROOT)]
+    for dp, dn, fs in os.walk(SITE_ROOT):
+        dn[:] = [d for d in dn if d not in ("__pycache__", ".git")]
+        paths += [os.path.join(dp, f) for f in fs]
+    for p in paths:
+        rel = os.path.relpath(p, ROOT)
+        if os.path.isfile(p) and not os.path.islink(p) and not ignored(rel):
+            snap[rel] = hashlib.sha1(open(p, "rb").read()).hexdigest()
     return snap
 
 

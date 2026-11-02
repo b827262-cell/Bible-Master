@@ -187,3 +187,58 @@
 **改動的規則：**
 
 1. `.nav-list a` — `display: blo
+
+## 2026-11-02 20:37:33　50-admin-server　通過
+
+- 角色：e500；檔案：bible-site/admin/server.py
+- 第 1 次（e500）：通過；耗時 1780 秒；輸入 token 22869；工具呼叫 24 次；改動 bible-site/admin/server.py
+  - 檢查 `python3 -m py_compile bible-site/admin/server.py` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py admin --grep '^(?!.*(admin\.js|index\.html))'` → 通過
+  - 模型回報：All server.py-related checks pass. The 3 failing checks are exactly the admin.js/index.html items you flagged for the next task (hard-coded `127.0.0.1:8090`, outdated「47 項」, and X-Bible-Admin in admin
+
+## 2026-11-02 21:06:45　51-admin-ui　通過
+
+- 角色：e500；檔案：bible-site/admin/admin.js, bible-site/admin/index.html
+- 第 1 次（e500）：通過；耗時 1750 秒；輸入 token 88178；工具呼叫 44 次；改動 bible-site/admin/admin.js, bible-site/admin/index.html
+  - 檢查 `node --check bible-site/admin/admin.js` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py admin` → 通過
+  - 模型回報：驗收通過：`node --check` OK，`python3 bible-site/tests/service_checks.py admin` 結果：全部通過。
+
+僅修改了兩個檔案：
+
+**bible-site/admin/admin.js**
+1. POST 請求加上標頭：`fetch(endpoint, { method: "POST", headers: { "X-Bible-Admin
+
+## 2026-11-02 21:34:22　52-start-sh　通過
+
+- 角色：e500；檔案：start.sh
+- 第 1 次（e500）：通過；耗時 1651 秒；輸入 token 44618；工具呼叫 18 次；改動 start.sh
+  - 檢查 `bash -n start.sh` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py service` → 通過
+  - 模型回報：驗收全過。僅修改了 **`start.sh`** 一個檔案（10 項檢查全通過、exit 0），具體改動：
+
+1. **PID 檔名帶埠號**（L46-47）：`frontend-${FRONTEND_PORT}.pid` / `backend-${BACKEND_PORT}.pid`；舊的無埠號 `frontend.pid`/`backend.pid` 未碰。
+2. **新增 `is_our_s
+
+## 2026-11-02 22:10:41　53-admin-review-fixes　通過
+
+- 角色：e500；檔案：bible-site/admin/server.py, start.sh
+- 第 1 次（e500）：通過；耗時 620 秒；輸入 token 36893；工具呼叫 11 次；改動 bible-site/admin/server.py, start.sh
+  - 檢查 `python3 -m py_compile bible-site/admin/server.py` → 通過
+  - 檢查 `bash -n start.sh` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py` → 通過
+  - 模型回報：全部驗收通過。線上 8090/8091 服務仍在監聽，`logs/frontend.pid`、`logs/backend.pid` 未動。
+
+## 修改檔案（僅 2 個）
+
+**1. `bible-site/admin/server.py`** — 在 `AdminRequestHandler` 新增 `do_HEAD`（位於 `do_GET` 與 `do_POST` 之間），套用與 `do_GE
+
+## 2026-11-02 22:42:07　54-start-sh-realpath　通過
+
+- 角色：e500；檔案：start.sh
+- 第 1 次（e500）：通過；耗時 201 秒；輸入 token 23502；工具呼叫 8 次；改動 start.sh
+  - 檢查 `bash -n start.sh` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py` → 通過
+  - 模型回報：完成。所有驗收通過：`bash -n start.sh` 通過，`python3 bible-site/tests/service_checks.py` 全部通過（含新增「經由軟連結路徑啟動、同路徑 stop 後兩個埠都釋放」項）。未動 logs/frontend.pid、logs/backend.pid，未用預設埠 8090/8091，未使用 pkill/killall。
+
+**修改內容（僅 1
