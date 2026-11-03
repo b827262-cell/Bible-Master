@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build the public Cloudflare Pages bundle: dist/ at the repo root.
-Whitelist copy of bible-site/index.html, bible-site/site/ and the data files the pages fetch; the layout of bible-site/ is kept
+Whitelist copy of bible-site/index.html (plus a generated 404.html and _headers), bible-site/site/ and the data files the pages fetch; the layout of bible-site/ is kept
 because the pages read ../data/*.json. Never ships admin/, tests/, tools/, reports, .verify/ or unreferenced uploads.
 Usage: python3 bible-site/tools/build_public.py [--out DIR] [--root DIR]   (default out: <repo>/dist; --root: a copy of bible-site/, for tests)"""
 import argparse, json, os, re, shutil, sys
@@ -27,6 +27,34 @@ HEADERS = """/*
 
 /site/assets/*
   Cache-Control: public, max-age=86400
+"""
+
+
+NOT_FOUND = """<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>找不到頁面 - 四福音（和合本）</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body { margin: 0; font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f6f4ef; color: #2b2622; line-height: 1.75; }
+    main { max-width: 32em; margin: 0 auto; padding: 4rem 1rem; text-align: center; }
+    h1 { font-size: 1.5rem; }
+    a { display: inline-block; min-height: 44px; padding: 0.6em 1.4em; border-radius: 8px; background: #7a4a1e; color: #fff; text-decoration: none; }
+    a:focus-visible { outline: 2px solid #1a56c7; outline-offset: 2px; }
+    @media (prefers-color-scheme: dark) { body { background: #1c1a17; color: #ece7df; } a { background: #d9a566; color: #1c1a17; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>找不到這個頁面</h1>
+    <p>網址可能已更改，或輸入有誤。</p>
+    <p><a href="/site/home.html">回到首頁</a></p>
+  </main>
+</body>
+</html>
 """
 
 
@@ -74,6 +102,7 @@ def build(out):
         if os.path.exists(src):
             shutil.copy(src, os.path.join(out, "data", f))
     open(os.path.join(out, "_headers"), "w", encoding="utf-8").write(HEADERS)
+    open(os.path.join(out, "404.html"), "w", encoding="utf-8").write(NOT_FOUND)
     for dp, dn, fs in os.walk(out):
         for d in dn:
             os.chmod(os.path.join(dp, d), 0o755)

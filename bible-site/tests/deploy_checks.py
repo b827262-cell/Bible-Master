@@ -38,7 +38,10 @@ def bundle():
         check("dist 有 data/blessing.json 與 data/home.json", "data/blessing.json" in files and "data/home.json" in files)
         bad = [f for f in files if re.match(r"(admin|tests|tools|tasks|prompts|logs|\.verify|\.git)/", f) or f.endswith((".md", ".py", ".sh", ".pid", ".log")) or os.path.basename(f).startswith(".") or "token" in f.lower()]
         check("dist 不含 admin／tests／tools／報告／腳本／token／隱藏檔", not bad, "、".join(bad[:6]))
-        check("dist 只含 index.html、_headers、site/、data/ 四種頂層項目", {f.split("/")[0] for f in files} <= {"index.html", "_headers", "site", "data"})
+        check("dist 只含 index.html、404.html、_headers、site/、data/ 五種頂層項目", {f.split("/")[0] for f in files} <= {"index.html", "404.html", "_headers", "site", "data"})
+        nf = open(os.path.join(out, "404.html"), encoding="utf-8").read() if "404.html" in files else ""
+        check("dist 有繁體中文的 404.html：說明找不到頁面、連回 /site/home.html、noindex、不載入外部資源、不是首頁轉址頁",
+              "找不到" in nf and 'href="/site/home.html"' in nf and "noindex" in nf and "http-equiv" not in nf and not re.search(r"https?://|<script", nf))
         big = [f for f in files if os.path.getsize(os.path.join(out, f)) > 25 * 1024 * 1024]
         check("dist 單檔都小於 25 MiB、檔案數小於 20000", not big and len(files) < 20000, "、".join(big))
         modes = [f for f in files if (os.stat(os.path.join(out, f)).st_mode & 0o777) != 0o644]
