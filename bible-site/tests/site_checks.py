@@ -391,6 +391,13 @@ def home_static():
     bare = strip_blocks(strip_blocks(src, "@media (prefers-reduced-motion: no-preference)"), "@keyframes")
     moving = [m.group(0) for m in re.finditer(r"animation\s*:\s*(?!none)[^;}]+|transition\s*:\s*(?!none)[^;}]+", bare)]
     check("home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡", not moving and "animation" in src, "；".join(moving[:3]) or "沒有任何動態效果")
+    ev = set(re.findall(r'document\.addEventListener\("(\w+)",\s*onFirstGesture', src))
+    arr = re.search(r"var GESTURES = \[([^\]]*)\]", src)
+    if arr and re.search(r"GESTURES\.forEach\(function \(name\) \{\s*document\.addEventListener\(name, onFirstGesture\)", src):
+        ev |= set(re.findall(r'"(\w+)"', arr.group(1)))
+    check("home.html 的「第一次觸碰就播」只掛在能取得使用者啟動權限的事件（click／pointerup／touchend＋keydown），不掛 pointerdown／touchstart／mousedown（手機瀏覽器不認，會播不出來）",
+          bool(ev & {"click", "pointerup", "touchend"}) and "keydown" in ev and not ev & {"pointerdown", "touchstart", "mousedown"}, "、".join(sorted(ev)) or "找不到 onFirstGesture 監聽")
+    check("home.html 第一次觸碰播放被拒絕時（例如那次觸碰只是捲動），會重新掛回監聽，下一次觸碰再試", bool(re.search(r"tryPlay\(\)\.then\([^)]*armFirstGesture|armFirstGesture\(\);\s*\}\s*\}\);\s*\}", src)) or "rearm" in src.lower())
     check("home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）", len(re.findall(r"@keyframes", src)) >= 3)
     check("home.html 的 audio 是 assets/home-music.mp3、loop、preload=none", bool(re.search(r"<audio[^>]*id=\"home-music\"", src)) and "assets/home-music.mp3" in src and bool(re.search(r"<audio[^>]*\bloop\b", src)) and bool(re.search(r"<audio[^>]*preload=\"none\"", src)))
     root = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()

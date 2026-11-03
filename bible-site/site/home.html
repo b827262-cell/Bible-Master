@@ -462,20 +462,29 @@
         return Promise.resolve(true);
       }
 
+      // 手機瀏覽器只把 click／pointerup／touchend／keydown 算成「使用者啟動」，pointerdown／touchstart 不算，
+      // 所以第一次觸碰要掛在放開手指的事件上；若那次觸碰只是捲動而被拒絕，就重新掛回去，下一次再試
+      var GESTURES = ["click", "pointerup", "touchend", "keydown"];
       function armFirstGesture() {
         function onFirstGesture(event) {
           if (event.target && event.target.closest && event.target.closest("#music-btn")) {
             return;
           }
           cleanup();
-          tryPlay();
+          tryPlay().then(function (ok) {
+            if (!ok) {
+              armFirstGesture();
+            }
+          });
         }
         function cleanup() {
-          document.removeEventListener("pointerdown", onFirstGesture);
-          document.removeEventListener("keydown", onFirstGesture);
+          GESTURES.forEach(function (name) {
+            document.removeEventListener(name, onFirstGesture);
+          });
         }
-        document.addEventListener("pointerdown", onFirstGesture);
-        document.addEventListener("keydown", onFirstGesture);
+        GESTURES.forEach(function (name) {
+          document.addEventListener(name, onFirstGesture);
+        });
       }
 
       tryPlay().then(function (ok) {
