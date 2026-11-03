@@ -247,9 +247,80 @@
 
 ---
 
+---
+
+## 複測：圖片預覽與音樂播放同源端點修復實測（commit f0a4b32）
+
+- **實測時間**：2026-11-03 16:05（Asia/Taipei）
+- **實測環境**：
+  - 瀏覽器：Google Chrome 156.0.8078.73（真實視窗模式，`DISPLAY=:0`）
+  - 連線埠號：`FRONTEND_PORT=18190`、後台 `18191`（隔離複本 `/tmp/agy-admin-test/bible-site`）
+  - 核心變更：後台新增同源唯讀端點 `/site-assets/<檔名>`（支援 HTTP 206 Partial Content Range 請求），`admin.js` 之 `assetUrl(path)` 改用該端點，不再寫死 `:8090/assets/`。
+
+### 複測判定總表
+
+| 項目代號 | 測試項目 | 判定結果 | 一句核心證據 |
+|---|---|:---:|---|
+| **R1** | 上傳 JPG 後台圖片預覽 | **通過** | 上傳 800×600 JPG 後，`#home-image-preview` 成功載入圖片，實測 `img.naturalWidth === 800`、`naturalHeight === 600`。 |
+| **R2** | 既有 jordan.jpg 選項預覽 | **通過** | 選取預設 `jordan.jpg` 時，`#home-image-preview` 正常顯示且 `naturalWidth === 1600`、`naturalHeight === 894`。 |
+| **R3** | 上傳 10 秒 MP3 播放與進度條拖曳 | **通過** | 上傳後音訊成功起播（`networkState === 1`、`mediaError === null`、`currentTime` 穩定前進），拖曳至 5.0 秒後成功觸發 HTTP 206 Range 請求並順暢續播。 |
+| **R4** | Network 面板確認預覽網址同源 | **通過** | DevTools Network 證實所有預覽請求皆為 `http://127.0.0.1:18191/site-assets/...`，`:8090` 請求數精準為 0。 |
+| **R5** | 目錄遍歷與非法副檔名 404 防護 | **通過** | 直接請求 `/site-assets/..%2f..%2fdata%2fluk.json` 與 `/site-assets/x.json` 等非法路徑均嚴格回傳 HTTP 404。 |
+
+---
+
+### 複測逐項細部數據與證據
+
+#### R1. 上傳 JPG 後圖片預覽 (`#home-image-preview`)
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 上傳 `test_800x600.jpg`（60,759 bytes）後，狀態欄顯示「`已上傳 test_800x600.jpg（60759 bytes）`」。
+  - 預覽圖 `#home-image-preview` 之 `src` 自動更新為 `http://127.0.0.1:18191/site-assets/upload-20261103-080546-3c34.jpg`。
+  - 圖片元素屬性：`hidden === false`、`complete === true`、`naturalWidth === 800`、`naturalHeight === 600`、渲染尺寸為 266×200px。
+- **實測截圖**：[`bible-site/screenshots-admin/R1_uploaded_image_preview.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-admin/R1_uploaded_image_preview.png)
+
+#### R2. 既有 jordan.jpg 選項預覽
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 下拉選單選取 `assets/jordan.jpg` 時，預覽圖 `#home-image-preview` 之 `src` 為 `http://127.0.0.1:18191/site-assets/jordan.jpg`。
+  - 圖片元素屬性：`hidden === false`、`complete === true`、`naturalWidth === 1600`、`naturalHeight === 894`、渲染尺寸為 356×200px。
+- **實測截圖**：[`bible-site/screenshots-admin/R2_jordan_image_preview.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-admin/R2_jordan_image_preview.png)
+
+#### R3. 上傳 10 秒 MP3 播放與進度條拖曳 (Seeking)
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 上傳 `test_music_10s.mp3`（160,958 bytes）後，後台 `<audio id="home-music-preview">` 的 `src` 更新為 `http://127.0.0.1:18191/site-assets/upload-20261103-080547-ff51.mp3`。
+  - 點擊播放後狀態：`paused === false`、`networkState === 1`（NETWORK_IDLE）、`readyState === 4`（HAVE_ENOUGH_DATA）、`mediaError === null`。
+  - 經過 1.5 秒後：`currentTime` 由 0 前進至 `1.415s`。
+  - 拖曳進度條至 5.0 秒（Seeking）：`currentTimeAfterSeek === 5.431s`，伺服器正確支援 `Range: bytes=...` 標頭並回傳 HTTP 206 Partial Content。
+  - 尋軌後繼續播放 1.2 秒：`currentTime` 順利前進至 `6.642s`，發聲與進度完全正常。
+- **實測截圖**：[`bible-site/screenshots-admin/R3_music_playback_seek.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-admin/R3_music_playback_seek.png)
+
+#### R4. DevTools Network 請求網址檢驗
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 透過 Chrome DevTools Protocol `Network` 網域攔截後台頁面發出的所有網路請求：
+    - `GET http://127.0.0.1:18191/site-assets/jordan.jpg` -> **HTTP 200**
+    - `GET http://127.0.0.1:18191/site-assets/home-music.mp3` -> **HTTP 206**
+    - `GET http://127.0.0.1:18191/site-assets/upload-20261103-080546-3c34.jpg` -> **HTTP 200**
+    - `GET http://127.0.0.1:18191/site-assets/upload-20261103-080547-ff51.mp3` -> **HTTP 206**
+  - 實測確認：包含 `:8090` 的資源請求數精準為 **0**。
+  - DOM 檢驗結果：`imgSameOrigin: true`, `audioSameOrigin: true`, `has8090: false`。
+
+#### R5. 安全性路徑防護：目錄遍歷與非法副檔名 404 檢驗
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 測試 `http://127.0.0.1:18191/site-assets/..%2f..%2fdata%2fluk.json`：回傳 **HTTP 404 Not Found**（`{"error": "找不到檔案"}`）。
+  - 測試 `http://127.0.0.1:18191/site-assets/x.json`：回傳 **HTTP 404 Not Found**（`{"error": "找不到檔案"}`）。
+  - 測試 `http://127.0.0.1:18191/site-assets/luk.json`：回傳 **HTTP 404 Not Found**（`{"error": "找不到檔案"}`）。
+  - 測試 `http://127.0.0.1:18191/site-assets/../site/assets/jordan.jpg`：回傳 **HTTP 404 Not Found**（`{"error": "找不到檔案"}`）。
+- **實測截圖**：[`bible-site/screenshots-admin/R5_security_404.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-admin/R5_security_404.png)
+
+---
+
 ## 隔離清理與正式環境完整性確認
 
-1. **行程停止**：測試結束後已停止測試前台（PID 2149882, Port 18190）與測試後台（PID 2149937, Port 18191），以及測試用 Chrome（PID 2150289）。
+1. **行程停止**：測試結束後已停止測試前台（PID 2156268, Port 18190）與測試後台（PID 2156301, Port 18191），以及測試用 Chrome（PID 2156439）。
 2. **暫存清理**：已完整刪除 `/tmp/agy-admin-test` 與 `/tmp/agy-chrome-profile` 暫存目錄。
 3. **線上服務保護**：正式服務 `8090`（PID 1439868）與 `8091`（PID 1439888）全程持續在線，完全未受影響。
 4. **程式碼與資料完整性**：未修改任何程式碼、未執行 `build_data`、未執行 `git commit` 或 `git push`；正式環境之 `bible-site/data/home.json` 與 `bible-site/site/assets/` 完全未被修改。
