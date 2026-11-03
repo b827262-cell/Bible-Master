@@ -465,6 +465,7 @@
       // 手機瀏覽器只把 click／pointerup／touchend／keydown 算成「使用者啟動」，pointerdown／touchstart 不算，
       // 所以第一次觸碰要掛在放開手指的事件上；若那次觸碰只是捲動而被拒絕，就重新掛回去，下一次再試
       var GESTURES = ["click", "pointerup", "touchend", "keydown"];
+      var disarmFirstGesture = function () {};
       function armFirstGesture() {
         function onFirstGesture(event) {
           if (event.target && event.target.closest && event.target.closest("#music-btn")) {
@@ -482,6 +483,7 @@
             document.removeEventListener(name, onFirstGesture);
           });
         }
+        disarmFirstGesture = cleanup;
         GESTURES.forEach(function (name) {
           document.addEventListener(name, onFirstGesture);
         });
@@ -494,6 +496,8 @@
       });
 
       musicBtn.addEventListener("click", function () {
+        // 使用者已經自己操作過按鈕：之後點畫面其他地方不可再自動播放
+        disarmFirstGesture();
         if (audio.paused) {
           tryPlay();
         } else {

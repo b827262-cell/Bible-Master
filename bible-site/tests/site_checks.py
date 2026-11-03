@@ -398,6 +398,9 @@ def home_static():
     check("home.html 的「第一次觸碰就播」只掛在能取得使用者啟動權限的事件（click／pointerup／touchend＋keydown），不掛 pointerdown／touchstart／mousedown（手機瀏覽器不認，會播不出來）",
           bool(ev & {"click", "pointerup", "touchend"}) and "keydown" in ev and not ev & {"pointerdown", "touchstart", "mousedown"}, "、".join(sorted(ev)) or "找不到 onFirstGesture 監聽")
     check("home.html 第一次觸碰播放被拒絕時（例如那次觸碰只是捲動），會重新掛回監聽，下一次觸碰再試", bool(re.search(r"tryPlay\(\)\.then\([^)]*armFirstGesture|armFirstGesture\(\);\s*\}\s*\}\);\s*\}", src)) or "rearm" in src.lower())
+    btn = re.search(r'musicBtn\.addEventListener\("click", function \(\) \{(.*?)\n      \}\);', src, re.S)
+    check("home.html 使用者按了 #music-btn 之後，就拆掉「第一次觸碰」的監聽（否則按暫停後，點別處又會自己播起來）",
+          bool(btn) and "disarmFirstGesture()" in btn.group(1) and "var disarmFirstGesture" in src and "disarmFirstGesture = cleanup" in src, "按鈕的 click 處理沒有呼叫 disarmFirstGesture()")
     check("home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）", len(re.findall(r"@keyframes", src)) >= 3)
     check("home.html 的 audio 是 assets/home-music.mp3、loop、preload=none", bool(re.search(r"<audio[^>]*id=\"home-music\"", src)) and "assets/home-music.mp3" in src and bool(re.search(r"<audio[^>]*\bloop\b", src)) and bool(re.search(r"<audio[^>]*preload=\"none\"", src)))
     root = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
