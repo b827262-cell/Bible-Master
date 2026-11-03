@@ -6949,3 +6949,252 @@ ConnectionResetError: [Errno 104] Connection reset by peer
 結果：全部通過
 ```
 **總結：3/3 項檢查通過**
+
+## 2026-11-03 23:36
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.json 凍結：固定 37 張卡，四個主題 20／6／5／6 張
+通過：blessing.json 凍結：每張卡的 id、主題、書卷章節、短文都和 tests/blessing_frozen.json 相同
+通過：blessing.json 凍結：四個主題的 id 與標題沒變
+通過：blessart：blessing-art.json 是物件，鍵都是 blessing.json 的主題 id
+通過：blessart：每個主題的設定剛好有 image、alt、edition 三個欄位
+通過：blessart：image 是 assets/ 底下的 jpg／png／webp 且檔案存在
+通過：blessart：alt 是 1–120 字、edition 是 0–20 字
+通過：blessart：blessing-art.json 沒有簡體字
+通過：blessart：blessing.html 讀 ../data/blessing-art.json（失敗時當作沒有圖）
+通過：blessart：blessing.html 有 .card-art 畫框、.card-edition 版次、a#art-download（有 download 屬性）
+通過：blessart：blessing.html 的圖片來源只來自設定檔（原始碼沒有寫死 assets/ 圖檔）
+通過：blessart：tools/art_convert.py 產生 JPG、3 MB 以內、比例與尺寸不變（1800×2400 不縮、不裁）（/tmp/tmpozztk7r6/in.png（1800×2400）→ /tmp/tmpozztk7r6/out.jpg（1800×2400，比例不變、不加框，JPG 品質 92，0.04 MB）
+）
+通過：blessart：tools/art_convert.py 不加框（邊緣仍是原圖的顏色）（[[254, 0, 0], [254, 0, 0], [254, 0, 0], [254, 0, 0]]）
+通過：home.json 只有 book、ch、v、image、alt、music 六個欄位（alt,book,ch,image,music,v）
+通過：home.json 的書卷／章／節在 data/*.json 存在（luk 4:27）
+通過：home.json 的 image 是 assets/ 底下的檔名且檔案存在（assets/jordan.jpg）
+通過：home.json 的 music 是 assets/ 底下的檔名且檔案存在（assets/home-music.mp3）
+通過：home.json 的 image 副檔名是 jpg／png／webp，music 是 mp3
+通過：home.json 的 alt 是 1–120 字且含繁體中文
+通過：home.json 沒有簡體字
+通過：home.json 沒有任何經文文字（沒有連續 8 字與經文相同）
+通過：site/home.html 存在（找不到檔案）
+通過：home.html 沒有寫死經文（路加福音 4:27 與 home.json 指定的節，沒有任何連續 8 字相同）
+通過：home.html 從 data/home.json 讀設定（fetch home.json，失敗時用預設值）
+通過：home.html 讀經文用 Bible.load（不自己 fetch、不寫死）
+通過：home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡（沒有任何動態效果）
+通過：home.html 的「第一次觸碰就播」只掛在能取得使用者啟動權限的事件（click／pointerup／touchend＋keydown），不掛 pointerdown／touchstart／mousedown（手機瀏覽器不認，會播不出來）（click、keydown、pointerup、touchend）
+通過：home.html 第一次觸碰播放被拒絕時（例如那次觸碰只是捲動），會重新掛回監聽，下一次觸碰再試
+通過：home.html 使用者按了 #music-btn 之後，就拆掉「第一次觸碰」的監聽（否則按暫停後，點別處又會自己播起來）（按鈕的 click 處理沒有呼叫 disarmFirstGesture()）
+通過：home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）
+通過：home.html 的 audio 是 assets/home-music.mp3、loop、preload=none
+通過：根目錄 index.html 的 meta refresh、location.replace、備援連結都指向 site/home.html（home.html 出現 3 次）
+通過：site/index.html 的 <main> 內有「回首頁」連到 home.html
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：zonemusic：zone-music.json 只有 music 一個欄位（music）
+通過：zonemusic：zone-music.json 的 music 是 assets/ 底下的 .mp3 檔名且檔案存在、不是空檔（assets/upload-20261103-150550-007e.mp3）
+通過：zonemusic：index.html 在 app.js 之後載入 music.js
+通過：zonemusic：index.html 沒有自己放 <audio> 或 #zone-music-btn（由 music.js 產生）
+通過：zonemusic：search.html 在 app.js 之後載入 music.js
+通過：zonemusic：search.html 沒有自己放 <audio> 或 #zone-music-btn（由 music.js 產生）
+通過：zonemusic：card.html 在 app.js 之後載入 music.js
+通過：zonemusic：card.html 沒有自己放 <audio> 或 #zone-music-btn（由 music.js 產生）
+通過：zonemusic：blessing.html 在 app.js 之後載入 music.js
+通過：zonemusic：blessing.html 沒有自己放 <audio> 或 #zone-music-btn（由 music.js 產生）
+通過：zonemusic：home.html 不載入 music.js（首頁自有音樂、閱讀頁安靜）
+通過：zonemusic：chapter.html 不載入 music.js（首頁自有音樂、閱讀頁安靜）
+通過：zonemusic：site/music.js 存在（找不到檔案）
+通過：zonemusic：music.js 讀 ../data/zone-music.json，失敗時退回 assets/home-music.mp3
+通過：zonemusic：music.js 產生 #zone-music-btn（aria-pressed）與 #zone-music（loop、preload=none），不用 autoplay 屬性
+通過：zonemusic：music.js 的「第一次觸碰就播」只掛 click／pointerup／touchend＋keydown，不掛 pointerdown／touchstart／mousedown（click、keydown、pointerup、touchend）
+通過：zonemusic：music.js 用 sessionStorage 的 bm.zone.on／bm.zone.t／bm.zone.src，且存取都包在 try 裡，pagehide 時存秒數
+通過：zonemusic：music.js 按過按鈕後就拆掉「第一次觸碰」監聽（disarm），且忽略來自 #zone-music-btn 的事件
+通過：zonemusic：music.js 沒有寫死經文、沒有載入外部資源
+通過：zonemusic：style.css 有 #zone-music-btn 的樣式（固定位置、最小 44px）
+通過：zonemusic：style.css 的 animation 都包在 prefers-reduced-motion: no-preference 裡
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 254628, "red": 0, "blue": 0, "gold": 38469}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 237, "y": 125, "w": 250, "h": 44, "clipped": false}, {"id": "peace", "x": 499, "y": 125, "w": 250, "h": 44, "clipped": false}, {"id": "rest", "x": 237, "y": 181, "w": 250, "h": 44, "clipped": false}, {"id": "faith", "x": 499, "y": 181, "w": 250, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 237, "y": 125, "w": 250, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 499, "y": 125, "w": 25）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-05", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 10:10（和合本）", "title": "天父賜你平安", "verse": "盜賊來、無非要偷竊、殺害、毀壞．我來了、是要叫羊〈或作人〉得生命、並且得的更豐盛。", "message": "我渴望給你的，不只是每天匆忙地勉強度日，而是從）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-09", "work-08", "work-10", "work-16", "work-23", "work-18", "work-09"]）
+通過：home.html 的 .home-verse 逐字等於 home.json 指定的經文（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html 的 .home-ref 是 home.json 指定的出處（路加福音 4:27（和合本） / 預期 路加福音 4:27）
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html 的英雄圖是 home.json 指定的圖、真的載入、alt 等於 home.json 的 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html 的 <audio> 是 home.json 指定的音樂、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」連到 home.json 指定那一章的那一節（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+通過：home.html (自訂設定) 的 .home-verse 逐字等於 home.json 指定的經文（神愛世人、甚至將他的獨生子賜給他們、叫一切信他的、不至滅亡、反得永生。）
+通過：home.html (自訂設定) 的 .home-ref 是 home.json 指定的出處（約翰福音 3:16（和合本） / 預期 約翰福音 3:16）
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html (自訂設定) 的英雄圖是 home.json 指定的圖、真的載入、alt 等於 home.json 的 alt（{"src": "assets/custom-pic.jpg", "naturalWidth": 1600, "alt": "測試用的替代圖片說明", "complete": true}）
+通過：home.html (自訂設定) 的 <audio> 是 home.json 指定的音樂、loop、preload=none（{"src": "assets/custom-song.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "神愛世人、甚至將他的獨生子賜給他們、叫一切信他的、不至滅亡、反得永生。", "ref": "約翰福音 3:16（和合本）", "h1": "四福音", "img": {"src": "assets/custom-pic.jpg", "naturalWidth": 1600, "alt": "測試用的替代圖片說明", "complete": true}, "audio": {"src": "assets/custom-song.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 →", "href": "ch）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=jhn&ch=3#v16", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」 (自訂設定)連到 home.json 指定那一章的那一節（chapter.html?book=jhn&ch=3#v16）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+通過：home.html (沒有 home.json) 的 .home-verse 逐字等於 home.json 指定的經文（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html (沒有 home.json) 的 .home-ref 是 home.json 指定的出處（路加福音 4:27（和合本） / 預期 路加福音 4:27）
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html (沒有 home.json) 的英雄圖是 home.json 指定的圖、真的載入、alt 等於 home.json 的 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html (沒有 home.json) 的 <audio> 是 home.json 指定的音樂、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」 (沒有 home.json)連到 home.json 指定那一章的那一節（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+通過：zonemusic（index.html → search.html → card.html）：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：<audio> 是 zone-music.json 指定的音樂、loop、preload=none（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：第一次進來（沒有任何紀錄）會嘗試自動播放（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：按下按鈕暫停，並記下 bm.zone.on=0（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：跳到下一頁，暫停狀態被記住（不自己播起來）（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：再按一次開始播放，記下 bm.zone.on=1（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（index.html → search.html → card.html）：沒有 JavaScript 錯誤
+通過：zonemusic（index.html → search.html → card.html）：按鈕至少 44×44、在視窗內、頁面沒有水平溢出（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 348, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 360}]）
+通過：zonemusic（index.html → search.html → card.html）：導覽列仍是四項、恰有一項標成目前頁（[[4, 1], [4, 1], [4, 1], [4, 1], [4, 1]]）
+通過：zonemusic（blessing.html → card.html → index.html）：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：<audio> 是 zone-music.json 指定的音樂、loop、preload=none（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：第一次進來（沒有任何紀錄）會嘗試自動播放（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：按下按鈕暫停，並記下 bm.zone.on=0（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：跳到下一頁，暫停狀態被記住（不自己播起來）（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：再按一次開始播放，記下 bm.zone.on=1（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0）
+通過：zonemusic（blessing.html → card.html → index.html）：沒有 JavaScript 錯誤
+通過：zonemusic（blessing.html → card.html → index.html）：按鈕至少 44×44、在視窗內、頁面沒有水平溢出（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/upload-20261103-150550-007e.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/upload-20261103-150550-007e.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 308, "bottom": 788, "vw": 320, "vh": 800, "scrollW": 320}]）
+通過：zonemusic（blessing.html → card.html → index.html）：導覽列仍是四項、恰有一項標成目前頁（[[4, 1], [4, 1], [4, 1], [4, 1], [4, 1]]）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：<audio> 是 zone-music.json 指定的音樂、loop、preload=none（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：第一次進來（沒有任何紀錄）會嘗試自動播放（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：按下按鈕暫停，並記下 bm.zone.on=0（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：跳到下一頁，暫停狀態被記住（不自己播起來）（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：再按一次開始播放，記下 bm.zone.on=1（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/custom-zone.mp3", "rs": 1, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": "as）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：沒有 JavaScript 錯誤
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：按鈕至少 44×44、在視窗內、頁面沒有水平溢出（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/custom-zone.mp3", "rs": 0, "ns": 1, "err": null, "dur": null, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/custom-zone.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}]）
+通過：zonemusic (自訂設定)（card.html → search.html → blessing.html）：導覽列仍是四項、恰有一項標成目前頁（[[4, 1], [4, 1], [4, 1], [4, 1], [4, 1]]）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：<audio> 是 zone-music.json 指定的音樂、loop、preload=none（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：第一次進來（沒有任何紀錄）會嘗試自動播放（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：按下按鈕暫停，並記下 bm.zone.on=0（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：跳到下一頁，暫停狀態被記住（不自己播起來）（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：再按一次開始播放，記下 bm.zone.on=1（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}, {"btn": true, "text": "♪ 播放音樂", "pressed": "false", "paused": true, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": "0", "saved": "0", "savedSrc": ）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：沒有 JavaScript 錯誤
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：按鈕至少 44×44、在視窗內、頁面沒有水平溢出（[{"btn": true, "text": "暫停音樂", "pressed": "true", "paused": false, "src": "assets/home-music.mp3", "rs": 4, "ns": 1, "err": null, "dur": 178.860408, "loop": true, "preload": "none", "t": 0, "on": null, "saved": null, "savedSrc": "assets/home-music.mp3", "navCount": 4, "navActive": 1, "w": 110, "h": 44, "right": 363, "bottom": 788, "vw": 375, "vh": 800, "scrollW": 375}]）
+通過：zonemusic (沒有 zone-music.json)（card.html → search.html → blessing.html）：導覽列仍是四項、恰有一項標成目前頁（[[4, 1], [4, 1], [4, 1], [4, 1], [4, 1]]）
+通過：blessart (work 紅、peace 藍)：有圖的主題（work）卡片頂部顯示 .card-art，img 的 src／alt 等於設定，圖真的載入（{"fig": true, "shown": true, "src": "assets/art-work.png", "alt": "測試用主題圖：金黃麥田", "natural": 600, "box": {"w": 502, "h": 753, "right": 744}, "edition": "2026 年 11 月版", "editionShown": true, "dl": true, "dlShown": true, "dlHref": "assets/art-work.png", "dlName": "blessing-work-202611.png", "dlTag": "A）
+通過：blessart (work 紅、peace 藍)：版次徽章 .card-edition 顯示設定的版次文字（2026 年 11 月版）
+通過：blessart (work 紅、peace 藍)：#blessing-card 的 data-art 等於該主題的圖片路徑（assets/art-work.png）
+通過：blessart (work 紅、peace 藍)：「下載經文圖」a#art-download 顯示，href 是原圖路徑，download 檔名是 blessing-work-….png（{"dlTag": "A", "dlShown": true, "dlHref": "assets/art-work.png", "dlName": "blessing-work-202611.png"}）
+通過：blessart (work 紅、peace 藍)：下載連結抓到的檔案與上傳的原圖位元組相同（不重新壓縮）
+通過：blessart (work 紅、peace 藍)：下載圖片（canvas）把主題圖合成進去（紅色像素 ≥ 10%），文字仍在，直式比原本更高（{"canvasPixels": {"corner": [251, 247, 238], "dark": 417610, "red": 405600, "blue": 0, "gold": 0}, "H": 1208}）
+通過：blessart (work 紅、peace 藍)：金框只在圖檔裡（生成時畫好），頁面不另加框（.card-art 沒有邊框、沒有漸層），三處看到的是同一張圖（{"bg": "none", "borderImage": "none", "border": 0}）
+通過：blessart (work 紅、peace 藍)：下載圖片（canvas）不另畫框（測試圖是純紅，canvas 不該出現金色）（{"corner": [251, 247, 238], "dark": 417610, "red": 405600, "blue": 0, "gold": 0}）
+通過：blessart (work 紅、peace 藍)：切換到有圖的另一主題（peace）會換圖，canvas 也跟著換成藍色（{"fig": true, "shown": true, "src": "assets/art-peace.png", "alt": "測試用主題圖：靜水旁的羊群", "natural": 600, "box": {"w": 502, "h": 753, "right": 744}, "edition": "2026 年 11 月版", "editionShown": true, "dl": true, "dlShown": true, "dlHref": "assets/art-peace.png", "dlName": "blessing-peace-202611.png", "dlTag）
+通過：blessart (work 紅、peace 藍)：320px 寬時畫框在視窗內、頁面沒有水平溢出（{"w": 231, "h": 347, "right": 268}）
+通過：blessart (work 紅、peace 藍)：沒有設定圖的主題（rest）維持純文字卡（{"fig": true, "shown": false, "src": "", "alt": "", "natural": 0, "box": null, "edition": "", "editionShown": false, "dl": true, "dlShown": false, "dlHref": "", "dlName": null, "dlTag": "A", "artAttr": "", "vw": 1000, "scrollW": 1000, "frame": {"bg": "none", "borderImage": "none", "border": 0}}）
+通過：blessart (work 紅、peace 藍)：沒有 JavaScript 錯誤
+通過：blessart (圖檔不存在)：沒有可用的圖時，work 卡片維持純文字（沒有 .card-art、沒有版次、#art-download 隱藏、data-art 為空）（{"fig": true, "shown": false, "src": "", "alt": "", "natural": 0, "box": null, "edition": "", "editionShown": false, "dl": true, "dlShown": false, "dlHref": "", "dlName": null, "dlTag": "A", "artAttr": "", "vw": 1000, "scrollW": 1000, "frame": {"bg": "none", "borderImage": "none", "border": 0}}）
+通過：blessart (圖檔不存在)：沒有可用的圖時，下載圖片照舊只畫文字（底色 #fbf7ee、沒有紅色像素、文字在）（{"corner": [251, 247, 238], "dark": 12010, "red": 0, "blue": 0, "gold": 0}）
+通過：blessart (圖檔不存在)：沒有設定圖的主題（rest）維持純文字卡（{"fig": true, "shown": false, "src": "", "alt": "", "natural": 0, "box": null, "edition": "", "editionShown": false, "dl": true, "dlShown": false, "dlHref": "", "dlName": null, "dlTag": "A", "artAttr": "", "vw": 1000, "scrollW": 1000, "frame": {"bg": "none", "borderImage": "none", "border": 0}}）
+通過：blessart (圖檔不存在)：沒有 JavaScript 錯誤
+通過：blessart (沒有 blessing-art.json)：沒有可用的圖時，work 卡片維持純文字（沒有 .card-art、沒有版次、#art-download 隱藏、data-art 為空）（{"fig": true, "shown": false, "src": "", "alt": "", "natural": 0, "box": null, "edition": "", "editionShown": false, "dl": true, "dlShown": false, "dlHref": "", "dlName": null, "dlTag": "A", "artAttr": "", "vw": 1000, "scrollW": 1000, "frame": {"bg": "none", "borderImage": "none", "border": 0}}）
+通過：blessart (沒有 blessing-art.json)：沒有可用的圖時，下載圖片照舊只畫文字（底色 #fbf7ee、沒有紅色像素、文字在）（{"corner": [251, 247, 238], "dark": 12010, "red": 0, "blue": 0, "gold": 0}）
+通過：blessart (沒有 blessing-art.json)：沒有設定圖的主題（rest）維持純文字卡（{"fig": true, "shown": false, "src": "", "alt": "", "natural": 0, "box": null, "edition": "", "editionShown": false, "dl": true, "dlShown": false, "dlHref": "", "dlName": null, "dlTag": "A", "artAttr": "", "vw": 1000, "scrollW": 1000, "frame": {"bg": "none", "borderImage": "none", "border": 0}}）
+通過：blessart (沒有 blessing-art.json)：沒有 JavaScript 錯誤
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
