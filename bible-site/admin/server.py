@@ -7,21 +7,27 @@
   - 測試報告、派工進度與任務追蹤
 """
 import argparse
+import hmac
 import http.server
 import json
 import os
 import re
+import secrets
 import socketserver
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.parse
 import urllib.request
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-SITE_ROOT = os.path.abspath(os.path.join(HERE, ".."))
-PROJECT_ROOT = os.path.abspath(os.path.join(SITE_ROOT, ".."))
+# 站台根目錄（內含 data/ 與 site/）；可用環境變數覆蓋，測試會指到暫存目錄
+SITE_ROOT = os.path.abspath(os.environ.get("BIBLE_SITE_ROOT") or os.path.join(HERE, ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+# 後台寫入權杖檔；每次啟動重新產生，可用環境變數覆蓋
+TOKEN_FILE = os.path.abspath(os.environ.get("BIBLE_ADMIN_TOKEN_FILE") or os.path.join(HERE, ".token"))
 
 BOOKS = [
     ("mat", "馬太福音", 28, 1071),
@@ -71,6 +77,187 @@ MODEL_NODES = [
 
 REPORT_WHITELIST = ["TEST-REPORT.md", "FAILS.md", "DISPATCH-REPORT.md", "PROGRESS.md", "CHANGELOG.md"]
 ACTION_LOCK = threading.Lock()
+
+# ---- 主頁設定（寫入端點）----
+BOOK_KEYS = ("mat", "mrk", "luk", "jhn")
+HOME_FIELDS = ("book", "ch", "v", "image", "alt", "music")
+HOME_DEFAULTS = {
+    "book": "luk",
+    "ch": 4,
+    "v": 27,
+    "image": "assets/jordan.jpg",
+    "alt": "一位男子站在約但河水中，仰望從雲層灑下的光",
+    "music": "assets/home-music.mp3",
+}
+IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
+MUSIC_EXTS = (".mp3",)
+ASSET_RE = re.compile(r"^assets/[A-Za-z0-9._-]+$")
+HOME_MAX_BODY = 65536
+UPLOAD_MAX = {"image": 5 * 1024 * 1024, "music": 8 * 1024 * 1024}
+LOCAL_HOSTNAMES = ("127.0.0.1", "localhost", "::1")
+# 允許呼叫 /api/token 與寫入端點的額外主機名（逗號分隔）
+ALLOWED_HOSTS = tuple(
+    h.strip().lower()
+    for h in (os.environ.get("BIBLE_ADMIN_ALLOWED_HOSTS") or "").split(",")
+    if h.strip()
+)
+
+ADMIN_TOKEN = ""  # 啟動時由 init_token() 產生
+
+
+def init_token():
+    """產生本次啟動的寫入權杖，並以 600 權限寫入權杖檔（每次啟動重新產生）。"""
+    global ADMIN_TOKEN
+    ADMIN_TOKEN = secrets.token_urlsafe(32)
+    fd = os.open(TOKEN_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        os.write(fd, ADMIN_TOKEN.encode("utf-8"))
+    finally:
+        os.close(fd)
+    try:
+        os.chmod(TOKEN_FILE, 0o600)
+    except OSError:
+        pass
+    return ADMIN_TOKEN
+
+
+def home_config_path():
+    return os.path.join(SITE_ROOT, "data", "home.json")
+
+
+def load_home_config():
+    """讀 home.json；不存在或壞掉時回預設值（深拷貝，避免污染常數）。"""
+    cfg = dict(HOME_DEFAULTS)
+    try:
+        with open(home_config_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            for k in HOME_FIELDS:
+                if k in data:
+                    cfg[k] = data[k]
+    except (OSError, ValueError):
+        pass
+    return cfg
+
+
+def list_assets():
+    """回傳 (images, music)：site/assets/ 下的檔名，格式 assets/<檔名>，已排序。"""
+    images, music = [], []
+    assets_dir = os.path.join(SITE_ROOT, "site", "assets")
+    try:
+        names = sorted(os.listdir(assets_dir))
+    except OSError:
+        return images, music
+    for name in names:
+        if not os.path.isfile(os.path.join(assets_dir, name)):
+            continue
+        low = name.lower()
+        if low.endswith(IMAGE_EXTS):
+            images.append("assets/" + name)
+        elif low.endswith(MUSIC_EXTS):
+            music.append("assets/" + name)
+    return images, music
+
+
+def atomic_write_json(path, data):
+    """先寫同目錄暫存檔再 os.replace；任何錯誤都清掉暫存檔。"""
+    directory = os.path.dirname(path) or "."
+    fd, tmp = tempfile.mkstemp(dir=directory, prefix=".home-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def valid_book_data(key):
+    """回傳 (chapters, verses_by_ch) 或 None。"""
+    if key not in BOOK_KEYS:
+        return None
+    try:
+        with open(os.path.join(SITE_ROOT, "data", key + ".json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("chapters"), list):
+        return None
+    return data
+
+
+def validate_home_config(obj):
+    """驗證主頁設定；通過回 (cfg, None)，失敗回 (None, 錯誤訊息)。"""
+    if not isinstance(obj, dict):
+        return None, "內容必須是 JSON 物件"
+    if set(obj.keys()) != set(HOME_FIELDS):
+        return None, "欄位必須剛好是 book、ch、v、image、alt、music"
+    book, ch, v = obj.get("book"), obj.get("ch"), obj.get("v")
+    if not isinstance(book, str) or book not in BOOK_KEYS:
+        return None, "書卷代號不正確"
+    for label, val in (("章", ch), ("節", v)):
+        if isinstance(val, bool) or not isinstance(val, int):
+            return None, label + "必須是整數"
+    data = valid_book_data(book)
+    if data is None:
+        return None, "讀不到該書卷的經文資料"
+    chapters = data.get("chapters") or []
+    chapter = None
+    for c in chapters:
+        if isinstance(c, dict) and c.get("ch") == ch:
+            chapter = c
+            break
+    if chapter is None:
+        return None, "指定的章不存在"
+    verses = chapter.get("verses") or []
+    if not any(isinstance(x, dict) and x.get("v") == v for x in verses):
+        return None, "指定的節不存在"
+
+    for label, field, exts in (("圖片", "image", IMAGE_EXTS), ("音樂", "music", MUSIC_EXTS)):
+        val = obj.get(field)
+        if not isinstance(val, str) or not ASSET_RE.match(val) or ".." in val:
+            return None, label + "路徑不正確"
+        if not val.lower().endswith(exts):
+            return None, label + "副檔名不正確"
+        if not os.path.isfile(os.path.join(SITE_ROOT, "site", val)):
+            return None, label + "檔案不存在"
+
+    alt = obj.get("alt")
+    if not isinstance(alt, str):
+        return None, "圖片說明必須是文字"
+    alt = alt.strip()
+    if not 1 <= len(alt) <= 120:
+        return None, "圖片說明長度必須是 1 到 120 字"
+    return {
+        "book": book,
+        "ch": ch,
+        "v": v,
+        "image": obj["image"],
+        "alt": alt,
+        "music": obj["music"],
+    }, None
+
+
+def sniff_upload(kind, data):
+    """用 magic bytes 判斷真實格式；回副檔名（不含點）或 None。"""
+    if kind == "image":
+        if data.startswith(b"\xff\xd8\xff"):
+            return "jpg"
+        if data.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "png"
+        if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+            return "webp"
+        return None
+    if data.startswith(b"ID3"):
+        return "mp3"
+    if len(data) >= 2 and data[0] == 0xFF and (data[1] & 0xE0) == 0xE0:
+        return "mp3"
+    return None
+
 
 
 def probe_url(url, timeout=2.0):
@@ -124,6 +311,12 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_report(report_name)
         elif path == "/api/ping":
             self.send_json({"status": "ok", "time": time.time()})
+        elif path == "/api/token":
+            self.handle_api_token()
+        elif path == "/api/home":
+            self.handle_api_home_get()
+        elif path.startswith("/api/book/"):
+            self.handle_api_book(path[len("/api/book/"):])
         elif path.startswith("/api/"):
             # 未認知的 API 端點
             self.send_json({"error": "找不到該操作端點"}, code=404)
@@ -148,6 +341,24 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+
+        # 寫入端點（主頁設定、上傳）需要額外的權杖與 Host 檢查
+        if path in ("/api/home", "/api/home/reset", "/api/upload"):
+            if not self.check_write_auth():
+                return
+            try:
+                if path == "/api/home":
+                    self.handle_api_home_post()
+                elif path == "/api/home/reset":
+                    self.handle_api_home_reset()
+                else:
+                    self.handle_api_upload(parsed)
+            except Exception:
+                self.send_json({"error": "伺服器處理請求時發生錯誤"}, code=500)
+            return
+
         # 權限檢查：必須有 X-Bible-Admin 標頭（值為 "1"）
         if self.headers.get("X-Bible-Admin") != "1":
             self.send_json({"error": "缺少 X-Bible-Admin 標頭"}, code=403)
@@ -161,9 +372,6 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"error": "不允許的來源"}, code=403)
                 return
 
-        parsed = urllib.parse.urlparse(self.path)
-        path = parsed.path
-
         if path == "/api/action/check_all":
             self.handle_run_command([sys.executable, "bible-site/tools/check_all.py"], "自動全檢驗 (check_all.py)")
         elif path == "/api/action/visual_checks":
@@ -174,6 +382,216 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_run_command(["node", "bible-site/tests/smoke.js"], "基礎冒煙測試 (smoke.js)")
         else:
             self.send_json({"error": "找不到該操作端點"}, code=404)
+
+    # ---------- 寫入端點共用檢查 ----------
+    @staticmethod
+    def host_name(host_header):
+        """從 Host 標頭取出主機名（去掉埠號與 IPv6 方括號）。"""
+        value = (host_header or "").strip()
+        if not value:
+            return ""
+        if value.startswith("["):
+            end = value.find("]")
+            return value[1:end].lower() if end != -1 else value.lower()
+        if ":" in value:
+            return value.rsplit(":", 1)[0].lower()
+        return value.lower()
+
+    def host_allowed(self):
+        name = self.host_name(self.headers.get("Host"))
+        return bool(name) and (name in LOCAL_HOSTNAMES or name in ALLOWED_HOSTS)
+
+    def check_write_auth(self):
+        """依序檢查四項寫入權限；任何一項不過就回 403 且不讀內容、不寫檔。"""
+        if self.headers.get("X-Bible-Admin") != "1":
+            self.send_json({"error": "缺少 X-Bible-Admin 標頭"}, code=403)
+            return False
+        token = self.headers.get("X-Bible-Token") or ""
+        if not ADMIN_TOKEN or not hmac.compare_digest(token, ADMIN_TOKEN):
+            self.send_json({"error": "寫入權杖不正確"}, code=403)
+            return False
+        origin = self.headers.get("Origin")
+        if origin is not None and origin != "http://" + self.headers.get("Host", ""):
+            self.send_json({"error": "不允許的來源"}, code=403)
+            return False
+        if not self.host_allowed():
+            self.send_json({"error": "不允許的主機位址"}, code=403)
+            return False
+        return True
+
+    def read_body(self, limit):
+        """依 Content-Length 讀取請求內容；超過 limit 回 None（不讀內容）。"""
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        if length > limit:
+            return None
+        if length <= 0:
+            return b""
+        return self.rfile.read(length)
+
+    def reject_too_large(self):
+        """回 413；內容不落地、不解析，只把連線上剩餘的位元組讀掉丟棄，
+        避免客戶端還在送出內容時就關閉連線而收到 RST（看不到 413）。"""
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        self.send_json({"error": "內容超過大小上限"}, code=413)
+        try:
+            self.wfile.flush()
+        except OSError:
+            pass
+        remaining = length
+        while remaining > 0:
+            try:
+                chunk = self.rfile.read(min(65536, remaining))
+            except OSError:
+                break
+            if not chunk:
+                break
+            remaining -= len(chunk)
+        self.close_connection = True
+
+    # ---------- 主頁設定 ----------
+    def handle_api_token(self):
+        if not self.host_allowed():
+            self.send_json({"error": "不允許的主機位址"}, code=403)
+            return
+        origin = self.headers.get("Origin")
+        if origin is not None and origin != "http://" + self.headers.get("Host", ""):
+            self.send_json({"error": "不允許的來源"}, code=403)
+            return
+        self.send_json({"token": ADMIN_TOKEN})
+
+    def handle_api_home_get(self):
+        images, music = list_assets()
+        self.send_json({
+            "config": load_home_config(),
+            "defaults": dict(HOME_DEFAULTS),
+            "images": images,
+            "music": music,
+        })
+
+    def handle_api_book(self, key):
+        if key not in BOOK_KEYS:
+            self.send_json({"error": "找不到該書卷"}, code=404)
+            return
+        path = os.path.join(SITE_ROOT, "data", key + ".json")
+        try:
+            with open(path, "rb") as f:
+                body = f.read()
+        except OSError:
+            self.send_json({"error": "讀不到該書卷的經文資料"}, code=404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def handle_api_home_post(self):
+        raw = self.read_body(HOME_MAX_BODY)
+        if raw is None:
+            self.reject_too_large()
+            return
+        try:
+            obj = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            self.send_json({"error": "內容不是合法的 JSON"}, code=400)
+            return
+        cfg, err = validate_home_config(obj)
+        if err:
+            self.send_json({"error": err}, code=400)
+            return
+        try:
+            atomic_write_json(home_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入主頁設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    def handle_api_home_reset(self):
+        # 內容不使用，但要把連線上的位元組讀掉，避免影響 keep-alive 的後續請求
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        if length > 0:
+            self.rfile.read(length)
+        cfg = dict(HOME_DEFAULTS)
+        try:
+            atomic_write_json(home_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入主頁設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    def handle_api_upload(self, parsed):
+        query = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+        kind = (query.get("kind") or [""])[0]
+        name = (query.get("name") or [""])[0]
+        if kind not in UPLOAD_MAX:
+            self.send_json({"error": "上傳類型只能是 image 或 music"}, code=400)
+            return
+        # 原檔名只用於顯示；只取其副檔名做白名單檢查，不影響存檔路徑
+        base = os.path.basename(name.replace("\\", "/"))
+        ext = os.path.splitext(base)[1].lower()
+        allowed = IMAGE_EXTS if kind == "image" else MUSIC_EXTS
+        if ext not in allowed:
+            self.send_json({"error": "檔案副檔名不正確"}, code=400)
+            return
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        if length <= 0:
+            self.send_json({"error": "沒有收到檔案內容"}, code=400)
+            return
+        if length > UPLOAD_MAX[kind]:
+            self.reject_too_large()
+            return
+        data = self.rfile.read(length)
+        real_ext = sniff_upload(kind, data)
+        if real_ext is None:
+            self.send_json({"error": "檔案格式不符"}, code=400)
+            return
+        assets_dir = os.path.join(SITE_ROOT, "site", "assets")
+        try:
+            os.makedirs(assets_dir, exist_ok=True)
+        except OSError:
+            self.send_json({"error": "無法建立上傳目錄"}, code=500)
+            return
+        stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+        saved = None
+        for _ in range(20):
+            filename = "upload-%s-%s.%s" % (stamp, secrets.token_hex(2), real_ext)
+            target = os.path.join(assets_dir, filename)
+            try:
+                fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            except FileExistsError:
+                continue
+            except OSError:
+                self.send_json({"error": "無法建立上傳檔案"}, code=500)
+                return
+            try:
+                with os.fdopen(fd, "wb") as f:
+                    f.write(data)
+                saved = filename
+            except OSError:
+                try:
+                    os.unlink(target)
+                except OSError:
+                    pass
+                self.send_json({"error": "寫入上傳檔案失敗"}, code=500)
+                return
+            break
+        if saved is None:
+            self.send_json({"error": "無法產生不重複的檔名"}, code=500)
+            return
+        self.send_json({"ok": True, "path": "assets/" + saved, "bytes": len(data)})
 
     def handle_api_status(self):
         # 1. 前台伺服器檢測
@@ -345,6 +763,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 def run_server(host="127.0.0.1", port=8091):
+    init_token()
     server = ThreadingHTTPServer((host, port), AdminRequestHandler)
     print(f"=================================================================")
     print(f" 📖 Bible-Master 後台管理與運維服務啟動成功！")

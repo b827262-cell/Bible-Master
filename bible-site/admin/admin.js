@@ -200,6 +200,358 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 5. 主頁設定
+  const BOOK_NAMES = { mat: "馬太福音", mrk: "馬可福音", luk: "路加福音", jhn: "約翰福音" };
+  const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+  const MUSIC_MAX_BYTES = 8 * 1024 * 1024;
+
+  let adminToken = "";      // 只放在記憶體，不寫入 localStorage
+  let bookCache = {};       // 書卷 JSON 快取
+  let homeDefaults = null;
+
+  const homeEls = {
+    section: document.getElementById("home-settings"),
+    book: document.getElementById("home-book"),
+    ch: document.getElementById("home-ch"),
+    v: document.getElementById("home-v"),
+    verse: document.getElementById("home-verse-preview"),
+    imageFile: document.getElementById("home-image-file"),
+    imageSelect: document.getElementById("home-image-select"),
+    imagePreview: document.getElementById("home-image-preview"),
+    alt: document.getElementById("home-alt"),
+    musicFile: document.getElementById("home-music-file"),
+    musicSelect: document.getElementById("home-music-select"),
+    musicPreview: document.getElementById("home-music-preview"),
+    save: document.getElementById("home-save"),
+    reset: document.getElementById("home-reset"),
+    open: document.getElementById("home-open"),
+    status: document.getElementById("home-status")
+  };
+
+  function homeStatus(text, kind) {
+    const el = homeEls.status;
+    if (!el) return;
+    el.textContent = text;
+    el.className = "home-status" + (kind ? " is-" + kind : "");
+  }
+
+  function writeHeaders(extra) {
+    const headers = { "X-Bible-Admin": "1" };
+    if (adminToken) headers["X-Bible-Token"] = adminToken;
+    return Object.assign(headers, extra || {});
+  }
+
+  // 把伺服器回的錯誤轉成繁中訊息
+  async function readError(res) {
+    try {
+      const data = await res.json();
+      return data.error || `HTTP ${res.status}`;
+    } catch (err) {
+      return `HTTP ${res.status}`;
+    }
+  }
+
+  function fillSelect(select, values, current) {
+    if (!select) return;
+    select.innerHTML = "";
+    values.forEach(value => {
+      const opt = document.createElement("option");
+      opt.value = String(value.value);
+      opt.textContent = value.label;
+      select.appendChild(opt);
+    });
+    if (current !== undefined && current !== null) select.value = String(current);
+  }
+
+  async function loadBook(key) {
+    if (bookCache[key]) return bookCache[key];
+    const res = await fetch(`/api/book/${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error(await readError(res));
+    const data = await res.json();
+    bookCache[key] = data;
+    return data;
+  }
+
+  function chapterOf(data, ch) {
+    return (data.chapters || []).find(c => Number(c.ch) === Number(ch)) || null;
+  }
+
+  function verseOf(chapter, v) {
+    if (!chapter) return null;
+    return (chapter.verses || []).find(x => Number(x.v) === Number(v)) || null;
+  }
+
+  function renderVersePreview() {
+    const el = homeEls.verse;
+    if (!el) return;
+    const book = homeEls.book ? homeEls.book.value : "";
+    const ch = homeEls.ch ? homeEls.ch.value : "";
+    const v = homeEls.v ? homeEls.v.value : "";
+    const data = bookCache[book];
+    const chapter = data ? chapterOf(data, ch) : null;
+    const verse = verseOf(chapter, v);
+    if (!verse) {
+      el.textContent = "載入中…";
+      return;
+    }
+    el.innerHTML = "";
+    const ref = document.createElement("span");
+    ref.className = "verse-ref";
+    ref.textContent = `${BOOK_NAMES[book] || book} ${ch}:${v}`;
+    const text = document.createElement("span");
+    text.textContent = verse.text;
+    el.appendChild(ref);
+    el.appendChild(text);
+  }
+
+  // 依書卷重建章下拉，再依章重建節下拉
+  async function rebuildChapters(preferCh, preferV) {
+    if (!homeEls.book) return;
+    const book = homeEls.book.value;
+    let data;
+    try {
+      data = await loadBook(book);
+    } catch (err) {
+      homeStatus(`無法讀取${BOOK_NAMES[book] || book}：${err.message}`, "error");
+      return;
+    }
+    const chapters = (data.chapters || []).map(c => ({ value: c.ch, label: `第 ${c.ch} 章` }));
+    fillSelect(homeEls.ch, chapters, preferCh !== undefined ? preferCh : (chapters[0] || {}).value);
+    await rebuildVerses(preferV);
+  }
+
+  async function rebuildVerses(preferV) {
+    const book = homeEls.book ? homeEls.book.value : "";
+    const ch = homeEls.ch ? homeEls.ch.value : "";
+    const data = bookCache[book];
+    const chapter = data ? chapterOf(data, ch) : null;
+    const verses = chapter ? (chapter.verses || []).map(x => ({ value: x.v, label: `第 ${x.v} 節` })) : [];
+    fillSelect(homeEls.v, verses, preferV !== undefined ? preferV : (verses[0] || {}).value);
+    renderVersePreview();
+  }
+
+  // 後台只提供 index.html／admin.js／admin.css，圖片與音樂要從前台網域讀取
+  function assetUrl(path) {
+    return `${location.protocol}//${location.hostname}:8090/${path}`;
+  }
+
+  function updateImagePreview(path) {
+    const el = homeEls.imagePreview;
+    if (!el) return;
+    if (!path) {
+      el.hidden = true;
+      el.removeAttribute("src");
+      return;
+    }
+    el.src = assetUrl(path);
+    el.hidden = false;
+  }
+
+  function updateMusicPreview(path) {
+    const el = homeEls.musicPreview;
+    if (!el) return;
+    if (!path) {
+      el.removeAttribute("src");
+      return;
+    }
+    el.src = assetUrl(path);
+  }
+
+  function addOption(select, value) {
+    if (!select) return;
+    const exists = [...select.options].some(o => o.value === value);
+    if (!exists) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = value.replace(/^assets\//, "");
+      select.appendChild(opt);
+    }
+    select.value = value;
+  }
+
+  function applyConfig(config) {
+    if (!config) return;
+    if (homeEls.book) homeEls.book.value = config.book;
+    fillSelect(homeEls.imageSelect, (config._images || []).map(p => ({ value: p, label: p.replace(/^assets\//, "") })), config.image);
+    fillSelect(homeEls.musicSelect, (config._music || []).map(p => ({ value: p, label: p.replace(/^assets\//, "") })), config.music);
+    if (homeEls.alt) homeEls.alt.value = config.alt || "";
+    updateImagePreview(config.image);
+    updateMusicPreview(config.music);
+    return rebuildChapters(config.ch, config.v);
+  }
+
+  async function loadHomeSettings() {
+    if (!homeEls.section) return;
+    try {
+      const tokenRes = await fetch("/api/token");
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json();
+        adminToken = tokenData.token || "";
+      } else {
+        homeStatus(`無法取得寫入權杖（${await readError(tokenRes)}），只能檢視`, "warning");
+      }
+
+      const res = await fetch("/api/home");
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      homeDefaults = data.defaults || null;
+      const config = Object.assign({}, data.defaults || {}, data.config || {});
+      config._images = data.images || [];
+      config._music = data.music || [];
+      await applyConfig(config);
+      homeStatus("已載入目前設定。", "success");
+    } catch (err) {
+      homeStatus(`載入主頁設定失敗：${err.message}`, "error");
+    }
+  }
+
+  function readImageWidth(file) {
+    return new Promise(resolve => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const width = img.naturalWidth;
+        URL.revokeObjectURL(url);
+        resolve(width);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(0);
+      };
+      img.src = url;
+    });
+  }
+
+  async function uploadFile(kind, file) {
+    if (!file) return;
+    const limit = kind === "image" ? IMAGE_MAX_BYTES : MUSIC_MAX_BYTES;
+    const limitText = kind === "image" ? "5 MB" : "8 MB";
+    if (file.size > limit) {
+      homeStatus(`檔案太大（${(file.size / 1024 / 1024).toFixed(1)} MB），${kind === "image" ? "圖片" : "音樂"}上限是 ${limitText}`, "error");
+      return;
+    }
+
+    let widthWarning = "";
+    if (kind === "image") {
+      const width = await readImageWidth(file);
+      if (width > 1600) widthWarning = "圖片寬度超過 1600px，建議先縮小再上傳";
+    }
+
+    homeStatus(`正在上傳 ${file.name}…`);
+    try {
+      const res = await fetch(`/api/upload?kind=${kind}&name=${encodeURIComponent(file.name)}`, {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/octet-stream" }),
+        body: file
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      const path = data.path;
+      if (kind === "image") {
+        addOption(homeEls.imageSelect, path);
+        updateImagePreview(path);
+      } else {
+        addOption(homeEls.musicSelect, path);
+        updateMusicPreview(path);
+      }
+      homeStatus(widthWarning || `已上傳 ${file.name}（${data.bytes} bytes）`, widthWarning ? "warning" : "success");
+    } catch (err) {
+      homeStatus(`上傳失敗：${err.message}`, "error");
+    } finally {
+      if (kind === "image" && homeEls.imageFile) homeEls.imageFile.value = "";
+      if (kind === "music" && homeEls.musicFile) homeEls.musicFile.value = "";
+    }
+  }
+
+  function currentConfig() {
+    return {
+      book: homeEls.book ? homeEls.book.value : "",
+      ch: Number(homeEls.ch ? homeEls.ch.value : 0),
+      v: Number(homeEls.v ? homeEls.v.value : 0),
+      image: homeEls.imageSelect ? homeEls.imageSelect.value : "",
+      alt: homeEls.alt ? homeEls.alt.value.trim() : "",
+      music: homeEls.musicSelect ? homeEls.musicSelect.value : ""
+    };
+  }
+
+  async function saveHomeSettings() {
+    const btn = homeEls.save;
+    if (btn) btn.disabled = true;
+    homeStatus("儲存中…");
+    try {
+      const res = await fetch("/api/home", {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(currentConfig())
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      homeStatus("已儲存到本機。要更新線上網站，請記得執行發佈。", "success");
+    } catch (err) {
+      homeStatus(`儲存失敗：${err.message}`, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function resetHomeSettings() {
+    if (!window.confirm("確定要還原成預設的主頁設定嗎？")) return;
+    const btn = homeEls.reset;
+    if (btn) btn.disabled = true;
+    homeStatus("還原中…");
+    try {
+      const res = await fetch("/api/home/reset", {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/json" }),
+        body: "{}"
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      const config = Object.assign({}, homeDefaults || {}, data.config || {});
+      config._images = [...(homeEls.imageSelect ? homeEls.imageSelect.options : [])].map(o => o.value);
+      config._music = [...(homeEls.musicSelect ? homeEls.musicSelect.options : [])].map(o => o.value);
+      await applyConfig(config);
+      homeStatus("已還原成預設的主頁設定。", "success");
+    } catch (err) {
+      homeStatus(`還原失敗：${err.message}`, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function openHomePreview() {
+    const url = `${location.protocol}//${location.hostname}:8090/`;
+    window.open(url, "_blank");
+  }
+
+  if (homeEls.section) {
+    if (homeEls.book) {
+      homeEls.book.addEventListener("change", () => { rebuildChapters(); });
+    }
+    if (homeEls.ch) {
+      homeEls.ch.addEventListener("change", () => { rebuildVerses(); });
+    }
+    if (homeEls.v) {
+      homeEls.v.addEventListener("change", renderVersePreview);
+    }
+    if (homeEls.imageSelect) {
+      homeEls.imageSelect.addEventListener("change", () => updateImagePreview(homeEls.imageSelect.value));
+    }
+    if (homeEls.musicSelect) {
+      homeEls.musicSelect.addEventListener("change", () => updateMusicPreview(homeEls.musicSelect.value));
+    }
+    if (homeEls.imageFile) {
+      homeEls.imageFile.addEventListener("change", () => uploadFile("image", homeEls.imageFile.files[0]));
+    }
+    if (homeEls.musicFile) {
+      homeEls.musicFile.addEventListener("change", () => uploadFile("music", homeEls.musicFile.files[0]));
+    }
+    if (homeEls.save) homeEls.save.addEventListener("click", saveHomeSettings);
+    if (homeEls.reset) homeEls.reset.addEventListener("click", resetHomeSettings);
+    if (homeEls.open) homeEls.open.addEventListener("click", openHomePreview);
+
+    loadHomeSettings();
+  }
+
   // 事件監聽綁定
   const btnCheckAll = document.getElementById("btn-check-all");
   if (btnCheckAll) {

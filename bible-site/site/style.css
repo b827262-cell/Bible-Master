@@ -62,6 +62,42 @@ body {
   padding: 0.75em 1em;
 }
 
+.container-wide {
+  width: 100%;
+  max-width: 40em;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.75em 1em;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin: 0.75em 0 1em;
+}
+
+.reading-layout {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reading-main {
+  width: 100%;
+  max-width: 40em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.chapter-sidebar {
+  width: 100%;
+  max-width: 40em;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.75em 1em;
+}
+
 /* ===== 導覽列 ===== */
 #nav {
   background: var(--surface);
@@ -406,6 +442,202 @@ footer {
   .container {
     padding-left: 2rem;
     padding-right: 2rem;
+  }
+
+  .container-wide {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .reading-main,
+  .chapter-sidebar {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .search-form {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .search-form input[type="search"] {
+    flex: 1 1 auto;
+  }
+
+  .search-form select {
+    flex: 0 0 auto;
+    min-width: 130px;
+  }
+
+  .search-form button {
+    flex: 0 0 auto;
+    min-width: 80px;
+  }
+}
+
+/* ===== 電腦／筆電版面（≥64em / 1024px） ===== */
+@media (min-width: 64em) {
+  .container {
+    max-width: 64em;
+  }
+
+  .container-wide {
+    max-width: 66em;
+  }
+
+  #nav .nav-list {
+    max-width: 64em;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.25em 1rem;
+  }
+
+  .nav-list a {
+    padding: 0.6em 1.25em;
+    border-radius: 8px;
+    font-size: 1.025rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .nav-list a:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .chapter-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.85em;
+  }
+
+  .chapter-card {
+    padding: 0.85em 1em;
+  }
+
+  .chapter-card .ch-title {
+    font-size: 1.1rem;
+  }
+
+  /* 逐章閱讀頁：主閱讀欄 40-44em 置中，經文行長約 40 字，右側 sticky 章節導航 */
+  .reading-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2.25rem;
+    max-width: 64em;
+    padding: 0 1.5rem;
+  }
+
+  .reading-main {
+    flex: 1 1 42em;
+    max-width: 44em;
+    margin: 0;
+    padding: 0.75em 0;
+  }
+
+  .chapter-sidebar {
+    flex: 0 0 13.5em;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .chapter-sidebar-sticky {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1em 1em;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .chapter-sidebar-sticky h3 {
+    margin-top: 0;
+    margin-bottom: 0.75em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chapter-sidebar #chapter-links {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  .chapter-sidebar #chapter-links li {
+    width: 100%;
+  }
+
+  .chapter-sidebar #chapter-links a {
+    width: 100%;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font-weight: 500;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .chapter-sidebar #chapter-links a:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* 搜尋結果分欄（2 欄） */
+  .search-results {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1em;
+  }
+
+  .search-results li {
+    margin-bottom: 0;
+    padding: 0.85em 1.1em;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .search-results li:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* ===== 寬螢幕桌面（≥90em / 1440px / 1920px） ===== */
+@media (min-width: 90em) {
+  .container {
+    max-width: 78em;
+  }
+
+  .container-wide {
+    max-width: 80em;
+  }
+
+  #nav .nav-list {
+    max-width: 78em;
+    gap: 0.75em;
+  }
+
+  .chapter-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1em;
+  }
+
+  .chapter-card {
+    padding: 1em 1.1em;
+  }
+
+  .reading-layout {
+    max-width: 68em;
+    gap: 3rem;
+  }
+
+  .reading-main {
+    max-width: 45em;
+  }
+
+  .chapter-sidebar {
+    flex: 0 0 14.5em;
   }
 }
 

@@ -202,6 +202,73 @@
       }
     }
 
+    @media (min-width: 64em) {
+      .home-hero img {
+        height: 420px;
+        max-height: 460px;
+        object-position: 50% 30%;
+      }
+
+      .hero-kicker {
+        left: 24px;
+        bottom: 56px;
+        font-size: 0.9375rem;
+      }
+
+      #music-btn {
+        right: 24px;
+        bottom: 56px;
+        font-size: 0.9375rem;
+        padding: 0.55em 1.2em;
+      }
+
+      .home-card {
+        max-width: 760px;
+        margin-top: -44px;
+        padding: 36px 40px 32px;
+        border-radius: 16px;
+      }
+
+      .home-verse {
+        font-size: 1.25rem;
+        line-height: 2;
+        margin: 1em 0;
+      }
+
+      .home-actions {
+        max-width: 760px;
+        gap: 16px;
+        margin-top: 1.75em;
+      }
+
+      .home-actions .btn,
+      .home-actions .btn-secondary {
+        min-height: 52px;
+        font-size: 1.05rem;
+      }
+    }
+
+    @media (min-width: 90em) {
+      .home-hero img {
+        height: 460px;
+        max-height: 500px;
+      }
+
+      .home-card {
+        max-width: 820px;
+        padding: 40px 48px 36px;
+      }
+
+      .home-verse {
+        font-size: 1.3125rem;
+        line-height: 2.05;
+      }
+
+      .home-actions {
+        max-width: 820px;
+      }
+    }
+
     /* ===== 動態效果：全部放在 reduced-motion 條件內 ===== */
     @media (prefers-reduced-motion: no-preference) {
       @keyframes homeImageZoom {
@@ -299,30 +366,75 @@
 
       var verseEl = document.querySelector(".home-verse");
       var refEl = document.querySelector(".home-ref");
-
-      Bible.load("luk").then(function (data) {
-        var chapter = Bible.chapterOf(data, 4);
-        if (!chapter) {
-          throw new Error("找不到章節");
-        }
-        var verse = null;
-        for (var i = 0; i < chapter.verses.length; i++) {
-          if (Number(chapter.verses[i].v) === 27) {
-            verse = chapter.verses[i];
-            break;
-          }
-        }
-        if (!verse) {
-          throw new Error("找不到經文");
-        }
-        verseEl.textContent = verse.text;
-        refEl.textContent = Bible.ref("luk", 4, verse) + "（和合本）";
-      }).catch(function (err) {
-        Bible.fail(document.querySelector("main"), err);
-      });
-
+      var heroImg = document.querySelector(".home-hero img");
+      var readLink = document.querySelector(".home-ref-row a");
       var audio = document.getElementById("home-music");
       var musicBtn = document.getElementById("music-btn");
+
+      var DEFAULT_CFG = {
+        book: "luk",
+        ch: 4,
+        v: 27,
+        image: "assets/jordan.jpg",
+        alt: "一位男子站在約但河水中，仰望從雲層灑下的光",
+        music: "assets/home-music.mp3"
+      };
+
+      function applyConfig(cfg) {
+        if (heroImg && cfg.image) {
+          heroImg.src = cfg.image;
+          if (cfg.alt) heroImg.alt = cfg.alt;
+        }
+        var curSrc = audio ? (audio.getAttribute("src") || "") : "";
+        if (audio && cfg.music && curSrc !== cfg.music) {
+          audio.src = cfg.music;
+          tryPlay();
+        }
+        if (readLink) {
+          readLink.href = "chapter.html?book=" + cfg.book + "&ch=" + cfg.ch + "#v" + cfg.v;
+        }
+        return Bible.load(cfg.book).then(function (data) {
+          var chapter = Bible.chapterOf(data, cfg.ch);
+          if (!chapter) {
+            throw new Error("找不到章節");
+          }
+          var verse = null;
+          for (var i = 0; i < chapter.verses.length; i++) {
+            if (Number(chapter.verses[i].v) === Number(cfg.v)) {
+              verse = chapter.verses[i];
+              break;
+            }
+          }
+          if (!verse) {
+            throw new Error("找不到經文");
+          }
+          verseEl.textContent = verse.text;
+          refEl.textContent = Bible.ref(cfg.book, cfg.ch, verse) + "（和合本）";
+        });
+      }
+
+      fetch("../data/home.json")
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (cfg) {
+          var merged = {
+            book: cfg.book || DEFAULT_CFG.book,
+            ch: cfg.ch != null ? cfg.ch : DEFAULT_CFG.ch,
+            v: cfg.v != null ? cfg.v : DEFAULT_CFG.v,
+            image: cfg.image || DEFAULT_CFG.image,
+            alt: cfg.alt || DEFAULT_CFG.alt,
+            music: cfg.music || DEFAULT_CFG.music
+          };
+          return applyConfig(merged);
+        })
+        .catch(function () {
+          return applyConfig(DEFAULT_CFG);
+        })
+        .catch(function (err) {
+          Bible.fail(document.querySelector("main"), err);
+        });
       audio.volume = 0.6;
 
       var PAUSE_LABEL = "♪ 播放音樂";

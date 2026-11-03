@@ -79,3 +79,5 @@
 - 2026-11-03 00:40　dispatch：64-blessing-tab-logic 通過（de1050）。
 - 2026-11-03 09:18　dispatch：71-style-palette-nav 通過（a16 → a16 → e500）。
 - 2026-11-03 09:25　dispatch：72-blessing-restyle 通過（e500）。
+- 2026-11-03 12:57　dispatch：91-launcher-entry-url 通過（a16）。
+- 2026-11-03 13:00　dispatch：92-launcher-data-check 通過（e500）。

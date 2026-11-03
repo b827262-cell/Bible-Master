@@ -4,10 +4,12 @@
            no CORS headers, 404s answered, only index.html/admin.js/admin.css served, report whitelist,
            POST actions need the X-Bible-Admin header and a same-origin (or absent) Origin, build_data removed,
            default --host 127.0.0.1, no Simplified Chinese, no hard-coded 127.0.0.1:8090 links, no stale "47 項"
+  homeadmin  the write endpoints of the admin server (home page settings + uploads), run against a temp copy of data/ and
+           site/assets/ (BIBLE_SITE_ROOT, BIBLE_ADMIN_TOKEN_FILE): token, auth, validation, magic bytes, size limits
   service  start.sh on FRONTEND_PORT=18190 BACKEND_PORT=18191: start/stop cycle, per-port PID files,
            back end bound to 127.0.0.1, a foreign listener is neither adopted nor killed
 Usage: python3 bible-site/tests/service_checks.py [admin] [service] [--grep REGEX]   (no group: both)"""
-import hashlib, json, os, re, socket, subprocess, sys, tempfile, time, urllib.error, urllib.request
+import hashlib, json, os, re, socket, subprocess, sys, tempfile, time, urllib.error, urllib.parse, urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ADMIN = os.path.join(ROOT, "bible-site", "admin")
@@ -114,6 +116,164 @@ def admin():
             proc.kill()
             _, err = proc.communicate()
     check("後台處理請求時沒有 Traceback", "Traceback" not in err, err.strip().splitlines()[-1] if "Traceback" in err else "")
+
+
+def req2(url, method="GET", headers=None, body=None, timeout=60):
+    """Like request() but with a request body; returns (status, headers, text)."""
+    req = urllib.request.Request(url, method=method, headers=headers or {}, data=body)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, dict(r.headers), r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, dict(e.headers), e.read().decode("utf-8", "replace")
+    except Exception as e:
+        return 0, {}, str(e)
+
+
+def md5(path):
+    return hashlib.md5(open(path, "rb").read()).hexdigest() if os.path.exists(path) else None
+
+
+JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 2000
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 2000
+WEBP = b"RIFF\x00\x10\x00\x00WEBPVP8 " + b"\x00" * 2000
+MP3 = b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb\x90\x00" + b"\x00" * 2000
+
+
+def homeadmin():
+    import shutil
+    src = open(os.path.join(ADMIN, "admin.js"), encoding="utf-8").read()
+    check("admin.js 送出寫入請求時帶 X-Bible-Token 標頭", "X-Bible-Token" in src)
+    page = open(os.path.join(ADMIN, "index.html"), encoding="utf-8").read()
+    ids = ["home-settings", "home-book", "home-ch", "home-v", "home-verse-preview", "home-image-file", "home-image-select", "home-image-preview",
+           "home-alt", "home-music-file", "home-music-select", "home-music-preview", "home-save", "home-reset", "home-open", "home-status"]
+    miss = [i for i in ids if f'id="{i}"' not in page]
+    check("後台 index.html 有「主頁設定」區塊需要的 16 個 id", not miss, "、".join(miss))
+    check("後台「主頁設定」文字是繁體中文：有「主頁設定」「儲存」「還原預設」「記得執行發佈」", all(t in page + src for t in ("主頁設定", "儲存", "還原預設", "發佈")))
+    check("admin.js 使用 /api/token、/api/home、/api/home/reset、/api/upload", all(u in src for u in ("/api/token", "/api/home", "/api/home/reset", "/api/upload")))
+    check("admin.js 的經文預覽用 /api/book/（不寫死經文）且不載入外部資源", "/api/book/" in src and "https://" not in src)
+    gi = open(os.path.join(ROOT, ".gitignore"), encoding="utf-8").read()
+    check(".gitignore 排除 admin/.token", ".token" in gi)
+    live_cfg = os.path.join(ROOT, "bible-site", "data", "home.json")
+    live_before = md5(live_cfg)
+    tmp = tempfile.mkdtemp()
+    shutil.copytree(os.path.join(ROOT, "bible-site", "data"), os.path.join(tmp, "data"))
+    os.makedirs(os.path.join(tmp, "site"))
+    shutil.copytree(os.path.join(ROOT, "bible-site", "site", "assets"), os.path.join(tmp, "site", "assets"))
+    cfgf, assets, tokf = os.path.join(tmp, "data", "home.json"), os.path.join(tmp, "site", "assets"), os.path.join(tmp, "token")
+    if os.path.exists(cfgf):
+        os.remove(cfgf)  # start from "no config": GET /api/home must report the defaults
+    default_md5 = {n: md5(os.path.join(assets, n)) for n in ("jordan.jpg", "home-music.mp3")}
+    port = free_port()
+    env = dict(os.environ, BIBLE_SITE_ROOT=os.path.join(tmp), BIBLE_ADMIN_TOKEN_FILE=tokf)
+    # BIBLE_SITE_ROOT is the directory that holds data/ and site/ (the real one is bible-site/)
+    proc = subprocess.Popen([sys.executable, os.path.join(ADMIN, "server.py"), "--host", "127.0.0.1", "--port", str(port)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, env=env)
+    base = f"http://127.0.0.1:{port}"
+    try:
+        for _ in range(50):
+            if request(base + "/api/ping", timeout=2)[0] == 200:
+                break
+            time.sleep(0.1)
+        st, _, body = req2(base + "/api/token")
+        token = json.loads(body).get("token", "") if st == 200 else ""
+        check("GET /api/token 在本機位址回 200，給 32 字以上的 token", st == 200 and len(token) >= 32, f"HTTP {st}")
+        check("token 檔存在、權限 600、內容就是 token", os.path.exists(tokf) and oct(os.stat(tokf).st_mode & 0o777) == "0o600" and open(tokf).read().strip() == token,
+              oct(os.stat(tokf).st_mode & 0o777) if os.path.exists(tokf) else "沒有檔案")
+        st, _, _ = req2(base + "/api/token", headers={"Host": "evil.example"})
+        check("GET /api/token 的 Host 不是本機位址（DNS rebinding）回 403", st == 403, f"HTTP {st}")
+        st, _, _ = req2(base + "/api/token", headers={"Origin": "http://evil.example"})
+        check("GET /api/token 帶外站 Origin 回 403", st == 403, f"HTTP {st}")
+        st, _, body = req2(base + "/api/book/luk")
+        luk = json.loads(body) if st == 200 else {}
+        check("GET /api/book/luk 回 200 與路加福音 24 章 1149 節", st == 200 and len(luk.get("chapters", [])) == 24 and sum(len(c["verses"]) for c in luk.get("chapters", [])) == 1149, f"HTTP {st}")
+        st, _, _ = req2(base + "/api/book/..%2Fhome")
+        st2, _, _ = req2(base + "/api/book/blessing")
+        check("GET /api/book/ 只接受 mat／mrk／luk／jhn（其他回 404）", st == 404 and st2 == 404, f"HTTP {st}/{st2}")
+        good = {"X-Bible-Admin": "1", "X-Bible-Token": token, "Content-Type": "application/json"}
+        st, _, body = req2(base + "/api/home")
+        info = json.loads(body) if st == 200 else {}
+        cfg0 = info.get("config", {})
+        check("GET /api/home 沒有設定檔時回預設值（luk 4:27、jordan.jpg、home-music.mp3）",
+              st == 200 and (cfg0.get("book"), cfg0.get("ch"), cfg0.get("v"), cfg0.get("image"), cfg0.get("music")) == ("luk", 4, 27, "assets/jordan.jpg", "assets/home-music.mp3"), body[:120])
+        check("GET /api/home 列出 assets/ 的圖片與音樂", "assets/jordan.jpg" in info.get("images", []) and "assets/home-music.mp3" in info.get("music", []), body[:160])
+        ok_cfg = {"book": "jhn", "ch": 3, "v": 16, "image": "assets/jordan.jpg", "alt": "測試圖片說明", "music": "assets/home-music.mp3"}
+        post = lambda path, obj, hdr=None, raw=None: req2(base + path, "POST", dict(good, **(hdr or {})), raw if raw is not None else json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+        for label, hdr in (("沒帶 X-Bible-Token", {"X-Bible-Token": ""}), ("token 錯誤", {"X-Bible-Token": "x" * 43}), ("沒帶 X-Bible-Admin", {"X-Bible-Admin": ""}),
+                           ("Origin 是外站", {"Origin": "http://evil.example"}), ("Host 不是本機", {"Host": "evil.example"})):
+            st, _, _ = post("/api/home", ok_cfg, hdr)
+            check(f"POST /api/home {label} 回 403", st == 403, f"HTTP {st}")
+        check("驗證失敗時沒有寫出 home.json", not os.path.exists(cfgf))
+        st, _, body = post("/api/home", ok_cfg)
+        saved = json.load(open(cfgf, encoding="utf-8")) if os.path.exists(cfgf) else {}
+        check("POST /api/home 合法設定回 200，home.json 寫入的內容與送出的相同", st == 200 and saved == ok_cfg, f"HTTP {st} {body[:100]}")
+        st, _, body = req2(base + "/api/home")
+        check("GET /api/home 回傳剛存的設定", st == 200 and json.loads(body).get("config") == ok_cfg)
+        before = md5(cfgf)
+        bad = {"書卷不存在": dict(ok_cfg, book="xyz"), "章不存在": dict(ok_cfg, ch=99), "節不存在": dict(ok_cfg, v=999), "章是字串": dict(ok_cfg, ch="3"),
+               "圖片跳出 assets/": dict(ok_cfg, image="assets/../../data/luk.json"), "圖片指向 data/": dict(ok_cfg, image="data/luk.json"),
+               "圖片檔不存在": dict(ok_cfg, image="assets/nope.jpg"), "圖片是 mp3": dict(ok_cfg, image="assets/home-music.mp3"), "音樂是 jpg": dict(ok_cfg, music="assets/jordan.jpg"),
+               "圖片是絕對路徑": dict(ok_cfg, image="/etc/passwd"), "圖片是網址": dict(ok_cfg, image="https://evil.example/a.jpg"),
+               "alt 空白": dict(ok_cfg, alt="  "), "alt 超過 120 字": dict(ok_cfg, alt="字" * 121), "多出欄位": dict(ok_cfg, extra="x"), "缺欄位": {k: v for k, v in ok_cfg.items() if k != "music"}}
+        for label, obj in bad.items():
+            st, _, _ = post("/api/home", obj)
+            check(f"POST /api/home 拒絕「{label}」回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/home", None, raw=b"not json")
+        check("POST /api/home 拒絕不是 JSON 的內容回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/home", None, raw=b"{" + b" " * 70000 + b"}")
+        check("POST /api/home 內容超過 64 KB 回 413", st == 413, f"HTTP {st}")
+        check("所有被拒絕的請求都沒有改動 home.json", md5(cfgf) == before)
+        up = lambda kind, data, name="photo.jpg", hdr=None: req2(base + f"/api/upload?kind={kind}&name={urllib.parse.quote(name)}", "POST",
+                                                                   {k: v for k, v in dict(good, **{"Content-Type": "application/octet-stream"}, **(hdr or {})).items()}, data)
+        st, _, _ = up("image", JPEG, hdr={"X-Bible-Token": ""})
+        check("POST /api/upload 沒帶 token 回 403", st == 403, f"HTTP {st}")
+        names = {}
+        for label, kind, data, name, ext in (("jpg", "image", JPEG, "photo.jpg", "jpg"), ("png", "image", PNG, "photo.png", "png"), ("webp", "image", WEBP, "photo.webp", "webp"), ("mp3", "music", MP3, "song.mp3", "mp3")):
+            st, _, body = up(kind, data, name)
+            path = json.loads(body).get("path", "") if st == 200 else ""
+            names[label] = path
+            check(f"POST /api/upload 收下真的 {label}，存成 assets/upload-*.{ext}，內容與上傳的相同",
+                  st == 200 and re.fullmatch(r"assets/upload-[A-Za-z0-9._-]+\." + ext, path) is not None and open(os.path.join(tmp, "site", path), "rb").read() == data, f"HTTP {st} {path}")
+        st, _, body2 = up("image", JPEG, "photo.jpg")
+        check("連續上傳同一個檔案不會覆蓋前一個（檔名不重複）", st == 200 and json.loads(body2).get("path") != names["jpg"], body2[:100])
+        for label, kind, data, name in (("文字檔改名 .jpg", "image", b"hello world" * 300, "fake.jpg"), ("mp3 當圖片", "image", MP3, "a.jpg"), ("png 當音樂", "music", PNG, "a.mp3"),
+                                        ("不認得的 kind", "video", JPEG, "a.jpg"), ("副檔名 .svg", "image", JPEG, "a.svg"), ("副檔名 .html", "image", JPEG, "a.html"), ("空檔案", "image", b"", "a.jpg")):
+            n_before = len(os.listdir(assets))
+            st, _, _ = up(kind, data, name)
+            check(f"POST /api/upload 拒絕「{label}」回 400，且沒有留下檔案", st == 400 and len(os.listdir(assets)) == n_before, f"HTTP {st}")
+        n_before = len(os.listdir(assets))
+        st, _, body = up("image", JPEG, "../../data/luk.json.jpg")
+        path = json.loads(body).get("path", "") if st == 200 else ""
+        check("上傳檔名含 ../ 時，存檔名與原檔名無關、仍在 assets/ 底下", st == 200 and re.fullmatch(r"assets/upload-[A-Za-z0-9._-]+\.jpg", path) is not None and ".." not in path, f"HTTP {st} {path}")
+        n_before = len(os.listdir(assets))
+        st, _, _ = up("image", JPEG + b"\x00" * (5 * 1024 * 1024))
+        check("POST /api/upload 圖片超過 5 MB 回 413，且沒有留下檔案", st == 413 and len(os.listdir(assets)) == n_before, f"HTTP {st}")
+        st, _, _ = up("music", MP3 + b"\x00" * (8 * 1024 * 1024), "big.mp3")
+        check("POST /api/upload 音樂超過 8 MB 回 413，且沒有留下檔案", st == 413 and len(os.listdir(assets)) == n_before, f"HTTP {st}")
+        cfg_up = dict(ok_cfg, image=names["png"], music=names["mp3"])
+        st, _, body = post("/api/home", cfg_up)
+        check("上傳的圖片與音樂可以設為主頁（POST /api/home 回 200）", st == 200 and json.load(open(cfgf, encoding="utf-8")) == cfg_up, f"HTTP {st} {body[:100]}")
+        st, _, body = post("/api/home/reset", {})
+        check("POST /api/home/reset 回 200，設定回到預設值", st == 200 and (json.load(open(cfgf, encoding="utf-8")) if os.path.exists(cfgf) else {}).get("book") == "luk"
+              and json.load(open(cfgf, encoding="utf-8")).get("image") == "assets/jordan.jpg", f"HTTP {st} {body[:100]}")
+        check("還原預設後，上傳的檔案還在", all(os.path.exists(os.path.join(tmp, "site", p)) for p in names.values()))
+        st, _, _ = post("/api/home/reset", {}, {"X-Bible-Token": ""})
+        check("POST /api/home/reset 沒帶 token 回 403", st == 403, f"HTTP {st}")
+        st, _, _ = req2(base + "/api/home", "DELETE", good)
+        check("沒有刪除端點：DELETE /api/home 不回 200", st != 200, f"HTTP {st}")
+        check("預設的 jordan.jpg、home-music.mp3 內容完全沒變", {n: md5(os.path.join(assets, n)) for n in default_md5} == default_md5)
+        leftovers = [f for d in (os.path.join(tmp, "data"), assets) for f in os.listdir(d) if f.endswith((".tmp", ".part")) or f.startswith(".")]
+        check("沒有留下暫存檔（原子寫入）", not leftovers, "、".join(leftovers))
+        check("測試沒有動到真正的 data/home.json", md5(live_cfg) == live_before)
+    finally:
+        proc.terminate()
+        try:
+            _, err = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            _, err = proc.communicate()
+        shutil.rmtree(tmp, ignore_errors=True)
+    check("寫入端點處理請求時後台沒有 Traceback", "Traceback" not in err, err.strip().splitlines()[-1] if "Traceback" in err else "")
 
 
 def run_start(*args, root=ROOT, **extra):
@@ -235,9 +395,11 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"admin", "service"}
+    groups = set(args) or {"admin", "homeadmin", "service"}
     if "admin" in groups:
         admin()
+    if "homeadmin" in groups:
+        homeadmin()
     if "service" in groups:
         service()
     print(f"結果：{'全部通過' if all(results) else f'不通過（{results.count(False)} 項）'}")

@@ -125,6 +125,81 @@
       <pre class="terminal" id="terminal-output">點擊上方按鈕執行自動化檢驗，輸出將即時顯示於此處...</pre>
     </div>
 
+    <!-- 主區塊：主頁設定 -->
+    <section class="card" id="home-settings">
+      <div class="card-header">
+        <h2>🏠 主頁設定</h2>
+        <span style="font-size:0.8rem; color:var(--text-muted);">設定首頁的經文、主視覺與背景音樂</span>
+      </div>
+
+      <p class="home-note">這裡的設定只存在本機；改完請執行發佈，才會更新到線上網站。</p>
+
+      <div class="home-grid">
+        <div class="home-field">
+          <label for="home-book">書卷</label>
+          <select id="home-book">
+            <option value="mat">馬太福音</option>
+            <option value="mrk">馬可福音</option>
+            <option value="luk">路加福音</option>
+            <option value="jhn">約翰福音</option>
+          </select>
+        </div>
+
+        <div class="home-field">
+          <label for="home-ch">章</label>
+          <select id="home-ch"></select>
+        </div>
+
+        <div class="home-field">
+          <label for="home-v">節</label>
+          <select id="home-v"></select>
+        </div>
+      </div>
+
+      <p class="home-verse-preview" id="home-verse-preview">載入中…</p>
+
+      <div class="home-grid">
+        <div class="home-field">
+          <label for="home-image-file">上傳主視覺圖片</label>
+          <input type="file" id="home-image-file" accept="image/jpeg,image/png,image/webp">
+        </div>
+
+        <div class="home-field">
+          <label for="home-image-select">目前使用的主視覺</label>
+          <select id="home-image-select"></select>
+        </div>
+      </div>
+
+      <img id="home-image-preview" alt="主視覺圖片預覽" src="" hidden>
+
+      <div class="home-field">
+        <label for="home-alt">圖片說明（alt）</label>
+        <input type="text" id="home-alt" maxlength="120">
+      </div>
+
+      <div class="home-grid">
+        <div class="home-field">
+          <label for="home-music-file">上傳背景音樂</label>
+          <input type="file" id="home-music-file" accept="audio/mpeg,.mp3">
+        </div>
+
+        <div class="home-field">
+          <label for="home-music-select">目前使用的音樂</label>
+          <select id="home-music-select"></select>
+        </div>
+      </div>
+
+      <audio id="home-music-preview" controls></audio>
+
+      <div class="home-actions-row">
+        <button type="button" class="btn btn-primary" id="home-save">儲存</button>
+        <button type="button" class="btn btn-outline" id="home-reset">還原預設</button>
+        <button type="button" class="btn btn-outline" id="home-open">開啟主頁預覽</button>
+      </div>
+
+      <p class="home-status" id="home-status" role="status" aria-live="polite"></p>
+    </section>
+
     <!-- 主區塊第三排：專案報告與任務日誌 -->
     <div class="card">
       <div class="card-header">

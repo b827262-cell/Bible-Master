@@ -329,3 +329,34 @@
 
 ## 一、`<style>` 區塊
 1. **`#theme-tabs`**：改為 `grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0.5em 0 1em`；新增未選中按鈕樣式（surface 底、border、圓角 
+
+## 2026-11-03 12:57:23　91-launcher-entry-url　通過
+
+- 角色：a16；檔案：start.sh
+- 第 1 次（a16）：通過；耗時 79 秒；輸入 token 20006；工具呼叫 17 次；改動 start.sh
+  - 檢查 `python3 bible-site/tests/launcher_checks.py syntax entry` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py service` → 通過
+  - 模型回報：完成！我已經修改了 `start.sh` 文件。以下是修改內容：
+
+## 修改總結
+
+**檔案：** `/home/b827262/project/AI/Bible-Master/start.sh` （只修改此檔案）
+
+### 具體變更：
+
+1. **第 142-145 行**（前端狀態區塊）：
+   - 原：`http://127.0.0.1:${FRONTEND_PORT}/site/inde
+
+## 2026-11-03 13:00:54　92-launcher-data-check　通過
+
+- 角色：e500；檔案：start.sh
+- 第 1 次（e500）：通過；耗時 195 秒；輸入 token 19255；工具呼叫 10 次；改動 start.sh
+  - 檢查 `python3 bible-site/tests/launcher_checks.py syntax entry data` → 通過
+  - 檢查 `python3 bible-site/tests/service_checks.py service` → 通過
+  - 模型回報：完成。所有檢查通過：`bash -n start.sh` 結束碼 0，`launcher_checks.py syntax entry data` 結果「全部通過」（10/10）。
+
+**修改的檔案：**
+- `start.sh`（專案根目錄）
+
+`check_environment` 函式現為：
+1. 經文資料條件擴大成四卷（`mat.json`、`mrk.json`、`luk.json`、`j

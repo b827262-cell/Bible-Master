@@ -7,3 +7,7 @@ logs/
 
 # ebible.org zip unpacked; identical copy of .verify/download/ebible/cmn-cu89t_usfm.zip
 .verify/download/ebible/x/
+
+# admin write endpoints (home page settings)
+bible-site/admin/.token
+dist/

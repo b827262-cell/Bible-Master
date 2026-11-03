@@ -343,6 +343,7 @@ header {
 /* Reports view */
 .tab-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
   border-bottom: 1px solid var(--border);
@@ -371,4 +372,141 @@ footer {
   font-size: 0.85rem;
   color: var(--text-muted);
   padding: 16px;
+}
+
+/* ===== 主頁設定 ===== */
+#home-settings {
+  margin-bottom: 24px;
+}
+
+.home-note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.home-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-field label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+#home-settings select,
+#home-settings input[type="text"],
+#home-settings input[type="file"] {
+  font: inherit;
+  font-size: 0.9rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+#home-settings input[type="file"] {
+  padding: 10px;
+  cursor: pointer;
+}
+
+#home-settings select:focus,
+#home-settings input:focus {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+
+.home-verse-preview {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-main);
+  min-height: 44px;
+}
+
+.home-verse-preview .verse-ref {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+#home-image-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: var(--bg-surface);
+}
+
+#home-image-preview[hidden] {
+  display: none;
+}
+
+#home-music-preview {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+
+.home-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.home-actions-row .btn {
+  min-height: 44px;
+  min-width: 120px;
+}
+
+.home-status {
+  margin-top: 14px;
+  min-height: 1.5em;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.home-status.is-error {
+  color: var(--error);
+}
+
+.home-status.is-success {
+  color: var(--success);
+}
+
+.home-status.is-warning {
+  color: var(--warning);
+}
+
+@media (max-width: 600px) {
+  #home-settings {
+    padding: 16px;
+  }
+
+  .home-actions-row .btn {
+    flex: 1 1 100%;
+  }
 }

@@ -293,6 +293,54 @@ def blessing_render(port, groups):
           and all(a != b_ for a, b_ in zip(ids, ids[1:])), json.dumps(ids))
 
 
+HOME_DEFAULT = {"book": "luk", "ch": 4, "v": 27, "image": "assets/jordan.jpg", "music": "assets/home-music.mp3"}
+ASSET_NAME = re.compile(r"^assets/[A-Za-z0-9._-]+$")
+
+
+def home_config(root=None):
+    """data/home.json of `root` (default: the real site); the built-in defaults when the file is missing."""
+    path = os.path.join(root or ROOT, "data", "home.json")
+    cfg = dict(HOME_DEFAULT)
+    if os.path.exists(path):
+        cfg.update(json.load(open(path, encoding="utf-8")))
+    return cfg
+
+
+def home_data():
+    """data/home.json: only a reference (book/ch/v) plus asset paths and alt text; the verse must exist; no scripture text inside."""
+    path = os.path.join(ROOT, "data", "home.json")
+    if not os.path.exists(path):
+        check("data/home.json 存在", False, "找不到檔案")
+        return
+    raw = open(path, encoding="utf-8").read()
+    try:
+        cfg = json.loads(raw)
+    except ValueError as e:
+        check("data/home.json 是合法 JSON", False, str(e))
+        return
+    check("home.json 只有 book、ch、v、image、alt、music 六個欄位", set(cfg) == {"book", "ch", "v", "image", "alt", "music"}, ",".join(sorted(cfg)))
+    verses = {}
+    for k, _ in BOOKS:
+        for c in json.load(open(os.path.join(ROOT, "data", k + ".json"), encoding="utf-8"))["chapters"]:
+            for v in c["verses"]:
+                verses[(k, c["ch"], v["v"])] = v["text"]
+    check("home.json 的書卷／章／節在 data/*.json 存在", (cfg.get("book"), cfg.get("ch"), cfg.get("v")) in verses, f"{cfg.get('book')} {cfg.get('ch')}:{cfg.get('v')}")
+    for key in ("image", "music"):
+        val = cfg.get(key, "")
+        check(f"home.json 的 {key} 是 assets/ 底下的檔名且檔案存在", bool(ASSET_NAME.match(val)) and os.path.isfile(os.path.join(SITE, val)), val)
+    check("home.json 的 image 副檔名是 jpg／png／webp，music 是 mp3",
+          cfg.get("image", "").lower().endswith((".jpg", ".png", ".webp")) and cfg.get("music", "").lower().endswith(".mp3"))
+    check("home.json 的 alt 是 1–120 字且含繁體中文", 1 <= len(cfg.get("alt", "")) <= 120 and bool(CJK.search(cfg.get("alt", ""))))
+    check("home.json 沒有簡體字", not [ch for ch in SIMPLIFIED if ch in raw], "".join(ch for ch in SIMPLIFIED if ch in raw))
+    grams = set()
+    for t in verses.values():
+        z = cjk(t)
+        grams.update(z[i:i + 8] for i in range(len(z) - 7))
+    z = cjk(raw)
+    hit = sorted({z[i:i + 8] for i in range(len(z) - 7) if z[i:i + 8] in grams})
+    check("home.json 沒有任何經文文字（沒有連續 8 字與經文相同）", not hit, "；".join(hit[:3]))
+
+
 def home_state(port, click=False, width=None):
     """Open site/home.html in tests/home_probe.html (autoplay allowed, so the music button can be tested) and return its state."""
     q = "u=" + urllib.parse.quote("../site/home.html", safe="") + ("&click=1" if click else "") + (f"&w={width}" if width else "")
@@ -332,10 +380,13 @@ def home_static():
     src = open(page, encoding="utf-8").read() if os.path.exists(page) else ""
     check("site/home.html 存在", bool(src), "找不到檔案")
     luk = json.load(open(os.path.join(ROOT, "data", "luk.json"), encoding="utf-8"))["chapters"]
-    v27 = cjk(next(v["text"] for c in luk if c["ch"] == 4 for v in c["verses"] if v["v"] == 27))
+    cfg = home_config()
+    chosen = json.load(open(os.path.join(ROOT, "data", cfg["book"] + ".json"), encoding="utf-8"))["chapters"]
+    v27 = cjk(next(v["text"] for c in luk if c["ch"] == 4 for v in c["verses"] if v["v"] == 27)) + cjk(next(v["text"] for c in chosen if c["ch"] == cfg["ch"] for v in c["verses"] if v["v"] == cfg["v"]))
     s = cjk(src)
     hit = sorted({v27[i:i + 8] for i in range(len(v27) - 7) if v27[i:i + 8] in s})
-    check("home.html 沒有寫死路加福音 4:27（沒有任何連續 8 字與經文相同）", not hit, "；".join(hit[:3]))
+    check("home.html 沒有寫死經文（路加福音 4:27 與 home.json 指定的節，沒有任何連續 8 字相同）", not hit, "；".join(hit[:3]))
+    check("home.html 從 data/home.json 讀設定（fetch home.json，失敗時用預設值）", "home.json" in src and "Bible.load(" in src)
     check("home.html 讀經文用 Bible.load（不自己 fetch、不寫死）", "Bible.load" in src and 'Bible.nav(' in src)
     bare = strip_blocks(strip_blocks(src, "@media (prefers-reduced-motion: no-preference)"), "@keyframes")
     moving = [m.group(0) for m in re.finditer(r"animation\s*:\s*(?!none)[^;}]+|transition\s*:\s*(?!none)[^;}]+", bare)]
@@ -347,25 +398,28 @@ def home_static():
           root.count("site/home.html") >= 3 and "site/index.html" not in root, f"home.html 出現 {root.count('site/home.html')} 次")
     idx = open(os.path.join(SITE, "index.html"), encoding="utf-8").read()
     check("site/index.html 的 <main> 內有「回首頁」連到 home.html", re.search(r"<main[^>]*>.*?<a[^>]+href=\"home\.html\"[^>]*>[^<]*回首頁[^<]*</a>.*?</main>", idx, re.S) is not None)
-    for f in ("jordan.jpg", "home-music.mp3"):
+    for f in ("jordan.jpg", "home-music.mp3", os.path.basename(cfg["image"]), os.path.basename(cfg["music"])):
         check(f"site/assets/{f} 存在且不是空檔", os.path.getsize(os.path.join(SITE, "assets", f)) > 10000 if os.path.exists(os.path.join(SITE, "assets", f)) else False)
 
 
-def home_render(port):
-    luk = json.load(open(os.path.join(ROOT, "data", "luk.json"), encoding="utf-8"))["chapters"]
-    want = next(v["text"] for c in luk if c["ch"] == 4 for v in c["verses"] if v["v"] == 27)
+def home_render(port, root=None, label=""):
+    """Render home.html served from `root` (default: the real site) and compare with that root's home.json."""
+    cfg = home_config(root)
+    book = json.load(open(os.path.join(root or ROOT, "data", cfg["book"] + ".json"), encoding="utf-8"))["chapters"]
+    want = next(v["text"] for c in book if c["ch"] == cfg["ch"] for v in c["verses"] if v["v"] == cfg["v"])
+    ref = f"{dict(BOOKS)[cfg['book']]} {cfg['ch']}:{cfg['v']}"
     st = home_state(port, click=True)
     if not st:
         check("home.html 量測", False, "探測頁沒有輸出")
         return
     brief = json.dumps(st, ensure_ascii=False)[:400]
-    check("home.html 的 .home-verse 逐字等於 luk.json 的路加福音 4:27", st.get("verse", "").replace(" ", "") == want.replace(" ", ""), st.get("verse", "")[:60])
-    check("home.html 的 .home-ref 是「路加福音 4:27」", "路加福音 4:27" in st.get("ref", "") and "4:27" in st.get("ref", ""), st.get("ref", ""))
+    check(f"home.html{label} 的 .home-verse 逐字等於 home.json 指定的經文", st.get("verse", "").replace(" ", "") == want.strip().replace(" ", ""), st.get("verse", "")[:60])
+    check(f"home.html{label} 的 .home-ref 是 home.json 指定的出處", ref in st.get("ref", ""), f"{st.get('ref', '')} / 預期 {ref}")
     check("home.html 沒有 JavaScript 錯誤", not st.get("errors"), "；".join(st.get("errors", [])[:3]))
     img = st.get("img") or {}
-    check("home.html 的英雄圖是 assets/jordan.jpg、真的載入、有繁體中文 alt", img.get("src") == "assets/jordan.jpg" and img.get("naturalWidth", 0) >= 1000 and bool(re.search(r"[一-鿿]", img.get("alt", ""))), json.dumps(img, ensure_ascii=False))
+    check(f"home.html{label} 的英雄圖是 home.json 指定的圖、真的載入、alt 等於 home.json 的 alt", img.get("src") == cfg["image"] and img.get("naturalWidth", 0) >= 1000 and img.get("alt") == cfg.get("alt", img.get("alt")), json.dumps(img, ensure_ascii=False))
     aud = st.get("audio") or {}
-    check("home.html 的 <audio> 是 assets/home-music.mp3、loop、preload=none", aud.get("src", "").endswith("assets/home-music.mp3") and aud.get("loop") is True and aud.get("preload") == "none", json.dumps(aud))
+    check(f"home.html{label} 的 <audio> 是 home.json 指定的音樂、loop、preload=none", aud.get("src", "").endswith(cfg["music"]) and aud.get("loop") is True and aud.get("preload") == "none", json.dumps(aud))
     m0, m1, m2 = st.get("initialMusic") or {}, st.get("afterClick") or {}, st.get("afterSecond") or {}
     sync = lambda m: m.get("pressed") in ("true", "false") and (m.get("pressed") == "true") == (m.get("paused") is False)
     check("#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致", sync(m0) and sync(m1) and sync(m2), brief)
@@ -374,8 +428,32 @@ def home_render(port):
     links = {l["text"]: l["href"] for l in st.get("links", [])}
     get = lambda key: next((h for t, h in links.items() if key in t), None)
     check("「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html", get("進入四福音") == "index.html" and get("抽一張經文卡") == "blessing.html", json.dumps(links, ensure_ascii=False))
-    check("「閱讀本章」連到 chapter.html?book=luk&ch=4#v27", get("閱讀本章") == "chapter.html?book=luk&ch=4#v27", str(get("閱讀本章")))
+    check(f"「閱讀本章」{label}連到 home.json 指定那一章的那一節", get("閱讀本章") == f"chapter.html?book={cfg['book']}&ch={cfg['ch']}#v{cfg['v']}", str(get("閱讀本章")))
     check("home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」", st.get("navCount") == 4 and st.get("navActive") == 0 and "四福音" in st.get("h1", ""), f"nav {st.get('navCount')}/{st.get('navActive')} h1 {st.get('h1')}")
+
+
+def home_variants():
+    """Serve temp copies of the site: (a) a different home.json with copied assets, (b) no home.json at all."""
+    import shutil
+    http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
+    for label, cfg in ((" (自訂設定)", {"book": "jhn", "ch": 3, "v": 16, "image": "assets/custom-pic.jpg", "alt": "測試用的替代圖片說明", "music": "assets/custom-song.mp3"}),
+                       (" (沒有 home.json)", None)):
+        with tempfile.TemporaryDirectory() as tmp:
+            for d in ("site", "data"):
+                shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
+            os.makedirs(os.path.join(tmp, "tests"))
+            shutil.copy(os.path.join(ROOT, "tests", "home_probe.html"), os.path.join(tmp, "tests"))
+            if cfg:
+                shutil.copy(os.path.join(tmp, "site", "assets", "jordan.jpg"), os.path.join(tmp, "site", "assets", "custom-pic.jpg"))
+                shutil.copy(os.path.join(tmp, "site", "assets", "home-music.mp3"), os.path.join(tmp, "site", "assets", "custom-song.mp3"))
+                json.dump(cfg, open(os.path.join(tmp, "data", "home.json"), "w", encoding="utf-8"), ensure_ascii=False)
+            else:
+                os.remove(os.path.join(tmp, "data", "home.json"))
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
+            with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
+                threading.Thread(target=srv.serve_forever, daemon=True).start()
+                home_render(srv.server_address[1], tmp, label)
+                srv.shutdown()
 
 
 def rendering(groups):
@@ -462,6 +540,7 @@ def rendering(groups):
             blessing_render(port, groups)
         if "home" in groups:
             home_render(port)
+            home_variants()
         srv.shutdown()
 
 
@@ -482,6 +561,7 @@ if __name__ == "__main__":
     if "blessing" in groups:
         blessing_data()
     if "home" in groups:
+        home_data()
         home_static()
     rendering(groups)
     if ONLY and not results:

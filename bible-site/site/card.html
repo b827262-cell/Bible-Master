@@ -11,6 +11,15 @@
     .card-controls label { display: flex; flex-direction: column; gap: 0.25em; font-size: 0.9em; color: var(--muted); }
     .card-controls select { padding: 0.4em 0.6em; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font-size: 1em; }
     #card-canvas { max-width: 100%; height: auto; display: block; margin: 1em 0; border: 1px solid var(--border); border-radius: 8px; }
+    @media (min-width: 48em) {
+      .card-controls { justify-content: center; gap: 1.5em; }
+      #card-canvas { margin-left: auto; margin-right: auto; max-width: 560px; }
+      #download-btn { display: block; margin-left: auto; margin-right: auto; min-width: 180px; }
+    }
+    @media (min-width: 64em) {
+      .card-controls { margin: 2em 0; gap: 2em; }
+      #card-canvas { max-width: 600px; }
+    }
   </style>
 </head>
 <body>

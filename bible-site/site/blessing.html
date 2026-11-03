@@ -37,7 +37,22 @@
     }
     @keyframes cardReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @media (prefers-color-scheme: dark) { #blessing-card { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); } }
-    @media (min-width: 48em) { #blessing-card { padding: 32px 28px; } }
+    @media (min-width: 48em) {
+      #theme-tabs { max-width: 32em; margin: 0.75em auto 1.5em; gap: 12px; }
+      #blessing-card { max-width: 48em; margin-left: auto; margin-right: auto; padding: 32px 36px; }
+      .card-actions { grid-template-columns: 2fr 1fr 1fr; gap: 0.75em; }
+      #again-btn { grid-column: auto; }
+    }
+    @media (min-width: 64em) {
+      #theme-tabs { max-width: 36em; }
+      #blessing-card { max-width: 54em; padding: 40px 48px; border-radius: 16px; }
+      .card-verse { font-size: 1.25rem; line-height: 2; }
+      .card-message { font-size: 1.125rem; line-height: 1.9; }
+    }
+    @media (min-width: 90em) {
+      #theme-tabs { max-width: 38em; }
+      #blessing-card { max-width: 58em; }
+    }
   </style>
 </head>
 <body>

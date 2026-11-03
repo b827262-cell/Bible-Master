@@ -75,10 +75,14 @@ check_environment() {
     exit 1
   fi
 
-  if [ ! -f "${SITE_ROOT}/data/mat.json" ] || [ ! -f "${SITE_ROOT}/data/mrk.json" ]; then
+  if [ ! -f "${SITE_ROOT}/data/mat.json" ] || [ ! -f "${SITE_ROOT}/data/mrk.json" ] || [ ! -f "${SITE_ROOT}/data/luk.json" ] || [ ! -f "${SITE_ROOT}/data/jhn.json" ]; then
     print_warn "經文資料庫尚未建置，正在自動建置經文資料 (build_data.py)..."
     python3 "${SITE_ROOT}/tools/build_data.py"
     print_success "經文資料建置完成！"
+  fi
+
+  if [ ! -f "${SITE_ROOT}/data/blessing.json" ]; then
+    print_warn "缺少 blessing.json，抽經文卡功能將無法使用"
   fi
 }
 
@@ -139,9 +143,11 @@ check_status() {
 
   if [ -n "${fe_listen_pid}" ]; then
     echo -e " 🌐 ${BOLD}前台網站 (Port ${FRONTEND_PORT})${NC}: ${GREEN}● 運行中${NC} (PID: ${fe_listen_pid})"
-    echo -e "    - 本機入口:   ${CYAN}http://127.0.0.1:${FRONTEND_PORT}/site/index.html${NC}"
+    echo -e "    - 本機入口:   ${CYAN}http://127.0.0.1:${FRONTEND_PORT}/${NC}"
+    echo -e "    - 四福音目錄: ${CYAN}http://127.0.0.1:${FRONTEND_PORT}/site/index.html${NC}"
     if [ -n "${TAILSCALE_IP}" ]; then
-      echo -e "    - Tailscale:  ${CYAN}http://${TAILSCALE_IP}:${FRONTEND_PORT}/site/index.html${NC}"
+      echo -e "    - Tailscale:  ${CYAN}http://${TAILSCALE_IP}:${FRONTEND_PORT}/${NC}"
+      echo -e "    - 四福音目錄: ${CYAN}http://${TAILSCALE_IP}:${FRONTEND_PORT}/site/index.html${NC}"
     fi
   else
     echo -e " 🌐 ${BOLD}前台網站 (Port ${FRONTEND_PORT})${NC}: ${RED}○ 未運行${NC}"
@@ -322,9 +328,11 @@ start_all() {
   echo -e "${GREEN}${BOLD}==============================================================================${NC}"
   echo ""
   echo -e "  🌐  ${BOLD}前台網站 (聖經四福音閱讀器)${NC}"
-  echo -e "      👉 本機連結:   ${CYAN}${BOLD}http://127.0.0.1:${FRONTEND_PORT}/site/index.html${NC}"
+  echo -e "      👉 本機連結:   ${CYAN}${BOLD}http://127.0.0.1:${FRONTEND_PORT}/${NC}"
+  echo -e "      👉 四福音目錄: ${CYAN}${BOLD}http://127.0.0.1:${FRONTEND_PORT}/site/index.html${NC}"
   if [ -n "${TAILSCALE_IP}" ]; then
-    echo -e "      👉 區網/VPN:   ${CYAN}${BOLD}http://${TAILSCALE_IP}:${FRONTEND_PORT}/site/index.html${NC}"
+    echo -e "      👉 區網/VPN:   ${CYAN}${BOLD}http://${TAILSCALE_IP}:${FRONTEND_PORT}/${NC}"
+    echo -e "      👉 四福音目錄: ${CYAN}${BOLD}http://${TAILSCALE_IP}:${FRONTEND_PORT}/site/index.html${NC}"
   fi
   echo ""
   echo -e "  ⚙️   ${BOLD}管理後台 (運維儀表板 & 自動化測試)${NC}"
