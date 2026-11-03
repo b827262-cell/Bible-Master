@@ -115,7 +115,8 @@
     var links = [
       { href: "index.html", label: "目錄" },
       { href: "search.html", label: "搜尋" },
-      { href: "card.html", label: "經文卡片" }
+      { href: "card.html", label: "經文卡片" },
+      { href: "blessing.html", label: "抽經文卡" }
     ];
     var navEl = document.getElementById("nav");
     if (!navEl) {

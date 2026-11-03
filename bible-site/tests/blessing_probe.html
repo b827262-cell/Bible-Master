@@ -1,0 +1,104 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Loaded by tests/site_checks.py through its local server. Opens ?u=<page> in an iframe, performs ?act=<json>
+     (a list of {click: "<css selector>"}; after each click it waits until #blessing-card[data-draws] changes, at most 2 s),
+     then writes one JSON line into <pre id="out">:
+     PROBE {"cover":bool,"drawBtn":text,"themes":[{"id","active"}],"card":{id,theme,ref,title,verse,message,sign,draws}|null,
+            "ids":[data-id after each click],"errors":[...],"canvasRef":..}
+     Contract of the blessing page: #draw-btn (cover button), #again-btn, #theme-tabs button[data-theme] (active one has
+     aria-pressed="true"), #blessing-card[data-id][data-theme][data-draws] holding .card-title .card-verse .card-ref
+     .card-message .card-sign, canvas#card-canvas[data-ref]. -->
+<pre id="out">running</pre>
+<script>
+const qs = new URLSearchParams(location.search);
+const f = document.createElement("iframe");
+f.style.cssText = "width:" + (parseInt(qs.get("w")) || 1000) + "px;height:900px;border:0";   // ?w=<px>: iframe width
+const errors = [];
+f.src = qs.get("u");
+f.addEventListener("load", () => { try { f.contentWindow.addEventListener("error", e => errors.push(String(e.message))); f.contentWindow.addEventListener("unhandledrejection", e => errors.push("promise: " + String(e.reason))); } catch (e) {} });
+document.body.appendChild(f);
+const acts = JSON.parse(qs.get("act") || "[]");
+const sleep = t => new Promise(r => setTimeout(r, t));
+const text = (d, s) => { const e = d.querySelector(s); return e ? e.textContent.trim() : ""; };
+const visible = e => !!e && !e.hidden && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden";
+function read() {
+  const d = f.contentDocument, o = {errors};
+  const draw = d.getElementById("draw-btn");
+  o.cover = visible(draw);
+  o.drawBtn = draw ? draw.textContent.trim() : "";
+  o.themes = [...d.querySelectorAll("#theme-tabs button[data-theme]")].map(b => ({id: b.getAttribute("data-theme"), active: b.getAttribute("aria-pressed") === "true"}));
+  const c = d.getElementById("blessing-card");
+  o.card = c && c.getAttribute("data-id") ? {
+    id: c.getAttribute("data-id"), theme: c.getAttribute("data-theme"), draws: c.getAttribute("data-draws"), shown: visible(c),
+    ref: text(c, ".card-ref"), title: text(c, ".card-title"), verse: text(c, ".card-verse"), message: text(c, ".card-message"), sign: text(c, ".card-sign")
+  } : null;
+  const cv = d.getElementById("card-canvas");
+  o.canvasRef = cv ? (cv.getAttribute("data-ref") || "") : "";
+  o.canvasW = cv ? cv.width : 0;
+  if (cv && cv.width && cv.height) {   // is anything drawn? corner = background, plus count of dark (text) pixels
+    const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
+    let dark = 0;
+    for (let i = 0; i < px.length; i += 4) if (px[i] + px[i + 1] + px[i + 2] < 300) dark++;
+    o.canvasPixels = {corner: [px[0], px[1], px[2]], dark};
+  }
+  o.style = styleOf(d, c, cv);
+  return o;
+}
+// computed look of the card page (blessstyle checks): which buttons are solid accent, theme tabs, card typography
+function styleOf(d, c, cv) {
+  const w = f.contentWindow, cs = (e, p) => w.getComputedStyle(e, p || null);
+  const probe = d.createElement("span");
+  probe.style.cssText = "background:var(--accent);color:var(--accent)";
+  d.body.appendChild(probe);
+  const accent = cs(probe).backgroundColor;
+  probe.style.cssText = "background:var(--surface)";
+  const surface = cs(probe).backgroundColor;
+  probe.remove();
+  const s = {accent, surface, canvasShown: visible(cv)};
+  s.solid = [...d.querySelectorAll("button")].filter(visible).filter(b => cs(b).backgroundColor === accent)
+    .map(b => b.id || ("theme:" + b.getAttribute("data-theme")));
+  s.tabs = [...d.querySelectorAll("#theme-tabs button[data-theme]")].map(b => {
+    const r = b.getBoundingClientRect(), st = cs(b);
+    return {id: b.getAttribute("data-theme"), active: b.getAttribute("aria-pressed") === "true", bg: st.backgroundColor,
+            deco: st.textDecorationLine, border: parseFloat(st.borderTopWidth), before: cs(b, "::before").content,
+            x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height),
+            clipped: b.scrollWidth > b.clientWidth + 1};
+  });
+  s.secondary = ["download-btn", "share-btn"].map(id => {
+    const b = d.getElementById(id);
+    return b ? {id, bg: cs(b).backgroundColor, border: parseFloat(cs(b).borderTopWidth)} : {id};
+  });
+  const v = c && c.querySelector(".card-verse");
+  if (v) s.verse = {font: cs(v).fontFamily, left: parseFloat(cs(v).borderLeftWidth), leftColor: cs(v).borderLeftColor};
+  const sign = c && c.querySelector(".card-sign");
+  if (sign) s.signBefore = cs(sign, "::before").content;
+  const rl = d.getElementById("read-link"), ref = c && c.querySelector(".card-ref"), acts = c && c.querySelector(".card-actions");
+  if (rl && ref) s.readLink = {text: rl.textContent.trim(), inCard: c.contains(rl), sameRow: rl.parentElement === ref.parentElement,
+    beforeActions: !!acts && !!(rl.compareDocumentPosition(acts) & Node.DOCUMENT_POSITION_FOLLOWING) && !acts.contains(rl)};
+  return s;
+}
+(async () => {
+  for (let i = 0; i < 40; i++) { await sleep(150); const d = f.contentDocument; if (d && (d.getElementById("draw-btn") || d.getElementById("blessing-card") || d.querySelector(".error"))) break; }
+  await sleep(400);
+  const ids = [];
+  for (const a of acts) {
+    const d = f.contentDocument, el = d.querySelector(a.click);
+    if (!el) { ids.push("無此元素 " + a.click); continue; }
+    const c = d.getElementById("blessing-card");
+    const before = c ? c.getAttribute("data-draws") : null;
+    el.click();
+    for (let i = 0; i < 20; i++) {
+      await sleep(100);
+      const c2 = d.getElementById("blessing-card");
+      if (c2 && c2.getAttribute("data-draws") !== before) break;
+      if (!a.click.includes("btn")) break;   // theme tabs do not draw: do not wait
+    }
+    const c3 = d.getElementById("blessing-card");
+    ids.push(c3 ? c3.getAttribute("data-id") : null);
+  }
+  await sleep(300);
+  const o = read();
+  o.ids = ids;
+  document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
+})();
+</script>

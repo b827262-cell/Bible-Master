@@ -13,7 +13,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHROME = next((c for c in ("/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/snap/bin/chromium") if os.path.exists(c)), None)
 WIDTHS = [320, 375, 768, 1440]
 PAGES = ["index.html?book=luk", "chapter.html?book=luk&ch=2", "search.html?q=" + urllib.parse.quote("彼得"),
-         "search.html?q=zzzz", "card.html?book=luk&ch=1&v=1"]
+         "search.html?q=zzzz", "card.html?book=luk&ch=1&v=1", "blessing.html?card=work-01", "home.html"]
 results = []
 ONLY = None  # --grep REGEX: only checks whose name matches count (one task's share of the plan)
 
@@ -95,6 +95,11 @@ def main(groups):
             check(f"375px {p} 導覽、書卷、章節、搜尋控制項的觸控區域夠大", not small, "；".join(small))
             plain = [k for k, ok in m["current"].items() if not ok]
             check(f"{p} 目前頁面／書卷除了顏色還有粗體或底線", not plain, "、".join(plain))
+            na = m.get("navActive")
+            if na is not None:   # chapter.html has no current nav entry
+                check(f"{p} 導覽列目前頁不是實心色塊：背景透明、粗體、底部 ≥2px 指示線",
+                      na.get("bg") in ("rgba(0, 0, 0, 0)", "transparent") and na.get("weight", 0) >= 600 and na.get("bottom", 0) >= 2,
+                      json.dumps(na))
             want = {375: 22, 1440: 26}
             bad = [f"{w}px 時 h1 {light[p][w]['h1']}px（要 {px}px）" for w, px in want.items() if abs(light[p][w]["h1"] - px) > 0.5]
             check(f"{p} 主標題字級：手機 1.375rem、桌面 1.625rem", not bad, "；".join(bad))
@@ -115,6 +120,25 @@ def main(groups):
             bad = [f"{w}px scrollWidth {light[p][w]['scrollWidth']}>{light[p][w]['clientWidth']} {light[p][w]['overflow']}"
                    for w in WIDTHS if light[p][w]["scrollWidth"] > light[p][w]["clientWidth"] or light[p][w]["overflow"]]
             check(f"{p} 在 320/375/768/1440px 都沒有水平溢出", not bad, "；".join(bad))
+        m = light[PAGES[5]][375]
+        small = [f"{k} {v['h']}×{v['w']}px（至少 {v['min']}）" for k, v in m["targets"].items()
+                 if k == "button" and (v["h"] < v["min"] - 0.5 or v["w"] < v["min"] - 0.5)]
+        check("375px blessing.html 的按鈕（抽卡、再抽、主題標籤、下載、分享）至少 44px", not small, "；".join(small))
+        for w in WIDTHS:
+            h = light[PAGES[6]][w].get("home") or {}
+            check(f"{w}px home.html 經文卡壓在英雄圖的底緣（卡片頂端比圖片底端高）、圖高 ≥ 240px", bool(h) and h["cardTop"] < h["imgBottom"] and h["heroH"] >= 240, json.dumps(h))
+        h = light[PAGES[6]][375].get("home") or {}
+        bg = h.get("musicBg") or [255, 255, 255, 1]
+        check("home.html 音樂按鈕在圖上、半透明深色底、字是淺色（對比 ≥ 4.5:1）", bool(h) and h.get("musicInHero") and 0 < bg[3] < 1 and sum(bg[:3]) < 200 and h.get("musicLum", 0) >= 0.7, json.dumps(h))
+        for w in WIDTHS:
+            h = light[PAGES[6]][w].get("home") or {}
+            check(f"{w}px home.html 音樂按鈕完整露出在圖上（沒有被經文卡蓋住）", bool(h) and h.get("musicBottom") is not None and h["musicBottom"] <= h["cardTop"], json.dumps(h))
+        check("home.html 圖上的小標是淺色字並有 text-shadow", bool(h) and h.get("kickerLum", 0) >= 0.7 and h.get("kickerShadow") not in (None, "none"), json.dumps(h))
+        check("home.html 經文用明體", bool(h) and h.get("serif") is True, json.dumps(h))
+        for w in WIDTHS:
+            c = light[PAGES[5]][w].get("canvas", {})
+            good = c.get("attrW", 0) >= 600 and c.get("shownW", -1) == 0 and c.get("ref", "").startswith("馬太福音 25:21")
+            check(f"{w}px blessing.html?card=work-01 畫布實際像素 ≥600、畫出馬太福音 25:21、頁面上不顯示（只供下載）", good, json.dumps(c, ensure_ascii=False))
 
 
 if __name__ == "__main__":
@@ -124,5 +148,8 @@ if __name__ == "__main__":
         ONLY = args[i + 1]
         del args[i:i + 2]
     main(set(args) or {"p0", "p1", "p2"})
+    if ONLY and not results:
+        results.append(False)   # a typo in --grep must not pass silently
+        print(f"不通過：--grep {ONLY} 沒有對到任何檢查")
     print(f"結果：{'全部通過' if all(results) else f'不通過（{results.count(False)} 項）'}")
     sys.exit(0 if all(results) else 1)

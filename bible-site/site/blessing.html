@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>抽經文卡</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+  <style>
+    #theme-tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin: 0.5em 0 1em; }
+    #theme-tabs button { background: var(--surface); color: var(--fg); border: 1px solid var(--border); font-weight: 500; text-decoration: none; border-radius: 9999px; padding: 0.55em 0.5em; font-size: 0.9375rem; white-space: nowrap; }
+    #theme-tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; text-decoration: none; }
+    #theme-tabs button[aria-pressed="true"]::before { content: "✦ "; }
+    @media (max-width: 359px) {
+      #theme-tabs { grid-auto-rows: 1fr; }
+      #theme-tabs button { white-space: normal; border-radius: 16px; padding: 0.4em 0.5em; }
+    }
+    #cover { text-align: center; padding: 2em 0 1em; }
+    .cover-title { font-size: 1.75rem; font-weight: 700; margin: 0.25em 0 0.5em; }
+    .cover-heart { font-size: 3rem; color: var(--accent); margin: 0.5em 0; line-height: 1; }
+    #blessing-card { background: var(--card-bg); border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 14px; padding: 24px 20px; margin-top: 1em; box-shadow: 0 6px 20px rgba(122, 74, 31, 0.07); }
+    .card-title { font-size: 0.9375rem; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; margin: 0 0 16px; }
+    .card-verse { font-family: "Songti TC", "PMingLiU", "MingLiU", serif; font-size: 1.1875rem; line-height: 1.85; font-weight: 500; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 14px; margin: 0 0 12px; }
+    .card-ref-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25em 1em; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); }
+    .card-ref { color: var(--muted); font-size: 0.875rem; margin: 0; }
+    .card-message { font-size: 1.03125rem; line-height: 1.8; letter-spacing: 0.02em; color: var(--fg); margin: 0 0 18px; }
+    .card-sign { text-align: right; font-size: 0.9375rem; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 0.5em; }
+    .card-sign::before { content: "—— "; }
+    #card-canvas { display: none; }
+    .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; margin-top: 1em; }
+    #again-btn { grid-column: 1 / -1; font-weight: 700; }
+    #read-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; padding: 0.25em 0.5em; color: var(--accent); text-decoration: underline; text-underline-offset: 0.2em; }
+    #read-link:hover { background: var(--accent-soft); }
+    #share-msg { min-height: 1.5em; color: var(--muted); font-size: 0.9em; }
+    @media (prefers-reduced-motion: no-preference) {
+      #blessing-card.reveal { animation: cardReveal 0.3s ease-out; }
+    }
+    @keyframes cardReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-color-scheme: dark) { #blessing-card { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); } }
+    @media (min-width: 48em) { #blessing-card { padding: 32px 28px; } }
+  </style>
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container">
+    <h1>抽經文卡</h1>
+
+    <div id="theme-tabs" role="group" aria-label="祝福主題"></div>
+
+    <section id="cover">
+      <p class="cover-title">天父關心你</p>
+      <p class="cover-heart" aria-hidden="true">♥</p>
+      <button type="button" id="draw-btn">點選領受祝福</button>
+    </section>
+
+    <article id="blessing-card" hidden>
+      <h2 class="card-title"></h2>
+      <p class="card-verse"></p>
+      <div class="card-ref-row">
+        <p class="card-ref"></p>
+        <a id="read-link">閱讀本章 →</a>
+      </div>
+      <p class="card-message"></p>
+      <p class="card-sign">愛你的天父</p>
+      <canvas id="card-canvas" aria-hidden="true" hidden></canvas>
+      <div class="card-actions">
+        <button type="button" id="again-btn">↻ 再抽一次</button>
+        <button type="button" id="download-btn" class="btn-secondary">下載圖片</button>
+        <button type="button" id="share-btn" class="btn-secondary">分享</button>
+      </div>
+      <p id="share-msg" role="status"></p>
+    </article>
+  </main>
+
+  <footer>四福音 · 和合本</footer>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      Bible.nav("blessing.html");
+
+      var cover = document.getElementById("cover");
+      var card = document.getElementById("blessing-card");
+      var themeTabs = document.getElementById("theme-tabs");
+      var drawBtn = document.getElementById("draw-btn");
+      var againBtn = document.getElementById("again-btn");
+      var downloadBtn = document.getElementById("download-btn");
+      var shareBtn = document.getElementById("share-btn");
+      var readLink = document.getElementById("read-link");
+      var shareMsg = document.getElementById("share-msg");
+      var canvas = document.getElementById("card-canvas");
+      var ctx = canvas.getContext("2d");
+
+      var cardTitle = card.querySelector(".card-title");
+      var cardVerse = card.querySelector(".card-verse");
+      var cardRef = card.querySelector(".card-ref");
+      var cardMessage = card.querySelector(".card-message");
+
+      var blessingData = null;
+      var themeTitles = {};
+      var currentTheme = "work";
+      var lastCardId = null;
+      var drawCount = 0;
+
+      function getVerseText(book, ch, v) {
+        return Bible.load(book).then(function (data) {
+          var chapter = Bible.chapterOf(data, ch);
+          if (!chapter) throw new Error("找不到章節");
+          for (var i = 0; i < chapter.verses.length; i++) {
+            if (Number(chapter.verses[i].v) === Number(v)) {
+              return chapter.verses[i];
+            }
+          }
+          throw new Error("找不到經文");
+        });
+      }
+
+      function wrapText(text, maxWidth) {
+        var lines = [];
+        var line = "";
+        for (var i = 0; i < text.length; i++) {
+          var testLine = line + text.charAt(i);
+          if (line !== "" && ctx.measureText(testLine).width > maxWidth) {
+            lines.push(line);
+            line = text.charAt(i);
+          } else {
+            line = testLine;
+          }
+        }
+        if (line !== "") lines.push(line);
+        return lines;
+      }
+
+      function drawCanvas(title, verseText, refText, message) {
+        var W = 600;
+        var pad = 40;
+        var maxWidth = W - pad * 2;
+        var gap = 12;
+
+        ctx.font = "bold 24px sans-serif";
+        var titleLines = wrapText(title, maxWidth);
+        var titleLineH = 32;
+
+        ctx.font = "26px 'Songti TC', 'PMingLiU', serif";
+        var verseLines = wrapText(verseText, maxWidth);
+        var verseLineH = 36;
+
+        ctx.font = "20px sans-serif";
+        var refLines = wrapText(refText, maxWidth);
+        var refLineH = 28;
+
+        ctx.font = "22px sans-serif";
+        var msgLines = wrapText(message, maxWidth);
+        var msgLineH = 32;
+
+        var signLineH = 24;
+
+        var H = pad * 2 + titleLines.length * titleLineH + gap
+          + verseLines.length * verseLineH + gap
+          + refLines.length * refLineH + gap
+          + msgLines.length * msgLineH + gap
+          + signLineH;
+
+        canvas.width = W;
+        canvas.height = H;
+
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#fbf7ee";
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = "#e2d5be";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(20, 20, W - 40, H - 40);
+
+        var y = pad;
+
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillStyle = "#7a4a1f";
+        for (var i = 0; i < titleLines.length; i++) {
+          ctx.fillText(titleLines[i], pad, y + i * titleLineH);
+        }
+        y += titleLines.length * titleLineH + gap;
+
+        ctx.font = "26px 'Songti TC', 'PMingLiU', serif";
+        ctx.fillStyle = "#1f1e1b";
+        for (i = 0; i < verseLines.length; i++) {
+          ctx.fillText(verseLines[i], pad, y + i * verseLineH);
+        }
+        y += verseLines.length * verseLineH + gap;
+
+        ctx.font = "20px sans-serif";
+        ctx.fillStyle = "#6e6659";
+        for (i = 0; i < refLines.length; i++) {
+          ctx.fillText(refLines[i], pad, y + i * refLineH);
+        }
+        y += refLines.length * refLineH + gap;
+
+        ctx.font = "22px sans-serif";
+        ctx.fillStyle = "#33312e";
+        for (i = 0; i < msgLines.length; i++) {
+          ctx.fillText(msgLines[i], pad, y + i * msgLineH);
+        }
+        y += msgLines.length * msgLineH + gap;
+
+        ctx.font = "20px sans-serif";
+        ctx.fillStyle = "#7a4a1f";
+        var signText = "—— 愛你的天父";
+        var signWidth = ctx.measureText(signText).width;
+        ctx.fillText(signText, W - pad - signWidth, y);
+
+        canvas.setAttribute("data-ref", refText);
+      }
+
+      function buildTabs() {
+        themeTabs.innerHTML = "";
+        for (var i = 0; i < blessingData.themes.length; i++) {
+          var t = blessingData.themes[i];
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.setAttribute("data-theme", t.id);
+          btn.setAttribute("aria-pressed", t.id === currentTheme ? "true" : "false");
+          btn.textContent = t.title;
+          themeTabs.appendChild(btn);
+        }
+      }
+
+      function updateTabs() {
+        for (var i = 0; i < blessingData.themes.length; i++) {
+          var t = blessingData.themes[i];
+          var btn = themeTabs.querySelector('button[data-theme="' + t.id + '"]');
+          if (btn) {
+            btn.setAttribute("aria-pressed", t.id === currentTheme ? "true" : "false");
+          }
+        }
+      }
+
+      function randomCard(themeId, excludeId) {
+        var pool = [];
+        for (var i = 0; i < blessingData.cards.length; i++) {
+          if (blessingData.cards[i].theme === themeId) pool.push(blessingData.cards[i]);
+        }
+        if (excludeId && pool.length > 1) {
+          var filtered = [];
+          for (var j = 0; j < pool.length; j++) {
+            if (pool[j].id !== excludeId) filtered.push(pool[j]);
+          }
+          pool = filtered;
+        }
+        if (pool.length === 0) return null;
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      function showCard(cardObj, themeId) {
+        getVerseText(cardObj.book, cardObj.ch, cardObj.v).then(function (verse) {
+          var refText = Bible.ref(cardObj.book, cardObj.ch, verse) + "（和合本）";
+
+          cardTitle.textContent = themeTitles[themeId];
+          cardVerse.textContent = verse.text;
+          cardRef.textContent = refText;
+          cardMessage.textContent = cardObj.message;
+
+          drawCanvas(themeTitles[themeId], verse.text, refText, cardObj.message);
+
+          readLink.href = "chapter.html?book=" + cardObj.book + "&ch=" + cardObj.ch + "#v" + cardObj.v;
+
+          drawCount++;
+          card.setAttribute("data-id", cardObj.id);
+          card.setAttribute("data-theme", themeId);
+          card.setAttribute("data-draws", String(drawCount));
+
+          card.hidden = false;
+
+          card.classList.remove("reveal");
+          void card.offsetWidth;
+          card.classList.add("reveal");
+
+          lastCardId = cardObj.id;
+        }).catch(function (err) {
+          Bible.fail(document.querySelector("main"), err);
+        });
+      }
+
+      function buildShareUrl(cardId) {
+        var base = window.location.href;
+        var qIdx = base.indexOf("?");
+        var hIdx = base.indexOf("#");
+        var cut = -1;
+        if (qIdx !== -1 && hIdx !== -1) cut = Math.min(qIdx, hIdx);
+        else if (qIdx !== -1) cut = qIdx;
+        else if (hIdx !== -1) cut = hIdx;
+        if (cut !== -1) base = base.substring(0, cut);
+        return base + "?card=" + cardId;
+      }
+
+      function copyUrl(url) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function () {
+              shareMsg.textContent = "已複製連結";
+            }).catch(function () {
+              shareMsg.textContent = "請手動複製：" + url;
+            });
+          } else {
+            shareMsg.textContent = "請手動複製：" + url;
+          }
+        } catch (e) {
+          shareMsg.textContent = "請手動複製：" + url;
+        }
+      }
+
+      function handleShare() {
+        var cardId = card.getAttribute("data-id");
+        if (!cardId) return;
+        var url = buildShareUrl(cardId);
+        try {
+          if (navigator.share) {
+            navigator.share({ title: "抽經文卡", url: url })
+              .then(function () {})
+              .catch(function () { copyUrl(url); });
+          } else {
+            copyUrl(url);
+          }
+        } catch (e) {
+          shareMsg.textContent = "請手動複製：" + url;
+        }
+      }
+
+      function handleDownload() {
+        var cardId = card.getAttribute("data-id");
+        if (!cardId) return;
+        try {
+          var url = canvas.toDataURL("image/png");
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = "blessing-" + cardId + ".png";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (e) {
+          shareMsg.textContent = "發生錯誤，無法下載圖片";
+        }
+      }
+
+      drawBtn.addEventListener("click", function () {
+        cover.hidden = true;
+        var chosen = randomCard(currentTheme, null);
+        if (chosen) showCard(chosen, currentTheme);
+      });
+
+      againBtn.addEventListener("click", function () {
+        var chosen = randomCard(currentTheme, lastCardId);
+        if (chosen) showCard(chosen, currentTheme);
+      });
+
+      themeTabs.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-theme]");
+        if (!btn) return;
+        var themeId = btn.getAttribute("data-theme");
+        var valid = false;
+        for (var i = 0; i < blessingData.themes.length; i++) {
+          if (blessingData.themes[i].id === themeId) { valid = true; break; }
+        }
+        if (!valid) return;
+        currentTheme = themeId;
+        updateTabs();
+        if (cover.hidden) {
+          var chosen = randomCard(themeId, null);
+          if (chosen) showCard(chosen, themeId);
+        }
+      });
+
+      downloadBtn.addEventListener("click", handleDownload);
+      shareBtn.addEventListener("click", handleShare);
+
+      fetch("../data/blessing.json")
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          blessingData = data;
+
+          var defaultTheme = "work";
+          for (var i = 0; i < data.themes.length; i++) {
+            if (data.themes[i].default === true) { defaultTheme = data.themes[i].id; break; }
+          }
+
+          themeTitles = {};
+          for (i = 0; i < data.themes.length; i++) {
+            themeTitles[data.themes[i].id] = data.themes[i].title;
+          }
+
+          currentTheme = defaultTheme;
+          buildTabs();
+
+          var themeIds = [];
+          for (i = 0; i < data.themes.length; i++) themeIds.push(data.themes[i].id);
+
+          var themeParam = Bible.param("theme");
+          if (themeIds.indexOf(themeParam) >= 0) {
+            currentTheme = themeParam;
+          }
+          updateTabs();
+
+          var byId = {};
+          for (i = 0; i < data.cards.length; i++) byId[data.cards[i].id] = data.cards[i];
+
+          var cardParam = Bible.param("card");
+          if (byId[cardParam]) {
+            cover.hidden = true;
+            currentTheme = byId[cardParam].theme;
+            updateTabs();
+            showCard(byId[cardParam], currentTheme);
+          }
+        })
+        .catch(function (err) {
+          Bible.fail(document.querySelector("main"), err);
+        });
+    })();
+  </script>
+</body>
+</html>

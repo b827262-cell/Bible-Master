@@ -78,6 +78,8 @@ function measure(f, width) {
     if (!ok) o.focus.push(`${kind}: ${cs.outlineStyle} ${cs.outlineWidth}`);
   }
   if (d.activeElement) d.activeElement.blur();
+  const na = d.querySelector("#nav a.active");
+  if (na) { const cs = w.getComputedStyle(na); o.navActive = {bg: cs.backgroundColor, weight: parseInt(cs.fontWeight), bottom: parseFloat(cs.borderBottomWidth)}; }
   // current page / book must be marked by more than colour (bold or underline)
   o.current = {};
   for (const sel of ["#nav a.active", ".book-tabs a.active"]) {
@@ -100,6 +102,15 @@ function measure(f, width) {
   o.focusVisibleRules = sheet ? [...sheet.cssRules].filter(r => (r.selectorText || "").includes(":focus-visible")).length : -1;
   const c = d.getElementById("card-canvas");
   if (c) o.canvas = {attrW: c.width, shownW: Math.round(c.getBoundingClientRect().width), ref: c.getAttribute("data-ref") || ""};
+  const hero = d.querySelector(".home-hero"), hcard = d.querySelector(".home-card");
+  if (hero && hcard) {   // home page: the verse card floats over the bottom edge of the picture
+    const hi = hero.querySelector("img"), mb = d.getElementById("music-btn"), kick = d.querySelector(".hero-kicker");
+    const mcs = mb ? w.getComputedStyle(mb) : null, kcs = kick ? w.getComputedStyle(kick) : null;
+    o.home = {heroH: Math.round(hero.getBoundingClientRect().height), imgBottom: Math.round((hi || hero).getBoundingClientRect().bottom), cardTop: Math.round(hcard.getBoundingClientRect().top),
+              musicBg: mcs ? rgba(mcs.backgroundColor) : null, musicLum: mcs ? Math.round(lum(rgba(mcs.color)) * 100) / 100 : null,
+              musicInHero: !!mb && hero.contains(mb), musicBottom: mb ? Math.round(mb.getBoundingClientRect().bottom) : null, kickerLum: kcs ? Math.round(lum(rgba(kcs.color)) * 100) / 100 : null, kickerShadow: kcs ? kcs.textShadow : null,
+              serif: /Songti|PMingLiU|serif/.test(w.getComputedStyle(d.querySelector(".home-verse")).fontFamily)};
+  }
   o.dark = w.matchMedia("(prefers-color-scheme: dark)").matches;
   o.error = !!d.querySelector(".error");
   return o;
@@ -113,7 +124,7 @@ function measure(f, width) {
     document.body.appendChild(f);
     return [width, f];
   });
-  const ready = d => d && d.readyState === "complete" && (d.querySelector(".chapter-card, .verse-text, #results li, .error") ||
+  const ready = d => d && d.readyState === "complete" && (d.querySelector(".chapter-card, .verse-text, #results li, .error, .home-verse") ||
     (d.getElementById("card-canvas") && d.getElementById("card-canvas").getAttribute("data-ref")) ||
     (d.getElementById("result-info") && d.getElementById("result-info").textContent.trim()));
   for (let i = 0; i < 60 && !frames.every(([, f]) => ready(f.contentDocument)); i++) await sleep(150);

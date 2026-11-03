@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Loaded by tests/site_checks.py through its local server (Chrome runs with autoplay allowed). Opens ?u=<page> in an iframe
+     (?w=<px> sets its width, default 375), clicks #music-btn once when ?click=1, then writes one JSON line into <pre id="out">:
+     PROBE {"verse","ref","h1","img":{src,naturalWidth,alt,complete},"audio":{src,loop,preload,paused},
+            "music":{text,pressed,paused},"links":[{text,href}],"navActive":n,"navCount":n,"errors":[...]}
+     Contract of the home page: .home-verse and .home-ref (filled by Bible.load), .home-hero img, audio#home-music,
+     button#music-btn[aria-pressed] (pressed="true" exactly when the audio is playing), links 進入四福音 / 抽一張經文卡 / 閱讀本章. -->
+<pre id="out">running</pre>
+<script>
+const qs = new URLSearchParams(location.search);
+const f = document.createElement("iframe");
+f.style.cssText = "width:" + (parseInt(qs.get("w")) || 375) + "px;height:900px;border:0";
+const errors = [];
+f.src = qs.get("u");
+f.addEventListener("load", () => { try { f.contentWindow.addEventListener("error", e => errors.push(String(e.message))); f.contentWindow.addEventListener("unhandledrejection", e => errors.push("promise: " + String(e.reason))); } catch (e) {} });
+document.body.appendChild(f);
+const sleep = t => new Promise(r => setTimeout(r, t));
+const text = (d, s) => { const e = d.querySelector(s); return e ? e.textContent.trim() : ""; };
+function music(d) {
+  const b = d.getElementById("music-btn"), a = d.getElementById("home-music");
+  return b ? {text: b.textContent.trim(), pressed: b.getAttribute("aria-pressed"), paused: a ? a.paused : null} : null;
+}
+function read() {
+  const d = f.contentDocument, o = {errors};
+  o.verse = text(d, ".home-verse");
+  o.ref = text(d, ".home-ref");
+  o.h1 = text(d, "h1");
+  const img = d.querySelector(".home-hero img");
+  o.img = img ? {src: img.getAttribute("src"), naturalWidth: img.naturalWidth, alt: img.getAttribute("alt") || "", complete: img.complete} : null;
+  const a = d.getElementById("home-music");
+  o.audio = a ? {src: a.getAttribute("src") || (a.querySelector("source") || {}).src || "", loop: a.loop, preload: a.preload, paused: a.paused} : null;
+  o.music = music(d);
+  o.links = [...d.querySelectorAll("main a")].map(x => ({text: x.textContent.trim(), href: x.getAttribute("href")}));
+  o.navCount = d.querySelectorAll("#nav a").length;
+  o.navActive = d.querySelectorAll("#nav a.active").length;
+  return o;
+}
+(async () => {
+  for (let i = 0; i < 40; i++) { await sleep(150); const d = f.contentDocument; if (d && (text(d, ".home-verse") || d.querySelector(".error"))) break; }
+  await sleep(600);
+  const o = read();
+  o.initialMusic = o.music;
+  if (qs.get("click") === "1") {
+    const b = f.contentDocument.getElementById("music-btn");
+    if (b) { b.click(); await sleep(900); }
+    o.afterClick = music(f.contentDocument);
+    const b2 = f.contentDocument.getElementById("music-btn");
+    if (b2) { b2.click(); await sleep(600); }
+    o.afterSecond = music(f.contentDocument);
+  }
+  document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
+})();
+</script>

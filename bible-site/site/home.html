@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>四福音（和合本）</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+  <style>
+    .home {
+      padding-bottom: 2em;
+    }
+
+    /* ===== 英雄圖 ===== */
+    .home-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .home-hero img {
+      width: 100%;
+      height: 68vw;
+      min-height: 240px;
+      max-height: 520px;
+      object-fit: cover;
+      object-position: 50% 35%;
+      display: block;
+    }
+
+    .home-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(20, 19, 17, 0.55), rgba(20, 19, 17, 0) 60%);
+      pointer-events: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .home-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.12);
+        pointer-events: none;
+        z-index: 1;
+      }
+    }
+
+    .hero-kicker {
+      position: absolute;
+      left: 16px;
+      bottom: 52px;
+      z-index: 2;
+      color: #ffffff;
+      font-size: 0.8125rem;
+      letter-spacing: 0.12em;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    /* ===== 音樂按鈕 ===== */
+    #music-btn {
+      position: absolute;
+      right: 16px;
+      bottom: 52px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+      min-height: 44px;
+      padding: 0.5em 1em;
+      border-radius: 9999px;
+      background: rgba(20, 19, 17, 0.62);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+
+    #music-btn:hover {
+      filter: none;
+      background: rgba(20, 19, 17, 0.72);
+    }
+
+    #music-btn .bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    #music-btn .bars i {
+      display: block;
+      width: 3px;
+      height: 12px;
+      border-radius: 1px;
+      background: #ffffff;
+    }
+
+    /* ===== 經文卡 ===== */
+    .home-card {
+      position: relative;
+      margin-top: -40px;
+      margin-left: 0;
+      margin-right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: 14px;
+      padding: 24px 20px;
+      box-shadow: 0 6px 20px rgba(122, 74, 31, 0.12);
+      z-index: 3;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .home-card {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    .home-verse {
+      font-family: "Songti TC", "PMingLiU", "MingLiU", serif;
+      font-size: 1.1875rem;
+      line-height: 1.9;
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin: 0.8em 0;
+    }
+
+    .home-verse::before {
+      content: "❝";
+      display: block;
+      color: var(--accent);
+      opacity: 0.5;
+      font-size: 2rem;
+      line-height: 1;
+      margin-bottom: 0.1em;
+    }
+
+    .home-ref-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.25em 1em;
+      padding-bottom: 0.75em;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .home-ref {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .home-ref-row a {
+      color: var(--accent);
+      font-size: 0.875rem;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    /* ===== 入口連結 ===== */
+    .home-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 1.5em;
+    }
+
+    .home-actions .btn,
+    .home-actions .btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      width: 100%;
+      text-decoration: none;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    @media (min-width: 48em) {
+      .home-hero {
+        border-radius: 14px;
+      }
+
+      .home-card {
+        padding: 32px 28px;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .home-actions {
+        grid-template-columns: 1fr 1fr;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    /* ===== 動態效果：全部放在 reduced-motion 條件內 ===== */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes homeImageZoom {
+        from {
+          transform: scale(1);
+        }
+
+        to {
+          transform: scale(1.06);
+        }
+      }
+
+      @keyframes homeFadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes homeBars {
+        0%,
+        100% {
+          transform: scaleY(0.45);
+        }
+
+        50% {
+          transform: scaleY(1);
+        }
+      }
+
+      .home-hero img {
+        animation: homeImageZoom 20s ease-out forwards;
+      }
+
+      .home-card {
+        animation: homeFadeUp 0.5s ease-out both;
+      }
+
+      .home-actions {
+        animation: homeFadeUp 0.5s ease-out 0.12s both;
+      }
+
+      #music-btn .bars i:nth-child(1) {
+        animation: homeBars 0.9s ease-in-out infinite;
+      }
+
+      #music-btn .bars i:nth-child(2) {
+        animation: homeBars 0.9s ease-in-out 0.15s infinite;
+      }
+
+      #music-btn .bars i:nth-child(3) {
+        animation: homeBars 0.9s ease-in-out 0.3s infinite;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="container home">
+    <section class="home-hero">
+      <img src="assets/jordan.jpg" alt="一位男子站在約但河水中，仰望從雲層灑下的光">
+      <div class="hero-kicker" aria-hidden="true">四福音（和合本）</div>
+      <button type="button" id="music-btn" aria-pressed="false">♪ 播放音樂</button>
+    </section>
+
+    <section class="home-card">
+      <h1>四福音</h1>
+      <blockquote class="home-verse"></blockquote>
+      <div class="home-ref-row">
+        <p class="home-ref"></p>
+        <a href="chapter.html?book=luk&ch=4#v27">閱讀本章 →</a>
+      </div>
+    </section>
+
+    <div class="home-actions">
+      <a class="btn" href="index.html">進入四福音 →</a>
+      <a class="btn-secondary" href="blessing.html">抽一張經文卡 →</a>
+    </div>
+
+    <audio id="home-music" src="assets/home-music.mp3" loop preload="none"></audio>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      Bible.nav(null);
+
+      var verseEl = document.querySelector(".home-verse");
+      var refEl = document.querySelector(".home-ref");
+
+      Bible.load("luk").then(function (data) {
+        var chapter = Bible.chapterOf(data, 4);
+        if (!chapter) {
+          throw new Error("找不到章節");
+        }
+        var verse = null;
+        for (var i = 0; i < chapter.verses.length; i++) {
+          if (Number(chapter.verses[i].v) === 27) {
+            verse = chapter.verses[i];
+            break;
+          }
+        }
+        if (!verse) {
+          throw new Error("找不到經文");
+        }
+        verseEl.textContent = verse.text;
+        refEl.textContent = Bible.ref("luk", 4, verse) + "（和合本）";
+      }).catch(function (err) {
+        Bible.fail(document.querySelector("main"), err);
+      });
+
+      var audio = document.getElementById("home-music");
+      var musicBtn = document.getElementById("music-btn");
+      audio.volume = 0.6;
+
+      var PAUSE_LABEL = "♪ 播放音樂";
+      var PLAY_LABEL = '<span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> 暫停音樂';
+
+      function render() {
+        var playing = !audio.paused;
+        musicBtn.setAttribute("aria-pressed", playing ? "true" : "false");
+        musicBtn.innerHTML = playing ? PLAY_LABEL : PAUSE_LABEL;
+      }
+
+      audio.addEventListener("play", render);
+      audio.addEventListener("pause", render);
+      render();
+
+      function tryPlay() {
+        var attempt = audio.play();
+        if (attempt && typeof attempt.then === "function") {
+          return attempt.then(function () {
+            return true;
+          }, function () {
+            return false;
+          });
+        }
+        return Promise.resolve(true);
+      }
+
+      function armFirstGesture() {
+        function onFirstGesture(event) {
+          if (event.target && event.target.closest && event.target.closest("#music-btn")) {
+            return;
+          }
+          cleanup();
+          tryPlay();
+        }
+        function cleanup() {
+          document.removeEventListener("pointerdown", onFirstGesture);
+          document.removeEventListener("keydown", onFirstGesture);
+        }
+        document.addEventListener("pointerdown", onFirstGesture);
+        document.addEventListener("keydown", onFirstGesture);
+      }
+
+      tryPlay().then(function (ok) {
+        if (!ok) {
+          armFirstGesture();
+        }
+      });
+
+      musicBtn.addEventListener("click", function () {
+        if (audio.paused) {
+          tryPlay();
+        } else {
+          audio.pause();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

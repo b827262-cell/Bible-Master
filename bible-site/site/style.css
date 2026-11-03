@@ -5,23 +5,27 @@
 :root {
   --bg: #f7f5ef;
   --surface: #ffffff;
+  --card-bg: #fffcf5;
   --fg: #2c2b28;
-  --muted: #6e6a60;
-  --border: #d9d4c8;
+  --muted: #635f56;
+  --border: #ded8cc;
   --accent: #7a4a1f;
   --accent-fg: #ffffff;
+  --accent-soft: #f3ead8;
   --focus: #b35400;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #171614;
-    --surface: #21201d;
-    --fg: #e9e6dc;
-    --muted: #a39f95;
-    --border: #383630;
-    --accent: #d9a05b;
+    --bg: #161513;
+    --surface: #22201c;
+    --card-bg: #28251f;
+    --fg: #ede9df;
+    --muted: #aba69b;
+    --border: #3d3932;
+    --accent: #deb068;
     --accent-fg: #171614;
+    --accent-soft: #352c1e;
     --focus: #e0a45c;
   }
 }
@@ -94,11 +98,12 @@ body {
 }
 
 .nav-list a.active {
-  background: var(--accent);
-  color: var(--accent-fg);
+  background: transparent;
+  color: var(--accent);
   font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  text-decoration: none;
+  border-bottom: 3px solid var(--accent);
+  border-radius: 0;
 }
 
 #chapter-links a {
@@ -275,6 +280,18 @@ button:focus,
 input[type="submit"]:focus {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  filter: none;
 }
 
 input[type="text"],

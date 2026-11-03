@@ -2082,3 +2082,1159 @@
 結果：全部通過
 ```
 **總結：3/3 項檢查通過**
+
+## 2026-11-03 00:38
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-14", "work-02", "work-08", "work-09", "work-08", "work-23", "work-17"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 00:40
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-02", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 16:33（和合本）", "title": "天父賜你平安", "verse": "我將這些事告訴你們、是要叫你們在我裏面有平安。在世上你們有苦難．但你們可以放心、我已經勝了世界。", "message": "你遇到的難處我都知道，也不會要你）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-10", "work-03", "work-19", "work-17", "work-20", "work-22", "work-10"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 00:42
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-02", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 16:33（和合本）", "title": "天父賜你平安", "verse": "我將這些事告訴你們、是要叫你們在我裏面有平安。在世上你們有苦難．但你們可以放心、我已經勝了世界。", "message": "你遇到的難處我都知道，也不會要你）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-01", "work-11", "work-03", "work-02", "work-23", "work-06", "work-17"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 09:26
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確）供下載（{"canvasShown": false}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：blessing.html 四顆主題按鈕排成 2×2、等寬（[{"id": "work", "x": 212, "y": 125, "w": 283}, {"id": "peace", "x": 505, "y": 125, "w": 283}, {"id": "rest", "x": 212, "y": 179, "w": 283}, {"id": "faith", "x": 505, "y": 179, "w": 283}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 283}, {"id": "rest", "active"）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-05", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 10:10（和合本）", "title": "天父賜你平安", "verse": "盜賊來、無非要偷竊、殺害、毀壞．我來了、是要叫羊〈或作人〉得生命、並且得的更豐盛。", "message": "我渴望給你的，不只是每天匆忙地勉強度日，而是從）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-11", "work-04", "work-19", "work-20", "work-19", "work-14", "work-10"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 09:27
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確）供下載（{"canvasShown": false}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：blessing.html 四顆主題按鈕排成 2×2、等寬（[{"id": "work", "x": 212, "y": 125, "w": 283}, {"id": "peace", "x": 505, "y": 125, "w": 283}, {"id": "rest", "x": 212, "y": 179, "w": 283}, {"id": "faith", "x": 505, "y": 179, "w": 283}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 283}, {"id": "rest", "active"）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-01", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 14:27（和合本）", "title": "天父賜你平安", "verse": "我留下平安給你們、我將我的平安賜給你們．我所賜的、不像世人所賜的．你們心裏不要憂愁、也不要膽怯。", "message": "我賜給你的平安，不是外面一切順利）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-20", "work-02", "work-16", "work-14", "work-22", "work-16", "work-20"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 09:31
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確）供下載（{"canvasShown": false}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：blessing.html 四顆主題按鈕排成 2×2、等寬（[{"id": "work", "x": 212, "y": 125, "w": 283}, {"id": "peace", "x": 505, "y": 125, "w": 283}, {"id": "rest", "x": 212, "y": 179, "w": 283}, {"id": "faith", "x": 505, "y": 179, "w": 283}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 283}, {"id": "rest", "active"）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-01", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 14:27（和合本）", "title": "天父賜你平安", "verse": "我留下平安給你們、我將我的平安賜給你們．我所賜的、不像世人所賜的．你們心裏不要憂愁、也不要膽怯。", "message": "我賜給你的平安，不是外面一切順利）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-08", "work-06", "work-02", "work-22", "work-01", "work-05", "work-22"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 09:39
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-01", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 14:27（和合本）", "title": "天父賜你平安", "verse": "我留下平安給你們、我將我的平安賜給你們．我所賜的、不像世人所賜的．你們心裏不要憂愁、也不要膽怯。", "message": "我賜給你的平安，不是外面一切順利）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-16", "work-23", "work-14", "work-21", "work-05", "work-02", "work-13"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 10:44
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-05", "theme": "peace", "draws": "2", "shown": true, "ref": "約翰福音 10:10（和合本）", "title": "天父賜你平安", "verse": "盜賊來、無非要偷竊、殺害、毀壞．我來了、是要叫羊〈或作人〉得生命、並且得的更豐盛。", "message": "我渴望給你的，不只是每天匆忙地勉強度日，而是從）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-17", "work-19", "work-13", "work-18", "work-19", "work-08", "work-13"]）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 12:30
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：site/home.html 存在（找不到檔案）
+通過：home.html 沒有寫死路加福音 4:27（沒有任何連續 8 字與經文相同）
+通過：home.html 讀經文用 Bible.load（不自己 fetch、不寫死）
+通過：home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡（沒有任何動態效果）
+通過：home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）
+通過：home.html 的 audio 是 assets/home-music.mp3、loop、preload=none
+通過：根目錄 index.html 的 meta refresh、location.replace、備援連結都指向 site/home.html（home.html 出現 3 次）
+通過：site/index.html 的 <main> 內有「回首頁」連到 home.html
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-04", "theme": "peace", "draws": "2", "shown": true, "ref": "路加福音 12:27（和合本）", "title": "天父賜你平安", "verse": "你想百合花、怎麼長起來．他也不勞苦、也不紡線．然而我告訴你們、就是所羅門極榮華的時候、他所穿戴的、還不如這花一朶呢。", "message": "停下來看一看）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-01", "work-03", "work-18", "work-06", "work-23", "work-05", "work-22"]）
+通過：home.html 的 .home-verse 逐字等於 luk.json 的路加福音 4:27（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html 的 .home-ref 是「路加福音 4:27」（路加福音 4:27（和合本））
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html 的英雄圖是 assets/jordan.jpg、真的載入、有繁體中文 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html 的 <audio> 是 assets/home-music.mp3、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」連到 chapter.html?book=luk&ch=4#v27（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 12:31
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：site/home.html 存在（找不到檔案）
+通過：home.html 沒有寫死路加福音 4:27（沒有任何連續 8 字與經文相同）
+通過：home.html 讀經文用 Bible.load（不自己 fetch、不寫死）
+通過：home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡（沒有任何動態效果）
+通過：home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）
+通過：home.html 的 audio 是 assets/home-music.mp3、loop、preload=none
+通過：根目錄 index.html 的 meta refresh、location.replace、備援連結都指向 site/home.html（home.html 出現 3 次）
+通過：site/index.html 的 <main> 內有「回首頁」連到 home.html
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-04", "theme": "peace", "draws": "2", "shown": true, "ref": "路加福音 12:27（和合本）", "title": "天父賜你平安", "verse": "你想百合花、怎麼長起來．他也不勞苦、也不紡線．然而我告訴你們、就是所羅門極榮華的時候、他所穿戴的、還不如這花一朶呢。", "message": "停下來看一看）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-02", "work-16", "work-08", "work-14", "work-10", "work-22", "work-10"]）
+通過：home.html 的 .home-verse 逐字等於 luk.json 的路加福音 4:27（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html 的 .home-ref 是「路加福音 4:27」（路加福音 4:27（和合本））
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html 的英雄圖是 assets/jordan.jpg、真的載入、有繁體中文 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html 的 <audio> 是 assets/home-music.mp3、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」連到 chapter.html?book=luk&ch=4#v27（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 12:33
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：site/home.html 存在（找不到檔案）
+通過：home.html 沒有寫死路加福音 4:27（沒有任何連續 8 字與經文相同）
+通過：home.html 讀經文用 Bible.load（不自己 fetch、不寫死）
+通過：home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡（沒有任何動態效果）
+通過：home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）
+通過：home.html 的 audio 是 assets/home-music.mp3、loop、preload=none
+通過：根目錄 index.html 的 meta refresh、location.replace、備援連結都指向 site/home.html（home.html 出現 3 次）
+通過：site/index.html 的 <main> 內有「回首頁」連到 home.html
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-06", "theme": "peace", "draws": "2", "shown": true, "ref": "馬可福音 4:39（和合本）", "title": "天父賜你平安", "verse": "耶穌醒了．斥責風、向海說、住了罷、靜了罷．風就止住、大大的平靜了。", "message": "外面的聲音越嘈雜，你越要回到心裡聽見我的聲音。把那些讓你翻騰的焦）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-23", "work-04", "work-16", "work-20", "work-23", "work-05", "work-16"]）
+通過：home.html 的 .home-verse 逐字等於 luk.json 的路加福音 4:27（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html 的 .home-ref 是「路加福音 4:27」（路加福音 4:27（和合本））
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html 的英雄圖是 assets/jordan.jpg、真的載入、有繁體中文 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html 的 <audio> 是 assets/home-music.mp3、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」連到 chapter.html?book=luk&ch=4#v27（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
+
+## 2026-11-03 12:38
+### 經文比對：通過
+```
+經文比對 馬太福音：1071/1071 節相符
+經文比對 馬可福音：678/678 節相符
+經文比對 路加福音：1149/1149 節相符
+經文比對 約翰福音：878/878 節相符
+寫死經文檢查：通過（site/ 沒有寫死的經文）
+```
+### 節數與檔案：通過
+```
+馬太福音：章數 28/28，總節數 1071/1071
+馬可福音：章數 16/16，總節數 678/678
+路加福音：章數 24/24，總節數 1149/1149
+約翰福音：章數 21/21，總節數 878/878
+四福音總節數 3776/3776
+結果：全部通過
+```
+### 網站檢查：通過
+```
+通過：連結都指向存在的檔案
+通過：沒有載入外部資源
+通過：頁尾沒有寫死單一書卷名稱
+通過：blessing.json 的卡片 id 不重複，且每張卡都有 theme、book、ch、v、message
+通過：blessing.json 每張卡的 theme 都有定義
+通過：blessing.json 每張卡的書卷／章／節在 data/*.json 都存在
+通過：blessing.json 恰有一個預設主題，而且是 work（['work']）
+通過：blessing.json 的 work 主題至少 15 張卡
+通過：blessing.json 其他每個主題至少 3 張卡
+通過：blessing.json 每張祝福短文 30–120 字、署名不寫在短文裡
+通過：blessing.json 沒有簡體字
+通過：blessing.json 的祝福短文 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：blessing.html 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）
+通過：site/home.html 存在（找不到檔案）
+通過：home.html 沒有寫死路加福音 4:27（沒有任何連續 8 字與經文相同）
+通過：home.html 讀經文用 Bible.load（不自己 fetch、不寫死）
+通過：home.html 所有 animation／transition 都包在 prefers-reduced-motion: no-preference 裡（沒有任何動態效果）
+通過：home.html 有 @keyframes（圖片緩慢放大、淡入、音量條）
+通過：home.html 的 audio 是 assets/home-music.mp3、loop、preload=none
+通過：根目錄 index.html 的 meta refresh、location.replace、備援連結都指向 site/home.html（home.html 出現 3 次）
+通過：site/index.html 的 <main> 內有「回首頁」連到 home.html
+通過：site/assets/jordan.jpg 存在且不是空檔
+通過：site/assets/home-music.mp3 存在且不是空檔
+通過：chapter.html?book=mat&ch=1 顯示 馬太福音 第 1 章全部 25 節
+通過：chapter.html?book=mat&ch=28 顯示 馬太福音 第 28 章全部 20 節
+通過：chapter.html?book=mrk&ch=1 顯示 馬可福音 第 1 章全部 45 節
+通過：chapter.html?book=mrk&ch=16 顯示 馬可福音 第 16 章全部 20 節
+通過：chapter.html?book=luk&ch=1 顯示 路加福音 第 1 章全部 79 節
+通過：chapter.html?book=luk&ch=24 顯示 路加福音 第 24 章全部 53 節
+通過：chapter.html?book=jhn&ch=1 顯示 約翰福音 第 1 章全部 51 節
+通過：chapter.html?book=jhn&ch=21 顯示 約翰福音 第 21 章全部 25 節
+通過：chapter.html?ch=1（沒帶 book）預設顯示馬太福音第 1 章
+通過：路加福音 1:1–2 合併節以「1-2」顯示
+通過：search.html?q=耶穌&book=mat 顯示 274 筆結果
+通過：search.html?q=耶穌&book=mrk 顯示 274 筆結果
+通過：search.html?q=耶穌&book=luk 顯示 326 筆結果
+通過：search.html?q=耶穌&book=jhn 顯示 309 筆結果
+通過：search.html?q=耶穌（預設搜全部四卷）顯示 1183 筆結果
+通過：chapter.html?book=mrk&ch=1#v40 會捲動到該節
+通過：chapter.html?book=luk&ch=1#v2 會捲動到該節
+通過：chapter.html?book=jhn&ch=21#v25 會捲動到該節
+通過：index.html?book=mat 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=mrk 顯示 馬可福音 的 16 章、書卷標籤、搜尋下拉預設馬可福音
+通過：index.html?book=luk 顯示 路加福音 的 24 章、書卷標籤、搜尋下拉預設路加福音
+通過：index.html?book=jhn 顯示 約翰福音 的 21 章、書卷標籤、搜尋下拉預設約翰福音
+通過：index.html?book=zzz 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：index.html?book=（無） 顯示 馬太福音 的 28 章、書卷標籤、搜尋下拉預設馬太福音
+通過：card.html 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html?book=luk&ch=1&v=1 的三個下拉與卡片出處都是 路加福音 1:1
+通過：card.html?book=jhn&ch=21&v=25 的三個下拉與卡片出處都是 約翰福音 21:25
+通過：card.html?book=mrk&ch=3&v=5 的三個下拉與卡片出處都是 馬可福音 3:5
+通過：card.html?book=zzz&ch=99&v=99 的三個下拉與卡片出處都是 馬太福音 1:1
+通過：card.html 依序換書卷→章→節（馬可福音 3:5）後三個下拉與出處同步
+通過：index.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：chapter.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：search.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：card.html 的導覽列有「抽經文卡」連結（指向 blessing.html）
+通過：index.html 的 <main> 內有指向 blessing.html 的入口連結
+通過：style.css 淺色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：style.css 深色配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）
+通過：blessing.html 的 canvas 圖卡不顯示在頁面上，但仍在背景畫好（≥600px、data-ref 正確、底色 #fbf7ee、真的畫了字）供下載（{"canvasShown": false, "pixels": {"corner": [251, 247, 238], "dark": 12010}}）
+通過：blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」（實心：['theme:work', 'again-btn']）
+通過：320px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "peace", "x": 158, "y": 163, "w": 132, "h": 53, "clipped": false}, {"id": "rest", "x": 16, "y": 226, "w": 132, "h": 53, "clipped": false}, {"id": "faith", "x": 158, "y": 226, "w": 132, "h": 53, "clipped": false}]）
+通過：375px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 16, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "peace", "x": 185, "y": 115, "w": 159, "h": 44, "clipped": false}, {"id": "rest", "x": 16, "y": 169, "w": 159, "h": 44, "clipped": false}, {"id": "faith", "x": 185, "y": 169, "w": 159, "h": 44, "clipped": false}]）
+通過：1000px blessing.html 四顆主題按鈕排成 2×2、等寬等高、文字沒有被裁切（[{"id": "work", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "x": 505, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "rest", "x": 212, "y": 179, "w": 283, "h": 44, "clipped": false}, {"id": "faith", "x": 505, "y": 179, "w": 283, "h": 44, "clipped": false}]）
+通過：blessing.html 選中的主題前有「✦」、沒有底線；未選中的不是實心、有邊框（[{"id": "work", "active": true, "bg": "rgb(122, 74, 31)", "deco": "none", "border": 1, "before": "\"✦ \"", "x": 212, "y": 125, "w": 283, "h": 44, "clipped": false}, {"id": "peace", "active": false, "bg": "rgb(255, 255, 255)", "deco": "none", "border": 1, "before": "none", "x": 505, "y": 125, "w": 28）
+通過：blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）（[{"id": "download-btn", "bg": "rgb(255, 255, 255)", "border": 1}, {"id": "share-btn", "bg": "rgb(255, 255, 255)", "border": 1}]）
+通過：blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線（{"font": "\"Songti TC\", PMingLiU, MingLiU, serif", "left": 3, "leftColor": "rgb(122, 74, 31)"}）
+通過：blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）（"—— "）
+通過：blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前（{"text": "閱讀本章 →", "inCard": true, "sameRow": true, "beforeActions": true}）
+通過：blessing.html 一開始顯示封面與「點選領受祝福」按鈕、尚未出現卡片、預設主題是 work、主題標籤與 blessing.json 一致
+通過：blessing.html 載入時沒有 JavaScript 錯誤
+通過：blessing.html 按「點選領受祝福」後出現 work 主題的卡：標題、經文原文、出處、短文、署名「愛你的天父」都對
+通過：blessing.html?card=work-01 不用按鍵就直接顯示 work-01 那張卡（封面還在）
+通過：blessing.html?theme=peace 抽到的是 peace 主題的卡
+通過：blessing.html 先點主題標籤「rest」再抽，抽到 rest 主題的卡
+通過：blessing.html 還在封面時點主題標籤，只切換主題（peace 變成目前主題）、不抽卡、封面仍在（{"cover": true, "card": null, "themes": [{"id": "work", "active": false}, {"id": "peace", "active": true}, {"id": "rest", "active": false}, {"id": "faith", "active": false}]}）
+通過：blessing.html 已抽出卡片後點主題標籤「peace」，立刻換成 peace 主題的新卡（{"id": "peace-04", "theme": "peace", "draws": "2", "shown": true, "ref": "路加福音 12:27（和合本）", "title": "天父賜你平安", "verse": "你想百合花、怎麼長起來．他也不勞苦、也不紡線．然而我告訴你們、就是所羅門極榮華的時候、他所穿戴的、還不如這花一朶呢。", "message": "停下來看一看）
+通過：blessing.html「再抽一次」連按 6 次，每次都是同主題而且不會連續抽到同一張（["work-18", "work-05", "work-04", "work-18", "work-21", "work-05", "work-21"]）
+通過：home.html 的 .home-verse 逐字等於 luk.json 的路加福音 4:27（先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。）
+通過：home.html 的 .home-ref 是「路加福音 4:27」（路加福音 4:27（和合本））
+通過：home.html 沒有 JavaScript 錯誤
+通過：home.html 的英雄圖是 assets/jordan.jpg、真的載入、有繁體中文 alt（{"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}）
+通過：home.html 的 <audio> 是 assets/home-music.mp3、loop、preload=none（{"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}）
+通過：#music-btn 的 aria-pressed 永遠和 audio 是否正在播放一致（{"errors": [], "verse": "先知以利沙的時候、以色列中有許多長大痲瘋的．但內中除了敘利亞國的乃縵、沒有一個得潔淨的。", "ref": "路加福音 4:27（和合本）", "h1": "四福音", "img": {"src": "assets/jordan.jpg", "naturalWidth": 1600, "alt": "一位男子站在約但河水中，仰望從雲層灑下的光", "complete": true}, "audio": {"src": "assets/home-music.mp3", "loop": true, "preload": "none", "paused": false}, "music": {"text": "暫停音樂", "pressed": "true", "paused": false}, "links": [{"text": "閱讀本章 ）
+通過：#music-btn 點一下就切換播放／暫停，再點一下切回來（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：#music-btn 的文字是「播放音樂」或「暫停音樂」，隨狀態改變（[{"text": "暫停音樂", "pressed": "true", "paused": false}, {"text": "♪ 播放音樂", "pressed": "false", "paused": true}, {"text": "暫停音樂", "pressed": "true", "paused": false}]）
+通過：「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html（{"閱讀本章 →": "chapter.html?book=luk&ch=4#v27", "進入四福音 →": "index.html", "抽一張經文卡 →": "blessing.html"}）
+通過：「閱讀本章」連到 chapter.html?book=luk&ch=4#v27（chapter.html?book=luk&ch=4#v27）
+通過：home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」（nav 4/0 h1 四福音）
+結果：全部通過
+```
+**總結：3/3 項檢查通過**
