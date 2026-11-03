@@ -10,20 +10,13 @@ REPO = os.path.abspath(os.path.join(SITE_ROOT, ".."))
 DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json"]
 ALWAYS_ASSETS = {"assets/jordan.jpg", "assets/home-music.mp3"}
 MAX_FILE = 25 * 1024 * 1024
+# Cloudflare joins the values of every matching rule for the same header, so each path may match at most ONE Cache-Control rule.
+# Only the media assets get one; HTML, CSS, JS and JSON keep the Pages default (public, max-age=0, must-revalidate).
 HEADERS = """/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-
-/*.html
-  Cache-Control: public, max-age=0, must-revalidate
-
-/site/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/data/*
-  Cache-Control: public, max-age=0, must-revalidate
 
 /site/assets/*
   Cache-Control: public, max-age=86400

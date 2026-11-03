@@ -47,8 +47,27 @@ def bundle():
         modes = [f for f in files if (os.stat(os.path.join(out, f)).st_mode & 0o777) != 0o644]
         check("dist 的檔案權限統一為 644", not modes, "、".join(modes[:5]))
         hdr = open(os.path.join(out, "_headers"), encoding="utf-8").read() if "_headers" in files else ""
-        check("_headers 有 nosniff、Referrer-Policy、X-Frame-Options、assets 快取，且 HTML／JSON 要重新驗證",
-              all(k in hdr for k in ("X-Content-Type-Options: nosniff", "Referrer-Policy", "X-Frame-Options", "/site/assets/*", "must-revalidate")))
+        check("_headers 有 nosniff、Referrer-Policy、X-Frame-Options，且 /site/assets/* 有一條 Cache-Control",
+              all(k in hdr for k in ("X-Content-Type-Options: nosniff", "Referrer-Policy", "X-Frame-Options", "/site/assets/*")))
+        rules, cur = [], None
+        for line in hdr.splitlines():
+            if line and not line[0].isspace():
+                cur = [line.strip(), []]
+                rules.append(cur)
+            elif line.strip() and cur:
+                cur[1].append(line.strip())
+        cache_rules = [(pat, [h for h in hs if h.lower().startswith("cache-control")]) for pat, hs in rules]
+        cache_rules = [(pat, hs) for pat, hs in cache_rules if hs]
+        rx = lambda pat: re.compile("^" + re.escape(pat).replace(r"\*", ".*") + "$")
+        multi = []
+        for f in files + ["site/home", "404.html"]:
+            path = "/" + f
+            hit = [pat for pat, _ in cache_rules if rx(pat).match(path)]
+            vals = [h for pat, hs in cache_rules if rx(pat).match(path) for h in hs]
+            if len(hit) > 1 or len(vals) > 1:
+                multi.append(f"{path}→{len(hit)} 條")
+        check("_headers 任何網址最多只符合一條 Cache-Control 規則（Cloudflare 會把多條的值串在一起）", not multi and len(cache_rules) == 1, "、".join(multi[:4]) or f"共 {len(cache_rules)} 條")
+        check("_headers 唯一的 Cache-Control 是 /site/assets/* 的 public, max-age=86400", cache_rules == [("/site/assets/*", ["Cache-Control: public, max-age=86400"])], str(cache_rules))
         # data files identical to the source (the bundle never rewrites scripture)
         same = all(open(os.path.join(out, "data", f), "rb").read() == open(os.path.join(SITE_ROOT, "data", f), "rb").read() for f in ("mat.json", "mrk.json", "luk.json", "jhn.json"))
         check("dist 的四卷經文與 bible-site/data 逐位元組相同", same)
