@@ -7,7 +7,9 @@
             "ids":[data-id after each click],"errors":[...],"canvasRef":..}
      Contract of the blessing page: #draw-btn (cover button), #again-btn, #theme-tabs button[data-theme] (active one has
      aria-pressed="true"), #blessing-card[data-id][data-theme][data-draws] holding .card-title .card-verse .card-ref
-     .card-message .card-sign, canvas#card-canvas[data-ref]. -->
+     .card-message .card-sign, canvas#card-canvas[data-ref].
+     Collectible-art contract (group blessart): #blessing-card[data-art] = the theme's image path or "", figure.card-art > img (+ .card-edition badge) shown only
+     when the theme has art, a#art-download[download][href] (hidden without art); read() adds "art" and canvasPixels.red/blue. -->
 <pre id="out">running</pre>
 <script>
 const qs = new URLSearchParams(location.search);
@@ -37,10 +39,23 @@ function read() {
   o.canvasW = cv ? cv.width : 0;
   if (cv && cv.width && cv.height) {   // is anything drawn? corner = background, plus count of dark (text) pixels
     const px = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
-    let dark = 0;
-    for (let i = 0; i < px.length; i += 4) if (px[i] + px[i + 1] + px[i + 2] < 300) dark++;
-    o.canvasPixels = {corner: [px[0], px[1], px[2]], dark};
+    let dark = 0, red = 0, blue = 0, gold = 0;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i] > 170 && px[i + 1] > 120 && px[i + 1] < 225 && px[i + 2] < 130 && px[i] - px[i + 2] > 90 && px[i] >= px[i + 1]) gold++;   // gold-foil frame
+      if (px[i] + px[i + 1] + px[i + 2] < 300) dark++;
+      if (px[i] > 200 && px[i + 1] < 60 && px[i + 2] < 60) red++;     // blessart fixtures: work art is solid red, peace art solid blue
+      if (px[i + 2] > 200 && px[i] < 60 && px[i + 1] < 60) blue++;
+    }
+    o.canvasPixels = {corner: [px[0], px[1], px[2]], dark, red, blue, gold};
+    o.canvasH = cv.height;
   }
+  const fig = c && c.querySelector(".card-art"), aimg = fig && fig.querySelector("img"), ed = c && c.querySelector(".card-edition"), dl = d.getElementById("art-download");
+  const rr = e => { const r = e.getBoundingClientRect(); return {w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right)}; };
+  o.art = {fig: !!fig, shown: visible(fig), src: aimg ? (aimg.getAttribute("src") || "") : "", alt: aimg ? (aimg.getAttribute("alt") || "") : "", natural: aimg ? aimg.naturalWidth : 0,
+           box: fig && visible(fig) ? rr(fig) : null, edition: ed ? ed.textContent.trim() : "", editionShown: visible(ed),
+           dl: !!dl, dlShown: visible(dl), dlHref: dl ? (dl.getAttribute("href") || "") : "", dlName: dl ? dl.getAttribute("download") : null, dlTag: dl ? dl.tagName : "",
+           artAttr: c ? c.getAttribute("data-art") : null, vw: f.contentWindow.innerWidth, scrollW: d.documentElement.scrollWidth,
+           frame: fig ? (cs => ({bg: cs.backgroundImage, borderImage: cs.borderImageSource, border: parseFloat(cs.borderTopWidth) || 0}))(f.contentWindow.getComputedStyle(fig)) : null};
   o.style = styleOf(d, c, cv);
   return o;
 }

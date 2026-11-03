@@ -6,6 +6,10 @@
            default --host 127.0.0.1, no Simplified Chinese, no hard-coded 127.0.0.1:8090 links, no stale "47 項"
   homeadmin  the write endpoints of the admin server (home page settings + uploads), run against a temp copy of data/ and
            site/assets/ (BIBLE_SITE_ROOT, BIBLE_ADMIN_TOKEN_FILE): token, auth, validation, magic bytes, size limits
+  zoneadmin  the endpoints that choose the background music of the four front-end zones (GET/POST /api/zone-music, /api/zone-music/reset)
+           and the admin page block "前台音樂", on a temp copy like homeadmin
+  blessartadmin  the endpoints for the per-theme collectible art of 抽經文卡 (GET/POST /api/blessing-art, /api/blessing-art/reset) and the admin block "收藏卡圖片";
+           also proves that no admin operation touches blessing.json (the 37 cards are fixed)
   service  start.sh on FRONTEND_PORT=18190 BACKEND_PORT=18191: start/stop cycle, per-port PID files,
            back end bound to 127.0.0.1, a foreign listener is neither adopted nor killed
 Usage: python3 bible-site/tests/service_checks.py [admin] [service] [--grep REGEX]   (no group: both)"""
@@ -290,6 +294,198 @@ def homeadmin():
     check("寫入端點處理請求時後台沒有 Traceback", "Traceback" not in err, err.strip().splitlines()[-1] if "Traceback" in err else "")
 
 
+def zoneadmin():
+    """The admin endpoints that choose the background music of the four zone pages (data/zone-music.json), on a temp copy."""
+    import shutil
+    src = open(os.path.join(ADMIN, "admin.js"), encoding="utf-8").read()
+    page = open(os.path.join(ADMIN, "index.html"), encoding="utf-8").read()
+    ids = ["zone-music-settings", "zone-music-file", "zone-music-select", "zone-music-preview", "zone-music-save", "zone-music-reset", "zone-music-status"]
+    miss = [i for i in ids if f'id="{i}"' not in page]
+    check("zoneadmin：後台 index.html 有「前台音樂」區塊需要的 7 個 id", not miss, "、".join(miss))
+    check("zoneadmin：後台「前台音樂」文字是繁體中文：有「前台音樂」「儲存」「還原預設」「發佈」", all(t in page + src for t in ("前台音樂", "儲存", "還原預設", "發佈")))
+    check("zoneadmin：admin.js 使用 /api/zone-music、/api/zone-music/reset，寫入時帶 X-Bible-Token，預覽走 /site-assets/", all(u in src for u in ("/api/zone-music", "/api/zone-music/reset", "X-Bible-Token", "/site-assets/")))
+    live_cfg = os.path.join(ROOT, "bible-site", "data", "zone-music.json")
+    live_before = md5(live_cfg)
+    tmp = tempfile.mkdtemp()
+    shutil.copytree(os.path.join(ROOT, "bible-site", "data"), os.path.join(tmp, "data"))
+    os.makedirs(os.path.join(tmp, "site"))
+    shutil.copytree(os.path.join(ROOT, "bible-site", "site", "assets"), os.path.join(tmp, "site", "assets"))
+    cfgf, assets, tokf = os.path.join(tmp, "data", "zone-music.json"), os.path.join(tmp, "site", "assets"), os.path.join(tmp, "token")
+    home_before = None
+    if os.path.exists(cfgf):
+        os.remove(cfgf)   # start from "no config": GET must report the default
+    port = free_port()
+    env = dict(os.environ, BIBLE_SITE_ROOT=tmp, BIBLE_ADMIN_TOKEN_FILE=tokf)
+    proc = subprocess.Popen([sys.executable, os.path.join(ADMIN, "server.py"), "--host", "127.0.0.1", "--port", str(port)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, env=env)
+    base = f"http://127.0.0.1:{port}"
+    try:
+        for _ in range(50):
+            if request(base + "/api/ping", timeout=2)[0] == 200:
+                break
+            time.sleep(0.1)
+        st, _, body = req2(base + "/api/token")
+        token = json.loads(body).get("token", "") if st == 200 else ""
+        good = {"X-Bible-Admin": "1", "X-Bible-Token": token, "Content-Type": "application/json"}
+        home_cfg = os.path.join(tmp, "data", "home.json")
+        home_before = md5(home_cfg)
+        st, _, body = req2(base + "/api/zone-music")
+        info = json.loads(body) if st == 200 else {}
+        check("zoneadmin：GET /api/zone-music 沒有設定檔時回 200 與預設值 assets/home-music.mp3", st == 200 and info.get("config") == {"music": "assets/home-music.mp3"} and info.get("default") == {"music": "assets/home-music.mp3"}, f"HTTP {st} {body[:120]}")
+        check("zoneadmin：GET /api/zone-music 列出 assets/ 的 mp3", "assets/home-music.mp3" in info.get("music", []), body[:160])
+        post = lambda path, obj, hdr=None, raw=None: req2(base + path, "POST", dict(good, **(hdr or {})), raw if raw is not None else json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+        up = lambda data, name="song.mp3": req2(base + f"/api/upload?kind=music&name={urllib.parse.quote(name)}", "POST", dict(good, **{"Content-Type": "application/octet-stream"}), data)
+        st, _, body = up(MP3)
+        new = json.loads(body).get("path", "") if st == 200 else ""
+        check("zoneadmin：先用既有 /api/upload 上傳一個 mp3（之後選它當前台音樂）", st == 200 and new.startswith("assets/upload-"), f"HTTP {st} {body[:100]}")
+        for label, hdr in (("沒帶 X-Bible-Token", {"X-Bible-Token": ""}), ("token 錯誤", {"X-Bible-Token": "x" * 43}), ("沒帶 X-Bible-Admin", {"X-Bible-Admin": ""}),
+                           ("Origin 是外站", {"Origin": "http://evil.example"}), ("Host 不是本機", {"Host": "evil.example"})):
+            st, _, _ = post("/api/zone-music", {"music": new}, hdr)
+            check(f"zoneadmin：POST /api/zone-music {label} 回 403", st == 403, f"HTTP {st}")
+        check("zoneadmin：驗證失敗時沒有寫出 zone-music.json", not os.path.exists(cfgf))
+        st, _, body = post("/api/zone-music", {"music": new})
+        saved = json.load(open(cfgf, encoding="utf-8")) if os.path.exists(cfgf) else {}
+        check("zoneadmin：POST /api/zone-music 合法設定回 200，檔案內容就是 {\"music\": 上傳的 mp3}", st == 200 and saved == {"music": new} and json.loads(body).get("config") == {"music": new}, f"HTTP {st} {body[:100]}")
+        st, _, body = req2(base + "/api/zone-music")
+        check("zoneadmin：GET /api/zone-music 回傳剛存的設定", st == 200 and json.loads(body).get("config") == {"music": new})
+        before = md5(cfgf)
+        bad = {"檔案不存在": {"music": "assets/nope.mp3"}, "跳出 assets/": {"music": "assets/../../data/luk.json"}, "指向 data/": {"music": "data/luk.json"},
+               "是 jpg": {"music": "assets/jordan.jpg"}, "絕對路徑": {"music": "/etc/passwd"}, "網址": {"music": "https://evil.example/a.mp3"},
+               "多出欄位": {"music": new, "extra": "x"}, "缺欄位": {}, "不是字串": {"music": 5}}
+        for label, obj in bad.items():
+            st, _, _ = post("/api/zone-music", obj)
+            check(f"zoneadmin：POST /api/zone-music 拒絕「{label}」回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/zone-music", None, raw=b"not json")
+        check("zoneadmin：POST /api/zone-music 拒絕不是 JSON 的內容回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/zone-music", None, raw=b"{" + b" " * 70000 + b"}")
+        check("zoneadmin：POST /api/zone-music 內容超過 64 KB 回 413", st == 413, f"HTTP {st}")
+        check("zoneadmin：所有被拒絕的請求都沒有改動 zone-music.json", md5(cfgf) == before)
+        st, _, _ = post("/api/zone-music/reset", {}, {"X-Bible-Token": ""})
+        check("zoneadmin：POST /api/zone-music/reset 沒帶 token 回 403", st == 403, f"HTTP {st}")
+        st, _, body = post("/api/zone-music/reset", {})
+        check("zoneadmin：POST /api/zone-music/reset 回 200，設定回到預設值，上傳的檔案還在",
+              st == 200 and json.load(open(cfgf, encoding="utf-8")) == {"music": "assets/home-music.mp3"} and os.path.exists(os.path.join(tmp, "site", new)), f"HTTP {st} {body[:100]}")
+        st, _, _ = req2(base + "/api/zone-music", "DELETE", good)
+        check("zoneadmin：沒有刪除端點：DELETE /api/zone-music 不回 200", st != 200, f"HTTP {st}")
+        check("zoneadmin：前台音樂的設定不影響首頁設定（home.json 完全沒變）", md5(home_cfg) == home_before)
+        leftovers = [f for d in (os.path.join(tmp, "data"), assets) for f in os.listdir(d) if f.endswith((".tmp", ".part")) or f.startswith(".")]
+        check("zoneadmin：沒有留下暫存檔（原子寫入）", not leftovers, "、".join(leftovers))
+        check("zoneadmin：測試沒有動到真正的 data/zone-music.json", md5(live_cfg) == live_before)
+    finally:
+        proc.terminate()
+        try:
+            _, err = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            _, err = proc.communicate()
+        shutil.rmtree(tmp, ignore_errors=True)
+    check("zoneadmin：處理請求時後台沒有 Traceback", "Traceback" not in err, err.strip().splitlines()[-1] if "Traceback" in err else "")
+
+
+def blessartadmin():
+    """The admin endpoints for the per-theme collectible art of the 抽經文卡 page (data/blessing-art.json), on a temp copy. blessing.json stays untouched."""
+    import shutil
+    src = open(os.path.join(ADMIN, "admin.js"), encoding="utf-8").read()
+    page = open(os.path.join(ADMIN, "index.html"), encoding="utf-8").read()
+    themes = ("work", "peace", "rest", "faith")
+    ids = ["blessing-art-settings", "art-status"] + [f"art-{t}-{k}" for t in themes for k in ("file", "alt", "edition", "preview", "save", "clear")]
+    miss = [i for i in ids if f'id="{i}"' not in page]
+    check("blessartadmin：後台 index.html 有「收藏卡圖片」區塊需要的 26 個 id（四個主題各 6 個＋區塊＋狀態）", not miss, "、".join(miss))
+    check("blessartadmin：後台「收藏卡圖片」文字是繁體中文：有「收藏卡圖片」「每月」「版次」「儲存」「清除」「發佈」", all(t in page + src for t in ("收藏卡圖片", "每月", "版次", "儲存", "清除", "發佈")))
+    check("blessartadmin：admin.js 使用 /api/blessing-art、/api/blessing-art/reset，寫入時帶 X-Bible-Token，預覽走 /site-assets/", all(u in src for u in ("/api/blessing-art", "/api/blessing-art/reset", "X-Bible-Token", "/site-assets/")))
+    live_cfg = os.path.join(ROOT, "bible-site", "data", "blessing-art.json")
+    live_before = md5(live_cfg)
+    tmp = tempfile.mkdtemp()
+    shutil.copytree(os.path.join(ROOT, "bible-site", "data"), os.path.join(tmp, "data"))
+    os.makedirs(os.path.join(tmp, "site"))
+    shutil.copytree(os.path.join(ROOT, "bible-site", "site", "assets"), os.path.join(tmp, "site", "assets"))
+    cfgf, assets, tokf = os.path.join(tmp, "data", "blessing-art.json"), os.path.join(tmp, "site", "assets"), os.path.join(tmp, "token")
+    if os.path.exists(cfgf):
+        os.remove(cfgf)
+    port = free_port()
+    env = dict(os.environ, BIBLE_SITE_ROOT=tmp, BIBLE_ADMIN_TOKEN_FILE=tokf)
+    proc = subprocess.Popen([sys.executable, os.path.join(ADMIN, "server.py"), "--host", "127.0.0.1", "--port", str(port)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, env=env)
+    base = f"http://127.0.0.1:{port}"
+    guard = {n: md5(os.path.join(tmp, "data", n)) for n in ("blessing.json", "home.json", "zone-music.json", "mat.json")}
+    try:
+        for _ in range(50):
+            if request(base + "/api/ping", timeout=2)[0] == 200:
+                break
+            time.sleep(0.1)
+        st, _, body = req2(base + "/api/token")
+        token = json.loads(body).get("token", "") if st == 200 else ""
+        good = {"X-Bible-Admin": "1", "X-Bible-Token": token, "Content-Type": "application/json"}
+        st, _, body = req2(base + "/api/blessing-art")
+        info = json.loads(body) if st == 200 else {}
+        th = {t.get("id"): t for t in info.get("themes", [])}
+        check("blessartadmin：GET /api/blessing-art 回 200，四個主題 work／peace／rest／faith 的張數是 20／6／5／6、每個主題列出每張卡的出處",
+              st == 200 and [th.get(t, {}).get("count") for t in themes] == [20, 6, 5, 6] and all(len(th[t].get("refs", [])) == th[t]["count"] for t in themes if t in th), body[:160])
+        check("blessartadmin：GET /api/blessing-art 沒有設定檔時 config 是空物件，並列出 assets 的圖片", info.get("config") == {} and "assets/jordan.jpg" in info.get("images", []), body[:160])
+        check("blessartadmin：出處用書卷代號、章、節（不含經文文字）", all(set(r) >= {"book", "ch", "v"} and "text" not in r for t in th.values() for r in t.get("refs", [])) and "耶穌" not in body.split('"refs"')[-1][:200])
+        post = lambda path, obj, hdr=None, raw=None: req2(base + path, "POST", dict(good, **(hdr or {})), raw if raw is not None else json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+        up = lambda data, name="art.png": req2(base + f"/api/upload?kind=image&name={urllib.parse.quote(name)}", "POST", dict(good, **{"Content-Type": "application/octet-stream"}), data)
+        st, _, body = up(PNG)
+        new = json.loads(body).get("path", "") if st == 200 else ""
+        check("blessartadmin：先用既有 /api/upload 上傳一張 png", st == 200 and new.startswith("assets/upload-"), f"HTTP {st} {body[:100]}")
+        ent = {"image": new, "alt": "測試用主題圖：金黃麥田", "edition": "2026 年 11 月版"}
+        ok_cfg = {"work": ent}
+        for label, hdr in (("沒帶 X-Bible-Token", {"X-Bible-Token": ""}), ("token 錯誤", {"X-Bible-Token": "x" * 43}), ("沒帶 X-Bible-Admin", {"X-Bible-Admin": ""}),
+                           ("Origin 是外站", {"Origin": "http://evil.example"}), ("Host 不是本機", {"Host": "evil.example"})):
+            st, _, _ = post("/api/blessing-art", ok_cfg, hdr)
+            check(f"blessartadmin：POST /api/blessing-art {label} 回 403", st == 403, f"HTTP {st}")
+        check("blessartadmin：驗證失敗時沒有寫出 blessing-art.json", not os.path.exists(cfgf))
+        st, _, body = post("/api/blessing-art", ok_cfg)
+        saved = json.load(open(cfgf, encoding="utf-8")) if os.path.exists(cfgf) else {}
+        check("blessartadmin：POST /api/blessing-art 合法設定回 200，檔案內容與送出的相同", st == 200 and saved == ok_cfg and json.loads(body).get("config") == ok_cfg, f"HTTP {st} {body[:100]}")
+        st, _, body = req2(base + "/api/blessing-art")
+        check("blessartadmin：GET /api/blessing-art 回傳剛存的設定", st == 200 and json.loads(body).get("config") == ok_cfg)
+        two = {"work": ent, "peace": dict(ent, alt="另一張", edition="")}
+        st, _, _ = post("/api/blessing-art", two)
+        check("blessartadmin：可以同時設定多個主題，edition 可以是空字串", st == 200 and json.load(open(cfgf, encoding="utf-8")) == two, f"HTTP {st}")
+        before = md5(cfgf)
+        bad = {"主題不存在": {"xyz": ent}, "圖片檔不存在": {"work": dict(ent, image="assets/nope.png")}, "圖片是 mp3": {"work": dict(ent, image="assets/home-music.mp3")},
+               "圖片跳出 assets/": {"work": dict(ent, image="assets/../../data/luk.json")}, "圖片指向 data/": {"work": dict(ent, image="data/luk.json")},
+               "圖片是絕對路徑": {"work": dict(ent, image="/etc/passwd")}, "圖片是網址": {"work": dict(ent, image="https://evil.example/a.png")},
+               "alt 空白": {"work": dict(ent, alt="  ")}, "alt 超過 120 字": {"work": dict(ent, alt="字" * 121)}, "版次超過 20 字": {"work": dict(ent, edition="字" * 21)},
+               "多出欄位": {"work": dict(ent, extra="x")}, "缺 edition": {"work": {"image": new, "alt": "測試"}}, "設定不是物件": {"work": "assets/jordan.jpg"},
+               "整份是陣列": [ent], "版次不是字串": {"work": dict(ent, edition=202611)}}
+        for label, obj in bad.items():
+            st, _, _ = post("/api/blessing-art", obj)
+            check(f"blessartadmin：POST /api/blessing-art 拒絕「{label}」回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/blessing-art", None, raw=b"not json")
+        check("blessartadmin：POST /api/blessing-art 拒絕不是 JSON 的內容回 400", st == 400, f"HTTP {st}")
+        st, _, _ = post("/api/blessing-art", None, raw=b"{" + b" " * 70000 + b"}")
+        check("blessartadmin：POST /api/blessing-art 內容超過 64 KB 回 413", st == 413, f"HTTP {st}")
+        check("blessartadmin：所有被拒絕的請求都沒有改動 blessing-art.json", md5(cfgf) == before)
+        st, _, _ = post("/api/blessing-art/reset", {}, {"X-Bible-Token": ""})
+        check("blessartadmin：POST /api/blessing-art/reset 沒帶 token 回 403", st == 403, f"HTTP {st}")
+        st, _, body = post("/api/blessing-art/reset", {})
+        check("blessartadmin：POST /api/blessing-art/reset 回 200，設定清空（全部主題回到純文字），上傳的圖還在",
+              st == 200 and json.load(open(cfgf, encoding="utf-8")) == {} and os.path.exists(os.path.join(tmp, "site", new)), f"HTTP {st} {body[:100]}")
+        st, _, _ = post("/api/blessing-art", {})
+        check("blessartadmin：POST 空物件 {} 是合法的（清除全部）", st == 200, f"HTTP {st}")
+        st, _, _ = req2(base + "/api/blessing-art", "DELETE", good)
+        check("blessartadmin：沒有刪除端點：DELETE /api/blessing-art 不回 200", st != 200, f"HTTP {st}")
+        st, _, _ = post("/api/blessing", {"cards": []})
+        st2, _, _ = post("/api/blessing/cards", {"cards": []})
+        check("blessartadmin：沒有任何寫 blessing.json 的端點（/api/blessing、/api/blessing/cards 都不是 200）", st != 200 and st2 != 200, f"HTTP {st}/{st2}")
+        now = {n: md5(os.path.join(tmp, "data", n)) for n in guard}
+        check("blessartadmin：所有操作後 blessing.json（37 張經文卡）、home.json、zone-music.json、四福音經文位元組完全沒變", now == guard, json.dumps([n for n in guard if now[n] != guard[n]]))
+        leftovers = [f for d in (os.path.join(tmp, "data"), assets) for f in os.listdir(d) if f.endswith((".tmp", ".part")) or f.startswith(".")]
+        check("blessartadmin：沒有留下暫存檔（原子寫入）", not leftovers, "、".join(leftovers))
+        check("blessartadmin：測試沒有動到真正的 data/blessing-art.json", md5(live_cfg) == live_before)
+    finally:
+        proc.terminate()
+        try:
+            _, err = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            _, err = proc.communicate()
+        shutil.rmtree(tmp, ignore_errors=True)
+    check("blessartadmin：處理請求時後台沒有 Traceback", "Traceback" not in err, err.strip().splitlines()[-1] if "Traceback" in err else "")
+
+
 def run_start(*args, root=ROOT, **extra):
     env = dict(os.environ, FRONTEND_PORT=str(FE), BACKEND_PORT=str(BE))
     env.pop("BIND_HOST", None)
@@ -409,11 +605,15 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"admin", "homeadmin", "service"}
+    groups = set(args) or {"admin", "homeadmin", "zoneadmin", "blessartadmin", "service"}
     if "admin" in groups:
         admin()
     if "homeadmin" in groups:
         homeadmin()
+    if "zoneadmin" in groups:
+        zoneadmin()
+    if "blessartadmin" in groups:
+        blessartadmin()
     if "service" in groups:
         service()
     print(f"結果：{'全部通過' if all(results) else f'不通過（{results.count(False)} 項）'}")

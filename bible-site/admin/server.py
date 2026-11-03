@@ -93,6 +93,13 @@ IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
 MUSIC_EXTS = (".mp3",)
 ASSET_RE = re.compile(r"^assets/[A-Za-z0-9._-]+$")
 HOME_MAX_BODY = 65536
+# ---- 前台四區共用背景音樂（寫入端點）----
+ZONE_FIELDS = ("music",)
+ZONE_DEFAULTS = {"music": "assets/home-music.mp3"}
+ZONE_MAX_BODY = 65536
+# ---- 抽經文卡四個主題的收藏卡圖（寫入端點）----
+ART_FIELDS = ("image", "alt", "edition")
+ART_MAX_BODY = 65536
 UPLOAD_MAX = {"image": 5 * 1024 * 1024, "music": 8 * 1024 * 1024}
 LOCAL_HOSTNAMES = ("127.0.0.1", "localhost", "::1")
 # 允許呼叫 /api/token 與寫入端點的額外主機名（逗號分隔）
@@ -125,6 +132,14 @@ def home_config_path():
     return os.path.join(SITE_ROOT, "data", "home.json")
 
 
+def zone_config_path():
+    return os.path.join(SITE_ROOT, "data", "zone-music.json")
+
+
+def art_config_path():
+    return os.path.join(SITE_ROOT, "data", "blessing-art.json")
+
+
 def load_home_config():
     """讀 home.json；不存在或壞掉時回預設值（深拷貝，避免污染常數）。"""
     cfg = dict(HOME_DEFAULTS)
@@ -138,6 +153,33 @@ def load_home_config():
     except (OSError, ValueError):
         pass
     return cfg
+
+
+def load_zone_config():
+    """讀 zone-music.json；不存在、壞掉或不合格時回預設值（深拷貝，避免污染常數）。"""
+    cfg = dict(ZONE_DEFAULTS)
+    try:
+        with open(zone_config_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if validate_zone_config(data) is None:
+            cfg["music"] = data["music"]
+    except (OSError, ValueError):
+        pass
+    return cfg
+
+
+def load_art_config():
+    """讀 blessing-art.json；不存在、壞掉、不是物件或不合格時回 {}。"""
+    try:
+        with open(art_config_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    if validate_art_config(data) is not None:
+        return {}
+    return data
 
 
 def list_assets():
@@ -242,6 +284,74 @@ def validate_home_config(obj):
     }, None
 
 
+def validate_zone_config(obj):
+    """驗證前台音樂設定；通過回 None，失敗回錯誤訊息字串。"""
+    if not isinstance(obj, dict):
+        return "內容必須是 JSON 物件"
+    if set(obj.keys()) != set(ZONE_FIELDS):
+        return "欄位必須剛好是 music"
+    music = obj.get("music")
+    if not isinstance(music, str) or not ASSET_RE.match(music) or ".." in music:
+        return "音樂路徑不正確"
+    if not music.lower().endswith(MUSIC_EXTS):
+        return "音樂副檔名不正確"
+    if not os.path.isfile(os.path.join(SITE_ROOT, "site", music)):
+        return "音樂檔案不存在"
+    return None
+
+
+def load_blessing_themes():
+    """唯讀讀 blessing.json（37 張經文卡固定）；回 (themes, cards)，讀不到或壞掉回 ([], [])。"""
+    try:
+        with open(os.path.join(SITE_ROOT, "data", "blessing.json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return [], []
+    if not isinstance(data, dict):
+        return [], []
+    themes, cards = data.get("themes"), data.get("cards")
+    if not isinstance(themes, list) or not isinstance(cards, list):
+        return [], []
+    for theme in themes:
+        if not isinstance(theme, dict) or not isinstance(theme.get("id"), str):
+            return [], []
+    return themes, cards
+
+
+def validate_art_config(obj):
+    """驗證收藏卡圖設定；通過回 None，失敗回錯誤訊息字串。"""
+    if not isinstance(obj, dict):
+        return "內容必須是 JSON 物件"
+    themes, _ = load_blessing_themes()
+    theme_ids = [t["id"] for t in themes]
+    for key in obj:
+        if key not in theme_ids:
+            return "主題代號不正確"
+    for theme_id, ent in obj.items():
+        if not isinstance(ent, dict):
+            return "主題「" + theme_id + "」的設定必須是物件"
+        if set(ent.keys()) != set(ART_FIELDS):
+            return "主題「" + theme_id + "」的欄位必須剛好是 image、alt、edition"
+        image = ent.get("image")
+        if not isinstance(image, str) or not ASSET_RE.match(image) or ".." in image:
+            return "主題「" + theme_id + "」的圖片路徑不正確"
+        if not image.lower().endswith(IMAGE_EXTS):
+            return "主題「" + theme_id + "」的圖片副檔名不正確"
+        if not os.path.isfile(os.path.join(SITE_ROOT, "site", image)):
+            return "主題「" + theme_id + "」的圖片檔案不存在"
+        alt = ent.get("alt")
+        if not isinstance(alt, str):
+            return "主題「" + theme_id + "」的圖片說明必須是文字"
+        if not 1 <= len(alt.strip()) <= 120:
+            return "主題「" + theme_id + "」的圖片說明長度必須是 1 到 120 字"
+        edition = ent.get("edition")
+        if not isinstance(edition, str):
+            return "主題「" + theme_id + "」的版次必須是文字"
+        if len(edition) > 20:
+            return "主題「" + theme_id + "」的版次長度必須是 0 到 20 字"
+    return None
+
+
 def sniff_upload(kind, data):
     """用 magic bytes 判斷真實格式；回副檔名（不含點）或 None。"""
     if kind == "image":
@@ -315,6 +425,10 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_token()
         elif path == "/api/home":
             self.handle_api_home_get()
+        elif path == "/api/zone-music":
+            self.handle_api_zone_music_get()
+        elif path == "/api/blessing-art":
+            self.handle_api_blessing_art_get()
         elif path.startswith("/api/book/"):
             self.handle_api_book(path[len("/api/book/"):])
         elif path.startswith("/site-assets/"):
@@ -397,8 +511,9 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        # 寫入端點（主頁設定、上傳）需要額外的權杖與 Host 檢查
-        if path in ("/api/home", "/api/home/reset", "/api/upload"):
+        # 寫入端點（主頁設定、前台音樂、收藏卡圖、上傳）需要額外的權杖與 Host 檢查
+        if path in ("/api/home", "/api/home/reset", "/api/zone-music", "/api/zone-music/reset",
+                    "/api/blessing-art", "/api/blessing-art/reset", "/api/upload"):
             if not self.check_write_auth():
                 return
             try:
@@ -406,6 +521,14 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.handle_api_home_post()
                 elif path == "/api/home/reset":
                     self.handle_api_home_reset()
+                elif path == "/api/zone-music":
+                    self.handle_api_zone_music_post()
+                elif path == "/api/zone-music/reset":
+                    self.handle_api_zone_music_reset()
+                elif path == "/api/blessing-art":
+                    self.handle_api_blessing_art_post()
+                elif path == "/api/blessing-art/reset":
+                    self.handle_api_blessing_art_reset()
                 else:
                     self.handle_api_upload(parsed)
             except Exception:
@@ -579,6 +702,110 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             atomic_write_json(home_config_path(), cfg)
         except Exception:
             self.send_json({"error": "無法寫入主頁設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    # ---------- 前台四區共用背景音樂 ----------
+    def handle_api_zone_music_get(self):
+        _, music = list_assets()
+        self.send_json({
+            "config": load_zone_config(),
+            "default": dict(ZONE_DEFAULTS),
+            "music": music,
+        })
+
+    def handle_api_zone_music_post(self):
+        raw = self.read_body(ZONE_MAX_BODY)
+        if raw is None:
+            self.reject_too_large()
+            return
+        try:
+            obj = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            self.send_json({"error": "內容不是合法的 JSON"}, code=400)
+            return
+        err = validate_zone_config(obj)
+        if err:
+            self.send_json({"error": err}, code=400)
+            return
+        cfg = {"music": obj["music"]}
+        try:
+            atomic_write_json(zone_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入前台音樂設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    def handle_api_zone_music_reset(self):
+        # 內容不使用，但要把連線上的位元組讀掉，避免影響 keep-alive 的後續請求
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        if length > 0:
+            self.rfile.read(length)
+        cfg = dict(ZONE_DEFAULTS)
+        try:
+            atomic_write_json(zone_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入前台音樂設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    # ---------- 抽經文卡四個主題的收藏卡圖 ----------
+    def handle_api_blessing_art_get(self):
+        themes, cards = load_blessing_themes()
+        images, _ = list_assets()
+        out = []
+        for theme in themes:
+            refs = [
+                {"book": c.get("book"), "ch": c.get("ch"), "v": c.get("v")}
+                for c in cards
+                if isinstance(c, dict) and c.get("theme") == theme["id"]
+            ]
+            out.append({
+                "id": theme["id"],
+                "title": theme.get("title", ""),
+                "count": len(refs),
+                "refs": refs,
+            })
+        self.send_json({"themes": out, "config": load_art_config(), "images": images})
+
+    def handle_api_blessing_art_post(self):
+        raw = self.read_body(ART_MAX_BODY)
+        if raw is None:
+            self.reject_too_large()
+            return
+        try:
+            obj = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            self.send_json({"error": "內容不是合法的 JSON"}, code=400)
+            return
+        err = validate_art_config(obj)
+        if err:
+            self.send_json({"error": err}, code=400)
+            return
+        cfg = obj
+        try:
+            atomic_write_json(art_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入收藏卡圖設定"}, code=500)
+            return
+        self.send_json({"ok": True, "config": cfg})
+
+    def handle_api_blessing_art_reset(self):
+        # 內容不使用，但要把連線上的位元組讀掉，避免影響 keep-alive 的後續請求
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except (TypeError, ValueError):
+            length = 0
+        if length > 0:
+            self.rfile.read(length)
+        cfg = {}
+        try:
+            atomic_write_json(art_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入收藏卡圖設定"}, code=500)
             return
         self.send_json({"ok": True, "config": cfg})
 

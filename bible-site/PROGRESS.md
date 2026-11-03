@@ -81,3 +81,17 @@
 - 2026-11-03 09:25　dispatch：72-blessing-restyle 通過（e500）。
 - 2026-11-03 12:57　dispatch：91-launcher-entry-url 通過（a16）。
 - 2026-11-03 13:00　dispatch：92-launcher-data-check 通過（e500）。
+- 2026-11-03 21:39　dispatch：95-zone-data-build 需要雲端（貓聽）（a16 → a16 → e500 → e500）。
+- 2026-11-03 21:42　dispatch：100-art-data-build 通過（a16）。
+- 2026-11-03 21:53　dispatch：96-zone-music-js 通過（e500）。
+- 2026-11-03 21:54　dispatch：97-zone-wire-blessing 通過（de1050）。
+- 2026-11-03 21:55　dispatch：97-zone-wire-card 通過（de1050）。
+- 2026-11-03 21:56　dispatch：97-zone-wire-index 通過（de1050）。
+- 2026-11-03 21:57　dispatch：97-zone-wire-search 通過（de1050）。
+- 2026-11-03 22:06　dispatch：98-zone-admin-api 需要雲端（貓聽）（pm → pm）。
+- 2026-11-03 22:06　dispatch：101-blessing-art-view 通過（fe）。
+- 2026-11-03 22:07　dispatch：102-blessing-art-canvas 通過（fe）。
+- 2026-11-03 22:09　dispatch：103-art-admin-api 通過（pm）。
+- 2026-11-03 22:10　dispatch：99-zone-admin-ui 通過（fe）。
+- 2026-11-03 22:13　dispatch：104-art-admin-ui 通過（fe）。
+- 2026-11-03 22:50　前台四區背景音樂（`site/music.js`、`data/zone-music.json`、後台 `/api/zone-music`）與抽經文卡主題收藏卡圖（`data/blessing-art.json`、5:7 小卡片、燙金框畫進圖檔、`tools/art_convert.py`、後台 `/api/blessing-art`）完成。派工 13 個任務（地端 7、fe 4、pm 2），新增雲端角色 fe／pm／cb／cmd／agy／qoder。`check_all.py` 3/3，visual 通過。使用者回報 iPad 實機測試 OK（首次點擊開始播、換頁後再點接續）。背景音樂候選曲 Ballade pour Adeline 的來源（Audio.com 免費下載）已記在 `ASSETS-LICENSE.md`，檔案不放進 repo。

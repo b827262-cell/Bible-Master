@@ -15,6 +15,7 @@
 
 ## 派工（預設方式）
 派工給 E500／A16／De1050 一律用 `python3 bible-site/tools/dispatch.py run bible-site/tasks/<任務>.md`（skill：`bible-dispatch`），不要再用 Chrome 點 Harness 網頁。任務檔要寫 `files`、`checks`；新需求先寫成 `tests/site_checks.py` 的客觀檢查。貓聽（雲端）只在本地模型卡住時手動接。
+雲端 agents 也走同一支腳本（`roles.yml`，會用額度，只在需要時指定）：`fe` 前端、`pm` 後台 server、`cb` CodeBuddy 全端、`cmd` Command Code、`agy` AGY（前端／生圖）、`qoder` Qoder（MCP `bailian-image` 生圖）；各角色細節見 skill `bible-dispatch`。收藏卡圖規格見 `bible-site/ART-BRIEF.md`，生成後先跑 `tools/art_convert.py`。
 
 ## 建站任務（舊：馬可福音單卷）
 給 E500 的 5 份小任務提示在 `bible-site/prompts/01..05-*.md`，一次只做一份，每份做完就跑 `check_all.py`。

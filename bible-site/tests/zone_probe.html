@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Loaded by tests/site_checks.py (group zonemusic) through its local server; Chrome runs with autoplay allowed.
+     ?u=<page>&u2=<page>&u3=<page> : opens u in an iframe, reads the zone-music state, clicks #zone-music-btn (pause), navigates the
+     SAME iframe to u2 (state must carry over through sessionStorage), clicks again (play), waits ~1.5 s, navigates to u3.
+     Writes one JSON line into <pre id="out">: ZPROBE {"s1":{...},"s1click":{...},"s2":{...},"s2click":{...},"s3":{...},"errors":[...]}
+     where each state is {btn:bool, text, pressed, paused, src, loop, preload, t, on, navCount, navActive, w, h} (null when no button).
+     Contract of the zone-music module (site/music.js): button#zone-music-btn[aria-pressed] ("true" exactly when audio#zone-music plays),
+     audio#zone-music[loop][preload=none], sessionStorage "bm.zone.on" ("1"/"0" = the user's last choice), "bm.zone.t" (seconds), "bm.zone.src". -->
+<pre id="out">running</pre>
+<script>
+const qs = new URLSearchParams(location.search);
+const f = document.createElement("iframe");
+f.style.cssText = "width:" + (parseInt(qs.get("w")) || 375) + "px;height:800px;border:0";
+const errors = [];
+const sleep = t => new Promise(r => setTimeout(r, t));
+function hook() { try { f.contentWindow.addEventListener("error", e => errors.push(String(e.message))); f.contentWindow.addEventListener("unhandledrejection", e => errors.push("promise: " + String(e.reason))); } catch (e) {} }
+f.addEventListener("load", hook);
+document.body.appendChild(f);
+function go(u) { return new Promise(res => { f.addEventListener("load", () => res(), {once: true}); f.src = u; }); }
+function ss(k) { try { return f.contentWindow.sessionStorage.getItem(k); } catch (e) { return "ERR"; } }
+function state() {
+  const d = f.contentDocument, b = d.getElementById("zone-music-btn"), a = d.getElementById("zone-music");
+  if (!b) return {btn: false, navCount: d.querySelectorAll("#nav a").length, navActive: d.querySelectorAll("#nav a.active").length};
+  const r = b.getBoundingClientRect();
+  return {btn: true, text: b.textContent.trim(), pressed: b.getAttribute("aria-pressed"), paused: a ? a.paused : null,
+          src: a ? (a.getAttribute("src") || "") : "", rs: a ? a.readyState : null, ns: a ? a.networkState : null, err: a && a.error ? a.error.code : null, dur: a ? a.duration : null, loop: a ? a.loop : null, preload: a ? a.preload : "", t: a ? a.currentTime : null,
+          on: ss("bm.zone.on"), saved: ss("bm.zone.t"), savedSrc: ss("bm.zone.src"),
+          navCount: d.querySelectorAll("#nav a").length, navActive: d.querySelectorAll("#nav a.active").length,
+          w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right), bottom: Math.round(r.bottom), vw: f.contentWindow.innerWidth, vh: f.contentWindow.innerHeight,
+          scrollW: d.documentElement.scrollWidth};
+}
+async function ready() { for (let i = 0; i < 60; i++) { await sleep(150); const a = f.contentDocument.getElementById("zone-music"); if (f.contentDocument.getElementById("zone-music-btn") && a && a.getAttribute("src")) break; } await sleep(700); }   // the module sets the audio src after it has read zone-music.json
+(async () => {
+  const o = {errors};
+  await go(qs.get("u")); await ready();
+  o.s1 = state();
+  const b = f.contentDocument.getElementById("zone-music-btn");
+  if (b) { b.click(); await sleep(700); }
+  o.s1click = state();
+  if (qs.get("u2")) {
+    await go(qs.get("u2")); await ready();
+    o.s2 = state();
+    const b2 = f.contentDocument.getElementById("zone-music-btn");
+    if (b2) {
+      b2.click(); await sleep(1800);
+      // jump to second 7 so the resume position is deterministic (virtual time: the media may never load, so currentTime is set on the element, which works at readyState 0 too)
+      // Chrome may drop a seek made while the media is still loading, so set it again until it sticks
+      for (let i = 0; i < 12; i++) {
+        try { const a2 = f.contentDocument.getElementById("zone-music"); if (a2 && !(a2.currentTime >= 6.5)) a2.currentTime = 7; } catch (e) {}
+        await sleep(250);
+      }
+      await sleep(300);
+    }
+    o.s2click = state();
+  }
+  if (qs.get("u3")) { await go(qs.get("u3")); await ready(); o.s3 = state(); }
+  document.getElementById("out").textContent = "ZPROBE " + JSON.stringify(o);
+})();
+</script>

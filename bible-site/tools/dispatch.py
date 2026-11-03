@@ -17,6 +17,8 @@ A task file is YAML front matter + the prompt text:
   ---
   prompt text ...
 
+A role with `runner: cmd` (Command Code CLI) or `runner: codebuddy` (CodeBuddy CLI) runs that CLI in print mode instead of dsh.
+
 Flow per task: health -> snapshot file hashes -> `dsh --profile headless --patch <overlay> --json -` (timeout) ->
 scope check (only `files` changed) -> checks -> pass | retry once on the same role with the failure text | escalate to the
 role's escalate_to (a local role) | needs-cloud (never calls the cloud model itself).
@@ -67,6 +69,9 @@ def provider_block(key):
 def overlay_text(role):
     r = ROLES[role]
     eff = f"\n    reasoningEffort: {r['reasoning']}" if "reasoning" in r else ""
+    if r.get("builtin"):                              # provider ships as its own dsh plugin (cloud), nothing to copy
+        return (f"- id: agent-default-model\n  name: \"@deepseek-ai/dsh-agent-default-model\"\n  config:\n"
+                f"    provider: {r['provider']}\n    model: {r['model']}{eff}\n")
     return (f"- id: llm-pi-ai\n  name: \"@deepseek-ai/dsh-llm-pi-ai\"\n  disabled: false   # the headless profile ships it disabled\n"
             f"  config:\n    providers:\n{provider_block(r['provider'])}\n"
             f"- id: agent-default-model\n  name: \"@deepseek-ai/dsh-agent-default-model\"\n  config:\n"
@@ -76,7 +81,7 @@ def overlay_text(role):
 def gen_patches():
     os.makedirs(GEN, exist_ok=True)
     for role, r in ROLES.items():
-        if r.get("manual"):
+        if r.get("manual") or r.get("runner"):
             continue
         p = os.path.join(GEN, role + ".patch.yml")
         open(p, "w", encoding="utf-8").write(overlay_text(role))
@@ -92,6 +97,8 @@ def overlay_path(role):
 
 # ---------------------------------------------------------------- health
 def up(url, timeout=4):
+    if not url:                                       # cloud roles have no local health endpoint
+        return True
     try:
         with urllib.request.urlopen(url, timeout=timeout) as r:
             return r.status == 200
@@ -107,9 +114,9 @@ def health():
         if r.get("manual"):
             print(f"[--] {role}: 手動（不由腳本呼叫）")
             continue
-        good = up(r["health"])
+        good = up(r.get("health"))
         ok &= good
-        print(f"[{'OK' if good else 'FAIL'}] {role}: {r['health']}  ({r['model'].split('/')[-1]})")
+        print(f"[{'OK' if good else 'FAIL'}] {role}: {r.get('health') or r.get('runner') or r['provider']}  ({r['model'].split('/')[-1]})")
     return ok
 
 
@@ -210,6 +217,75 @@ def run_dsh(role, prompt, timeout_min, log_path):
     return info
 
 
+def cli_command(role, prompt):
+    r = ROLES[role]
+    if r["runner"] == "cmd":
+        return ["cmd", "--no-auto-update", "--skip-onboarding", "--trust", "--no-session", "--yolo",
+                "-m", r["model"], "--output-format", "json", "-p", prompt]
+    if r["runner"] == "codebuddy":
+        return ["codebuddy", "--permission-mode", "acceptEdits", "--model", r["model"],
+                "--output-format", "stream-json", "-p", prompt]
+    if r["runner"] == "agy":                                           # file edits auto-approved, nothing broader
+        return ["agy", "--model", r["model"], "--effort", r.get("effort", "high"), "--mode", "accept-edits",
+                "--output-format", "stream-json", "--print-timeout", f"{r['timeout_min']}m", "-p", prompt]
+    if r["runner"] == "qoder":
+        cmd = ["qodercli", "-m", r["model"], "--permission-mode", "accept_edits", "--no-session-persistence",
+               "-w", ROOT, "-o", "stream-json"]
+        for tool in r.get("allowed_tools", []):                        # e.g. the bailian-image MCP tool for image tasks
+            cmd += ["--allowed-tools", tool]
+        return cmd + ["-p", prompt]
+    raise SystemExit(f"不認得的 runner：{r['runner']}（{role}）")
+
+
+def run_cli(role, prompt, timeout_min, log_path):
+    """Same contract as run_dsh, for roles that run an agent CLI in print mode."""
+    t0 = time.time()
+    proc = subprocess.Popen(cli_command(role, prompt), cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, encoding="utf-8", start_new_session=True)
+    timed_out = False
+    try:
+        out, err = proc.communicate(timeout=timeout_min * 60)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        os.killpg(proc.pid, signal.SIGKILL)
+        out, err = proc.communicate()
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    open(log_path, "w", encoding="utf-8").write(out or "")
+    info = {"final": "", "error": "", "input_tokens": 0, "tool_calls": 0, "timed_out": timed_out, "seconds": int(time.time() - t0)}
+    for line in (out or "").splitlines():
+        try:
+            e = json.loads(line)
+        except Exception:
+            continue
+        if not isinstance(e, dict):
+            continue
+        if e.get("event") == "result":                                 # agy
+            res = e.get("result") or {}
+            info["final"] = res.get("response") or ""
+            info["input_tokens"] = (res.get("usage") or {}).get("input_tokens") or 0
+            if res.get("status") != "SUCCESS":
+                info["error"] = str(res.get("status") or "error")
+        elif e.get("event") == "step_update":
+            step = e.get("step_update") or {}
+            info["tool_calls"] += 1 if step.get("tool_name") and "duration_seconds" in step else 0
+        elif e.get("type") == "result":                                 # cmd / codebuddy / qoder end with one result line
+            usage = e.get("usage") or {}
+            info["final"] = e.get("finalText") or e.get("result") or ""
+            info["input_tokens"] = usage.get("inputTokens") or usage.get("input_tokens") or 0
+            if e.get("subtype") not in (None, "success") or e.get("is_error"):
+                info["error"] = str(e.get("subtype") or "error")
+        elif e.get("type") == "event" and (e.get("event") or {}).get("type") == "tool_completed":
+            info["tool_calls"] += 1
+        elif e.get("type") == "assistant":
+            content = (e.get("message") or {}).get("content") or []
+            info["tool_calls"] += sum(1 for c in content if isinstance(c, dict) and c.get("type") == "tool_use")
+    if timed_out:
+        info["error"] = f"逾時（{timeout_min} 分鐘），已終止"
+    elif proc.returncode not in (0, None) and not info["error"]:
+        info["error"] = f"{ROLES[role]['runner']} 結束代碼 {proc.returncode}：{(err or '').strip()[-300:]}"
+    return info
+
+
 # ---------------------------------------------------------------- tasks
 def load_task(path):
     text = open(path, encoding="utf-8").read()
@@ -246,7 +322,7 @@ def attempt(task, role, failure, dry):
     if dry:
         print(f"--- {task['id']} → {role}\n{prompt}\n")
         return {"role": role, "verdict": "dry-run", "seconds": 0, "changed": [], "checks": []}, True
-    if not up(r["health"]):
+    if not up(r.get("health")):
         return {"role": role, "verdict": "機器沒有回應", "seconds": 0, "changed": [], "checks": [], "error": f"{r['health']} 沒有回應"}, False
     with ROLE_LOCKS[role]:
         with RUN_LOCK:
@@ -256,7 +332,7 @@ def attempt(task, role, failure, dry):
             RUNNING[task["id"]] = set(task["files"])
         before = snapshot()
         log = os.path.join(LOGS, f"{task['id']}-{role}-{datetime.datetime.now():%H%M%S}.jsonl")
-        info = run_dsh(role, prompt, r["timeout_min"], log)
+        info = (run_cli if r.get("runner") else run_dsh)(role, prompt, r["timeout_min"], log)
         after = snapshot()
         with RUN_LOCK:
             RUNNING.pop(task["id"], None)

@@ -1,0 +1,319 @@
+{
+ "note": "Fixture for site_checks.py blessing_frozen(): the 37 blessing cards are fixed (user decision 2026-11-03). Regenerate only on the user's explicit request.",
+ "themes": [
+  {
+   "id": "work",
+   "title": "天父賜福你的工作"
+  },
+  {
+   "id": "peace",
+   "title": "天父賜你平安"
+  },
+  {
+   "id": "rest",
+   "title": "天父給你安息"
+  },
+  {
+   "id": "faith",
+   "title": "在神凡事都能"
+  }
+ ],
+ "cards": [
+  {
+   "id": "work-01",
+   "theme": "work",
+   "book": "mat",
+   "ch": 25,
+   "v": 21,
+   "message_sha256": "82e0450cce86a70cdd397b0414ba200a654aae85995e64a5c0f38779aca31d44"
+  },
+  {
+   "id": "work-02",
+   "theme": "work",
+   "book": "mat",
+   "ch": 24,
+   "v": 46,
+   "message_sha256": "8a4bfa4f76d50a0950427a5d12c63159c74e3f4e6e269a4722befbe77e2b149e"
+  },
+  {
+   "id": "work-03",
+   "theme": "work",
+   "book": "mat",
+   "ch": 9,
+   "v": 37,
+   "message_sha256": "77d8d25bcc373e14daf3d7368a0aa707eed4c4ff9dbc0a475b5ac78490f3b37b"
+  },
+  {
+   "id": "work-04",
+   "theme": "work",
+   "book": "mat",
+   "ch": 9,
+   "v": 38,
+   "message_sha256": "09f56016b2ab1658f9ee5c9f89b1e324f0293d4d22731c434ffd2183482f08c4"
+  },
+  {
+   "id": "work-05",
+   "theme": "work",
+   "book": "mat",
+   "ch": 6,
+   "v": 26,
+   "message_sha256": "1272bf2eabd4d60a0a1bf890a3d876376639d6c4b389e5cb9d185cda9e4120b7"
+  },
+  {
+   "id": "work-06",
+   "theme": "work",
+   "book": "mat",
+   "ch": 6,
+   "v": 33,
+   "message_sha256": "7e2c000858fce24125e2d1da8ebc48745010f96813900ba19d7c336799e7595b"
+  },
+  {
+   "id": "work-08",
+   "theme": "work",
+   "book": "mat",
+   "ch": 5,
+   "v": 16,
+   "message_sha256": "b531adb26f6af2716c0dd040918b3a7dd9d7a7d499f1be36173883ec8a22b67f"
+  },
+  {
+   "id": "work-09",
+   "theme": "work",
+   "book": "luk",
+   "ch": 10,
+   "v": 7,
+   "message_sha256": "b9256dd442029e30350af9a8b692d80594e8dda7598e8dd68f336f13cf36c36a"
+  },
+  {
+   "id": "work-10",
+   "theme": "work",
+   "book": "luk",
+   "ch": 16,
+   "v": 10,
+   "message_sha256": "387f8416bdc6eab95293e6cd7a4213daacfe6249f1efa3197d8f2454e79da1cc"
+  },
+  {
+   "id": "work-11",
+   "theme": "work",
+   "book": "luk",
+   "ch": 19,
+   "v": 17,
+   "message_sha256": "5ab0e59d4f677587e84c8a27fbdb811cd436ffd19352da3e4fc103ab1fcd16c1"
+  },
+  {
+   "id": "work-13",
+   "theme": "work",
+   "book": "luk",
+   "ch": 5,
+   "v": 5,
+   "message_sha256": "23d27fdc187c383f0dd7849f36814d75bb3b51a6afca38f6be353a09f493fe01"
+  },
+  {
+   "id": "work-14",
+   "theme": "work",
+   "book": "luk",
+   "ch": 6,
+   "v": 38,
+   "message_sha256": "ff7332ed25ccadce0ddb9faa1b7838927cf9575983ed9c71440e7e23a0897477"
+  },
+  {
+   "id": "work-16",
+   "theme": "work",
+   "book": "jhn",
+   "ch": 9,
+   "v": 4,
+   "message_sha256": "56ed3fd000441c66505fac3080b21097bdba89b75ff653ce8eb7b48a2341da4b"
+  },
+  {
+   "id": "work-17",
+   "theme": "work",
+   "book": "jhn",
+   "ch": 15,
+   "v": 5,
+   "message_sha256": "5a31215e369e4c67a5989eee0ed346ef1e01f64acd43cb670f04816645427ce0"
+  },
+  {
+   "id": "work-18",
+   "theme": "work",
+   "book": "jhn",
+   "ch": 15,
+   "v": 8,
+   "message_sha256": "bd32103ef10c7d466bbbf2f111c750b62b9dc7da83f09e08e91a77dc19017c88"
+  },
+  {
+   "id": "work-19",
+   "theme": "work",
+   "book": "jhn",
+   "ch": 15,
+   "v": 16,
+   "message_sha256": "14ae4c762f393432552a147e38711845940b7e0677d04ac7e5646fbed2616c23"
+  },
+  {
+   "id": "work-20",
+   "theme": "work",
+   "book": "mrk",
+   "ch": 4,
+   "v": 29,
+   "message_sha256": "1ee71769e15e0ce078ff6927495743e277b3b276b4a017ad342884ecbf74d170"
+  },
+  {
+   "id": "work-21",
+   "theme": "work",
+   "book": "mat",
+   "ch": 10,
+   "v": 16,
+   "message_sha256": "002316f72ed30b86de7759e30c18bf1022b0279c0daebe87dc970165accd838c"
+  },
+  {
+   "id": "work-22",
+   "theme": "work",
+   "book": "mat",
+   "ch": 5,
+   "v": 10,
+   "message_sha256": "ebf4e9764084b4f64b38240e955fae6b484b7a6256d115a6760eaa6009f71a3a"
+  },
+  {
+   "id": "work-23",
+   "theme": "work",
+   "book": "mrk",
+   "ch": 10,
+   "v": 43,
+   "message_sha256": "63031306cfb047c8d27cc71c8b4291c0842d5d95bf94022f1540d45cce9bd329"
+  },
+  {
+   "id": "peace-01",
+   "theme": "peace",
+   "book": "jhn",
+   "ch": 14,
+   "v": 27,
+   "message_sha256": "b6d50b84d7fbe7faab7dc55d50feec489b7236cac58983247f00f47141a3d41f"
+  },
+  {
+   "id": "peace-02",
+   "theme": "peace",
+   "book": "jhn",
+   "ch": 16,
+   "v": 33,
+   "message_sha256": "b5637e6c5a26cecafccaab6341535efab8734f3fefafd0a9fc4e875d4e161c73"
+  },
+  {
+   "id": "peace-03",
+   "theme": "peace",
+   "book": "jhn",
+   "ch": 20,
+   "v": 21,
+   "message_sha256": "472bdab1802eaa7b396da948506406cfa7d32bc82531246d4635ebe8f188ee67"
+  },
+  {
+   "id": "peace-04",
+   "theme": "peace",
+   "book": "luk",
+   "ch": 12,
+   "v": 27,
+   "message_sha256": "bccc2c1eca5806a6eb591e3ddb01416020297719cdf646eb31e9f974e02e1622"
+  },
+  {
+   "id": "peace-05",
+   "theme": "peace",
+   "book": "jhn",
+   "ch": 10,
+   "v": 10,
+   "message_sha256": "6ccdb1c52274ca24d53b017c33eeb7a767aefff31d1d4d26b563f45a33df9a65"
+  },
+  {
+   "id": "peace-06",
+   "theme": "peace",
+   "book": "mrk",
+   "ch": 4,
+   "v": 39,
+   "message_sha256": "32355a957a39fe662b75768afd5ee833614b4f4dd990a08787602041ce1f2be7"
+  },
+  {
+   "id": "rest-01",
+   "theme": "rest",
+   "book": "mat",
+   "ch": 11,
+   "v": 28,
+   "message_sha256": "d85ee9d12da8bccf0db5ab331e5c8b08cd45ab2e5ffced3aec59192fec2d9907"
+  },
+  {
+   "id": "rest-02",
+   "theme": "rest",
+   "book": "mat",
+   "ch": 11,
+   "v": 29,
+   "message_sha256": "28d4284af2405d3a4c33d7738ff03e45c84f15544cf0b6a7f71447520407c71b"
+  },
+  {
+   "id": "rest-03",
+   "theme": "rest",
+   "book": "mrk",
+   "ch": 6,
+   "v": 31,
+   "message_sha256": "1a2415a0ac812159ca8c9ed89d84289492e166104bd0a4de92668c238f76d125"
+  },
+  {
+   "id": "rest-04",
+   "theme": "rest",
+   "book": "mrk",
+   "ch": 4,
+   "v": 28,
+   "message_sha256": "7ee4a9785d2be3321c0b153aafc28c936f5fafddcd2180d877937792661b2f2c"
+  },
+  {
+   "id": "rest-05",
+   "theme": "rest",
+   "book": "luk",
+   "ch": 10,
+   "v": 41,
+   "message_sha256": "1ed84c18669669372c79b89ec0ae56e90f3b0b6ac7c5e0b383450e5b18a1843f"
+  },
+  {
+   "id": "faith-02",
+   "theme": "faith",
+   "book": "mrk",
+   "ch": 9,
+   "v": 23,
+   "message_sha256": "0ad025afdde5392c2304a66c9356c686d9ae2eaedbad5adfd5084b5113058fa1"
+  },
+  {
+   "id": "faith-03",
+   "theme": "faith",
+   "book": "mrk",
+   "ch": 10,
+   "v": 27,
+   "message_sha256": "62c6424a184e34bd2957aa6b92322e872c132a36dc42624aed22a280feee9c18"
+  },
+  {
+   "id": "faith-04",
+   "theme": "faith",
+   "book": "mrk",
+   "ch": 11,
+   "v": 24,
+   "message_sha256": "495f06c68ab50d3f7fce1d09f70b2eb07553fac184eff8c8179b6e47e686df8a"
+  },
+  {
+   "id": "faith-05",
+   "theme": "faith",
+   "book": "luk",
+   "ch": 1,
+   "v": 37,
+   "message_sha256": "83360a349c738f9a4e963632ef32191d0aeec355f55e65cbc8d708691b7a3180"
+  },
+  {
+   "id": "faith-06",
+   "theme": "faith",
+   "book": "mat",
+   "ch": 7,
+   "v": 7,
+   "message_sha256": "ce87a7209bf6a76541086477a4d3c40e19d123beab0c24a7e24b7c7ca29e3d1c"
+  },
+  {
+   "id": "faith-07",
+   "theme": "faith",
+   "book": "mat",
+   "ch": 17,
+   "v": 20,
+   "message_sha256": "00f82cfaf7eb7fd53e367b84c2387afdc3cb2ab89ccd024ba92d7d48a81ef15c"
+  }
+ ]
+}

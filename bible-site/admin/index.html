@@ -6,6 +6,69 @@
   <title>Bible-Master 聖經管理與運維後台</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="admin.css">
+  <style>
+    #blessing-art-settings .art-theme {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: var(--bg-surface);
+    }
+    #blessing-art-settings .art-theme h3 {
+      font-size: 1.02rem;
+      margin-bottom: 8px;
+    }
+    #blessing-art-settings .art-count {
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    #blessing-art-settings details {
+      margin-bottom: 12px;
+    }
+    #blessing-art-settings summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    #blessing-art-settings .art-refs {
+      margin: 8px 0 0 20px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    #blessing-art-settings input[type="text"],
+    #blessing-art-settings input[type="file"] {
+      font: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    #blessing-art-settings input[type="file"] {
+      padding: 10px;
+      cursor: pointer;
+    }
+    #blessing-art-settings input:focus {
+      outline: 2px solid var(--accent-light);
+      outline-offset: 2px;
+    }
+    #blessing-art-settings .art-preview {
+      display: block;
+      max-width: 100%;
+      max-height: 240px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: var(--bg-primary);
+    }
+    #blessing-art-settings .art-preview[hidden] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -198,6 +261,165 @@
       </div>
 
       <p class="home-status" id="home-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 主區塊：前台音樂 -->
+    <section class="card" id="zone-music-settings">
+      <div class="card-header">
+        <h2>🎵 前台音樂</h2>
+        <span style="font-size:0.8rem; color:var(--text-muted);">四區共用的背景音樂</span>
+      </div>
+
+      <p class="home-note">目錄、搜尋、經文卡片、抽經文卡四個頁面共用這一首；首頁音樂在上面的『主頁設定』另外設定。</p>
+
+      <div class="home-grid">
+        <div class="home-field">
+          <label for="zone-music-file">上傳背景音樂</label>
+          <input type="file" id="zone-music-file" accept=".mp3,audio/mpeg">
+        </div>
+
+        <div class="home-field">
+          <label for="zone-music-select">目前使用的音樂</label>
+          <select id="zone-music-select"></select>
+        </div>
+      </div>
+
+      <audio id="zone-music-preview" controls preload="none"></audio>
+
+      <div class="home-actions-row">
+        <button type="button" class="btn btn-primary" id="zone-music-save">儲存</button>
+        <button type="button" class="btn btn-outline" id="zone-music-reset">還原預設</button>
+      </div>
+
+      <p class="home-note">儲存後要執行『發佈』，公開網站才會換歌。</p>
+      <p class="home-note">上傳新素材後，請在 ASSETS-LICENSE.md 補一行來源與授權。</p>
+
+      <p class="home-status" id="zone-music-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 主區塊：收藏卡圖片（抽經文卡四個主題，每月更換） -->
+    <section class="card" id="blessing-art-settings">
+      <div class="card-header">
+        <h2>🖼️ 收藏卡圖片</h2>
+        <span style="font-size:0.8rem; color:var(--text-muted);">抽經文卡四個主題各一張圖</span>
+      </div>
+
+      <p class="home-note">每個主題一張圖，該主題所有經文卡共用；經典小卡片：直式 5:7、1000×1400 JPG、3 MB 以內為主（上限 5 MB；先用 tools/art_convert.py 轉檔，它會加上燙金框），圖內不要放文字、不要自己畫框。每月更換：上傳新圖 → 改版次 → 儲存 → 執行『發佈』。沒有圖的主題維持純文字卡。</p>
+      <p class="home-note">上傳新素材後，請在 ASSETS-LICENSE.md 補一行（工具、生成日期）。</p>
+
+      <div class="art-theme" data-art-theme="work">
+        <h3>天父賜福你的工作 <span class="art-count" data-art-count="work">載入中…</span></h3>
+        <details>
+          <summary>所有卡的出處清單 <span data-art-refs-count="work">（載入中…）</span></summary>
+          <ul class="art-refs" data-art-refs="work"></ul>
+        </details>
+        <div class="home-grid">
+          <div class="home-field">
+            <label for="art-work-file">上傳收藏卡圖片</label>
+            <input type="file" id="art-work-file" accept="image/jpeg,image/png,image/webp">
+          </div>
+          <div class="home-field">
+            <label for="art-work-alt">圖片說明（alt）</label>
+            <input type="text" id="art-work-alt" maxlength="120" placeholder="例如：天父賜福你的工作收藏卡">
+          </div>
+          <div class="home-field">
+            <label for="art-work-edition">版次</label>
+            <input type="text" id="art-work-edition" maxlength="20" placeholder="2026 年 11 月版">
+          </div>
+        </div>
+        <img class="art-preview" id="art-work-preview" alt="天父賜福你的工作收藏卡預覽" src="" hidden>
+        <div class="home-actions-row">
+          <button type="button" class="btn btn-primary" id="art-work-save">儲存</button>
+          <button type="button" class="btn btn-outline" id="art-work-clear">清除</button>
+        </div>
+      </div>
+
+      <div class="art-theme" data-art-theme="peace">
+        <h3>天父賜你平安 <span class="art-count" data-art-count="peace">載入中…</span></h3>
+        <details>
+          <summary>所有卡的出處清單 <span data-art-refs-count="peace">（載入中…）</span></summary>
+          <ul class="art-refs" data-art-refs="peace"></ul>
+        </details>
+        <div class="home-grid">
+          <div class="home-field">
+            <label for="art-peace-file">上傳收藏卡圖片</label>
+            <input type="file" id="art-peace-file" accept="image/jpeg,image/png,image/webp">
+          </div>
+          <div class="home-field">
+            <label for="art-peace-alt">圖片說明（alt）</label>
+            <input type="text" id="art-peace-alt" maxlength="120" placeholder="例如：天父賜你平安收藏卡">
+          </div>
+          <div class="home-field">
+            <label for="art-peace-edition">版次</label>
+            <input type="text" id="art-peace-edition" maxlength="20" placeholder="2026 年 11 月版">
+          </div>
+        </div>
+        <img class="art-preview" id="art-peace-preview" alt="天父賜你平安收藏卡預覽" src="" hidden>
+        <div class="home-actions-row">
+          <button type="button" class="btn btn-primary" id="art-peace-save">儲存</button>
+          <button type="button" class="btn btn-outline" id="art-peace-clear">清除</button>
+        </div>
+      </div>
+
+      <div class="art-theme" data-art-theme="rest">
+        <h3>天父給你安息 <span class="art-count" data-art-count="rest">載入中…</span></h3>
+        <details>
+          <summary>所有卡的出處清單 <span data-art-refs-count="rest">（載入中…）</span></summary>
+          <ul class="art-refs" data-art-refs="rest"></ul>
+        </details>
+        <div class="home-grid">
+          <div class="home-field">
+            <label for="art-rest-file">上傳收藏卡圖片</label>
+            <input type="file" id="art-rest-file" accept="image/jpeg,image/png,image/webp">
+          </div>
+          <div class="home-field">
+            <label for="art-rest-alt">圖片說明（alt）</label>
+            <input type="text" id="art-rest-alt" maxlength="120" placeholder="例如：天父給你安息收藏卡">
+          </div>
+          <div class="home-field">
+            <label for="art-rest-edition">版次</label>
+            <input type="text" id="art-rest-edition" maxlength="20" placeholder="2026 年 11 月版">
+          </div>
+        </div>
+        <img class="art-preview" id="art-rest-preview" alt="天父給你安息收藏卡預覽" src="" hidden>
+        <div class="home-actions-row">
+          <button type="button" class="btn btn-primary" id="art-rest-save">儲存</button>
+          <button type="button" class="btn btn-outline" id="art-rest-clear">清除</button>
+        </div>
+      </div>
+
+      <div class="art-theme" data-art-theme="faith">
+        <h3>在神凡事都能 <span class="art-count" data-art-count="faith">載入中…</span></h3>
+        <details>
+          <summary>所有卡的出處清單 <span data-art-refs-count="faith">（載入中…）</span></summary>
+          <ul class="art-refs" data-art-refs="faith"></ul>
+        </details>
+        <div class="home-grid">
+          <div class="home-field">
+            <label for="art-faith-file">上傳收藏卡圖片</label>
+            <input type="file" id="art-faith-file" accept="image/jpeg,image/png,image/webp">
+          </div>
+          <div class="home-field">
+            <label for="art-faith-alt">圖片說明（alt）</label>
+            <input type="text" id="art-faith-alt" maxlength="120" placeholder="例如：在神凡事都能收藏卡">
+          </div>
+          <div class="home-field">
+            <label for="art-faith-edition">版次</label>
+            <input type="text" id="art-faith-edition" maxlength="20" placeholder="2026 年 11 月版">
+          </div>
+        </div>
+        <img class="art-preview" id="art-faith-preview" alt="在神凡事都能收藏卡預覽" src="" hidden>
+        <div class="home-actions-row">
+          <button type="button" class="btn btn-primary" id="art-faith-save">儲存</button>
+          <button type="button" class="btn btn-outline" id="art-faith-clear">清除</button>
+        </div>
+      </div>
+
+      <div class="home-actions-row">
+        <button type="button" class="btn btn-outline" data-art-reset>全部清除</button>
+      </div>
+
+      <p class="home-status" id="art-status" role="status" aria-live="polite"></p>
     </section>
 
     <!-- 主區塊第三排：專案報告與任務日誌 -->

@@ -6,8 +6,10 @@
    search.html?q=耶穌 shows exactly as many "馬可福音 章:節" results as mark.json has verses containing 耶穌.
 4. blessing (data/blessing.json + site/blessing.html): see blessing_data() and blessing_render().
 5. home (site/home.html, assets, root redirect): see home_static() and home_render().
+6. zonemusic (site/music.js on index/search/card/blessing, data/zone-music.json, tests/zone_probe.html): see zone_static() and zone_render().
+7. blessart (data/blessing-art.json + site/blessing.html: one collectible art image per theme, direct download, canvas composite) and blessing_frozen() (the 37 cards are fixed).
 """
-import functools, html, http.server, json, os, re, socketserver, subprocess, sys, tempfile, threading, urllib.parse
+import functools, html, http.server, json, os, re, socketserver, subprocess, sys, tempfile, threading, urllib.parse, urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SITE = os.path.join(ROOT, "site")
@@ -466,6 +468,288 @@ def home_variants():
                 srv.shutdown()
 
 
+ZONE_PAGES = ["index.html", "search.html", "card.html", "blessing.html"]   # the four zones that play the shared background music
+ZONE_DEFAULT = {"music": "assets/home-music.mp3"}
+
+
+def zone_config(root=None):
+    """data/zone-music.json of `root` (default: the real site); the built-in default when the file is missing."""
+    path = os.path.join(root or ROOT, "data", "zone-music.json")
+    cfg = dict(ZONE_DEFAULT)
+    if os.path.exists(path):
+        cfg.update(json.load(open(path, encoding="utf-8")))
+    return cfg
+
+
+def zone_data():
+    """data/zone-music.json: exactly one field, `music`, an existing mp3 under site/assets/."""
+    path = os.path.join(ROOT, "data", "zone-music.json")
+    if not os.path.exists(path):
+        check("zonemusic：data/zone-music.json 存在", False, "找不到檔案")
+        return
+    try:
+        cfg = json.load(open(path, encoding="utf-8"))
+    except ValueError as e:
+        check("zonemusic：data/zone-music.json 是合法 JSON", False, str(e))
+        return
+    check("zonemusic：zone-music.json 只有 music 一個欄位", isinstance(cfg, dict) and set(cfg) == {"music"}, ",".join(sorted(cfg)) if isinstance(cfg, dict) else "不是物件")
+    val = cfg.get("music", "") if isinstance(cfg, dict) else ""
+    check("zonemusic：zone-music.json 的 music 是 assets/ 底下的 .mp3 檔名且檔案存在、不是空檔",
+          isinstance(val, str) and bool(ASSET_NAME.match(val)) and val.lower().endswith(".mp3") and os.path.isfile(os.path.join(SITE, val)) and os.path.getsize(os.path.join(SITE, val)) > 10000, str(val))
+
+
+def zone_static():
+    """The four zone pages load music.js; home.html and chapter.html do not; music.js and style.css follow the contract."""
+    for p in ZONE_PAGES:
+        src = open(os.path.join(SITE, p), encoding="utf-8").read()
+        m = re.search(r'<script src="app\.js"></script>.*?<script src="music\.js"></script>', src, re.S)
+        check(f"zonemusic：{p} 在 app.js 之後載入 music.js", m is not None)
+        check(f"zonemusic：{p} 沒有自己放 <audio> 或 #zone-music-btn（由 music.js 產生）", "<audio" not in src and "zone-music-btn" not in src)
+    for p in ("home.html", "chapter.html"):
+        src = open(os.path.join(SITE, p), encoding="utf-8").read()
+        check(f"zonemusic：{p} 不載入 music.js（首頁自有音樂、閱讀頁安靜）", "music.js" not in src)
+    path = os.path.join(SITE, "music.js")
+    js = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+    check("zonemusic：site/music.js 存在", bool(js), "找不到檔案")
+    check("zonemusic：music.js 讀 ../data/zone-music.json，失敗時退回 assets/home-music.mp3", "zone-music.json" in js and "assets/home-music.mp3" in js and "fetch(" in js)
+    check("zonemusic：music.js 產生 #zone-music-btn（aria-pressed）與 #zone-music（loop、preload=none），不用 autoplay 屬性",
+          "zone-music-btn" in js and "aria-pressed" in js and "zone-music" in js and "loop" in js and "preload" in js and "autoplay" not in js.lower().replace("autoplay-policy", ""))
+    ev = set()
+    arr = re.search(r"GESTURES\s*=\s*\[([^\]]*)\]", js)
+    if arr:
+        ev |= set(re.findall(r'"(\w+)"', arr.group(1)))
+    ev |= set(re.findall(r'document\.addEventListener\("(\w+)",\s*onFirstGesture', js))
+    check("zonemusic：music.js 的「第一次觸碰就播」只掛 click／pointerup／touchend＋keydown，不掛 pointerdown／touchstart／mousedown",
+          bool(ev & {"click", "pointerup", "touchend"}) and "keydown" in ev and not ev & {"pointerdown", "touchstart", "mousedown"}, "、".join(sorted(ev)) or "找不到 GESTURES")
+    check("zonemusic：music.js 用 sessionStorage 的 bm.zone.on／bm.zone.t／bm.zone.src，且存取都包在 try 裡，pagehide 時存秒數",
+          all(k in js for k in ("sessionStorage", "bm.zone.on", "bm.zone.t", "bm.zone.src", "pagehide", "timeupdate")) and js.count("try") >= 2)
+    check("zonemusic：music.js 按過按鈕後就拆掉「第一次觸碰」監聽（disarm），且忽略來自 #zone-music-btn 的事件", "disarm" in js.lower() and "zone-music-btn" in js and bool(re.search(r"closest\(|contains\(|\.id\s*===?\s*[\"']zone-music-btn|=== *btn", js)))
+    check("zonemusic：music.js 沒有寫死經文、沒有載入外部資源", "http://" not in js and "https://" not in js and "//cdn" not in js)
+    css = open(os.path.join(SITE, "style.css"), encoding="utf-8").read()
+    check("zonemusic：style.css 有 #zone-music-btn 的樣式（固定位置、最小 44px）", "#zone-music-btn" in css and "position: fixed" in css.replace("position:fixed", "position: fixed") and bool(re.search(r"min-height:\s*44px", css)))
+    bare = strip_blocks(strip_blocks(css, "@media (prefers-reduced-motion: no-preference)"), "@keyframes")
+    moving = [m.group(0) for m in re.finditer(r"animation\s*:\s*(?!none)[^;}]+", bare)]
+    check("zonemusic：style.css 的 animation 都包在 prefers-reduced-motion: no-preference 裡", not moving, "；".join(moving[:3]))
+
+
+def zone_state(port, pages, width=None):
+    """Run tests/zone_probe.html through the local server with up to three pages in a row (same iframe); returns its ZPROBE object."""
+    q = "u=" + urllib.parse.quote("../site/" + pages[0], safe="")
+    for key, p in zip(("u2", "u3"), pages[1:]):
+        q += f"&{key}=" + urllib.parse.quote("../site/" + p, safe="")
+    if width:
+        q += f"&w={width}"
+    with tempfile.TemporaryDirectory() as profile:
+        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=40000",
+                              "--autoplay-policy=no-user-gesture-required", f"--user-data-dir={profile}", "--dump-dom",
+                              f"http://127.0.0.1:{port}/tests/zone_probe.html?{q}"], capture_output=True, text=True, timeout=120).stdout
+    found = re.findall(r"ZPROBE (\{.*\})", re.sub(r"<[^>]+>", "", out))
+    try:
+        return json.loads(html.unescape(found[-1])) if found else {}
+    except ValueError:
+        return {}
+
+
+def zone_render(port, root=None, label="", pages=None, width=None):
+    """Drive the shared music button on `pages` (first page → click → second page → click → third page) and check state, config, layout."""
+    cfg = zone_config(root)
+    pages = pages or ZONE_PAGES[:3]
+    for _ in range(3):                                 # headless Chrome sometimes drops the probe's own seek to 7 s on page 2; that is setup, not the site
+        st = zone_state(port, pages, width)
+        if st and st.get("s1") and ((st.get("s2click") or {}).get("t") or 0) >= 6.5:
+            break
+    if not st or not st.get("s1"):
+        check(f"zonemusic{label}：探測頁有輸出", False, "沒有 ZPROBE 輸出")
+        return
+    tag = f"{label}（{' → '.join(pages)}）"
+    sync = lambda s: s and s.get("btn") and s.get("pressed") in ("true", "false") and (s["pressed"] == "true") == (s.get("paused") is False)
+    labelled = lambda s: s and s.get("btn") and ("播放音樂" in s.get("text", "")) == (s.get("pressed") == "false") and ("暫停音樂" in s.get("text", "")) == (s.get("pressed") == "true")
+    seq = [st.get(k) for k in ("s1", "s1click", "s2", "s2click", "s3")]
+    brief = json.dumps(seq, ensure_ascii=False)[:600]
+    s1, c1, s2, c2, s3 = seq
+    check(f"zonemusic{tag}：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致", all(sync(s) for s in seq if s), brief)
+    check(f"zonemusic{tag}：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變", all(labelled(s) for s in seq if s), brief)
+    check(f"zonemusic{tag}：<audio> 是 zone-music.json 指定的音樂、loop、preload=none", all(s.get("src", "").endswith(cfg["music"]) and s.get("loop") is True and s.get("preload") == "none" for s in seq if s), brief)
+    check(f"zonemusic{tag}：第一次進來（沒有任何紀錄）會嘗試自動播放", s1 and s1.get("pressed") == "true" and s1.get("on") in (None, "1"), brief)
+    check(f"zonemusic{tag}：按下按鈕暫停，並記下 bm.zone.on=0", c1 and c1.get("pressed") == "false" and c1.get("paused") is True and c1.get("on") == "0", brief)
+    check(f"zonemusic{tag}：跳到下一頁，暫停狀態被記住（不自己播起來）", s2 and s2.get("pressed") == "false" and s2.get("paused") is True and s2.get("on") == "0", brief)
+    check(f"zonemusic{tag}：再按一次開始播放，記下 bm.zone.on=1", c2 and c2.get("pressed") == "true" and c2.get("on") == "1", brief)
+    check(f"zonemusic{tag}：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播", bool(s3) and s3.get("pressed") == "true" and (s3.get("t") or 0) >= 6.5 and s3.get("savedSrc", "").endswith(cfg["music"]), brief)
+    err = st.get("errors", [])
+    check(f"zonemusic{tag}：沒有 JavaScript 錯誤", not err, "；".join(err[:3]))
+    box = [s for s in seq if s]
+    check(f"zonemusic{tag}：按鈕至少 44×44、在視窗內、頁面沒有水平溢出", bool(box) and all(s.get("w", 0) >= 44 and s.get("h", 0) >= 44 and s.get("right", 9999) <= s.get("vw", 0) and s.get("bottom", 9999) <= s.get("vh", 0) and s.get("scrollW", 9999) <= s.get("vw", 0) for s in box), json.dumps(box[:1], ensure_ascii=False))
+    check(f"zonemusic{tag}：導覽列仍是四項、恰有一項標成目前頁", bool(box) and all(s.get("navCount") == 4 and s.get("navActive") == 1 for s in box), json.dumps([(s.get("navCount"), s.get("navActive")) for s in box]))
+
+
+def zone_variants():
+    """Serve temp copies: (a) a different zone-music.json with a copied mp3, (b) no zone-music.json at all (falls back to home-music.mp3)."""
+    import shutil
+    http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
+    for label, cfg in ((" (自訂設定)", {"music": "assets/custom-zone.mp3"}), (" (沒有 zone-music.json)", None)):
+        with tempfile.TemporaryDirectory() as tmp:
+            for d in ("site", "data"):
+                shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
+            os.makedirs(os.path.join(tmp, "tests"))
+            shutil.copy(os.path.join(ROOT, "tests", "zone_probe.html"), os.path.join(tmp, "tests"))
+            zf = os.path.join(tmp, "data", "zone-music.json")
+            if cfg:
+                shutil.copy(os.path.join(tmp, "site", "assets", "home-music.mp3"), os.path.join(tmp, "site", "assets", "custom-zone.mp3"))
+                json.dump(cfg, open(zf, "w", encoding="utf-8"), ensure_ascii=False)
+            elif os.path.exists(zf):
+                os.remove(zf)
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
+            with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
+                threading.Thread(target=srv.serve_forever, daemon=True).start()
+                zone_render(srv.server_address[1], tmp, label, pages=["card.html", "search.html", "blessing.html"])
+                srv.shutdown()
+
+
+def blessing_frozen():
+    """The 37 blessing cards are fixed (user decision): ids, themes, verse references and message texts must equal tests/blessing_frozen.json."""
+    import hashlib
+    fz = json.load(open(os.path.join(ROOT, "tests", "blessing_frozen.json"), encoding="utf-8"))
+    b = json.load(open(os.path.join(ROOT, "data", "blessing.json"), encoding="utf-8"))
+    cur = [{"id": c["id"], "theme": c["theme"], "book": c["book"], "ch": c["ch"], "v": c["v"], "message_sha256": hashlib.sha256(c["message"].encode("utf-8")).hexdigest()} for c in b["cards"]]
+    check("blessing.json 凍結：固定 37 張卡，四個主題 20／6／5／6 張", len(cur) == 37 and [sum(c["theme"] == t for c in cur) for t in ("work", "peace", "rest", "faith")] == [20, 6, 5, 6])
+    diff = [c["id"] for c in fz["cards"] if c not in cur] + [c["id"] for c in cur if c not in fz["cards"]]
+    check("blessing.json 凍結：每張卡的 id、主題、書卷章節、短文都和 tests/blessing_frozen.json 相同", cur == fz["cards"], "、".join(sorted(set(diff))[:8]))
+    check("blessing.json 凍結：四個主題的 id 與標題沒變", [{"id": t["id"], "title": t["title"]} for t in b["themes"]] == fz["themes"])
+
+
+ART_ENTRY_KEYS = {"image", "alt", "edition"}
+
+
+def blessart_data():
+    """data/blessing-art.json: one optional entry per blessing theme: {image: assets/<jpg|png|webp>, alt: 1-120 chars, edition: 0-20 chars}."""
+    path = os.path.join(ROOT, "data", "blessing-art.json")
+    if not os.path.exists(path):
+        check("blessart：data/blessing-art.json 存在", False, "找不到檔案")
+        return
+    try:
+        art = json.load(open(path, encoding="utf-8"))
+    except ValueError as e:
+        check("blessart：data/blessing-art.json 是合法 JSON", False, str(e))
+        return
+    themes = {t["id"] for t in json.load(open(os.path.join(ROOT, "data", "blessing.json"), encoding="utf-8"))["themes"]}
+    check("blessart：blessing-art.json 是物件，鍵都是 blessing.json 的主題 id", isinstance(art, dict) and set(art) <= themes, ",".join(sorted(set(art) - themes)) if isinstance(art, dict) else "不是物件")
+    ents = art.values() if isinstance(art, dict) else []
+    check("blessart：每個主題的設定剛好有 image、alt、edition 三個欄位", all(isinstance(e, dict) and set(e) == ART_ENTRY_KEYS for e in ents))
+    check("blessart：image 是 assets/ 底下的 jpg／png／webp 且檔案存在", all(isinstance(e, dict) and isinstance(e.get("image"), str) and bool(ASSET_NAME.match(e["image"])) and e["image"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+                                                                  and os.path.isfile(os.path.join(SITE, e["image"])) for e in ents))
+    check("blessart：alt 是 1–120 字、edition 是 0–20 字", all(isinstance(e, dict) and 1 <= len(e.get("alt", "")) <= 120 and len(e.get("edition", "")) <= 20 for e in ents))
+    raw = open(path, encoding="utf-8").read()
+    check("blessart：blessing-art.json 沒有簡體字", not [ch for ch in SIMPLIFIED if ch in raw])
+
+
+def blessart_static():
+    src = open(os.path.join(SITE, "blessing.html"), encoding="utf-8").read()
+    check("blessart：blessing.html 讀 ../data/blessing-art.json（失敗時當作沒有圖）", "blessing-art.json" in src and "fetch(" in src)
+    check("blessart：blessing.html 有 .card-art 畫框、.card-edition 版次、a#art-download（有 download 屬性）", "card-art" in src and "card-edition" in src and 'id="art-download"' in src and "download" in src)
+    check("blessart：blessing.html 的圖片來源只來自設定檔（原始碼沒有寫死 assets/ 圖檔）", not re.search(r"assets/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)", src, re.I))
+    art_convert_check()
+
+
+def art_convert_check():
+    """tools/art_convert.py: any picture → 1000×1400 (5:7) JPG ≤ 3 MB with the gold-foil frame baked in."""
+    try:
+        from PIL import Image
+    except ImportError:
+        check("blessart：tools/art_convert.py（需要 Pillow）", False, "沒有安裝 Pillow")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        src, out = os.path.join(tmp, "in.png"), os.path.join(tmp, "out.jpg")
+        open(src, "wb").write(solid_png(1200, 1600, (255, 0, 0)))
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "art_convert.py"), src, "-o", out], capture_output=True, text=True, timeout=60)
+        ok = r.returncode == 0 and os.path.exists(out)
+        im = Image.open(out).convert("RGB") if ok else None
+        gold = lambda p: p[0] > 170 and 120 < p[1] < 225 and p[2] < 130 and p[0] - p[2] > 90 and p[0] >= p[1]
+        edge = [im.getpixel((x, y)) for x, y in ((12, 700), (987, 700), (500, 12), (500, 1387), (12, 500), (987, 900))]   # corners use the darker gold stops if im else []
+        mid = im.getpixel((500, 700)) if im else (0, 0, 0)
+        check("blessart：tools/art_convert.py 產生 1000×1400 JPG、3 MB 以內", ok and im.size == (1000, 1400) and Image.open(out).format == "JPEG" and os.path.getsize(out) <= 3 * 1024 * 1024, (r.stderr or r.stdout)[-200:])
+        check("blessart：tools/art_convert.py 把燙金框畫進圖檔（四邊是金色、中間仍是原圖）", bool(edge) and all(gold(p) for p in edge) and mid[0] > 200 and mid[1] < 60, json.dumps({"edge": edge, "mid": mid}))
+
+
+def solid_png(w, h, rgb):
+    """A solid-colour PNG (test fixture), standard library only."""
+    import struct, zlib
+    raw = b"".join(b"\x00" + bytes(rgb) * w for _ in range(h))
+    chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xffffffff)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+
+
+def blessart_variants():
+    """Serve temp copies of the site with a test blessing-art.json (work = solid red, peace = solid blue; rest/faith have no art) and check the card."""
+    import shutil
+    http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
+    ed = "2026 年 11 月版"
+    good = {"work": {"image": "assets/art-work.png", "alt": "測試用主題圖：金黃麥田", "edition": ed}, "peace": {"image": "assets/art-peace.png", "alt": "測試用主題圖：靜水旁的羊群", "edition": ed}}
+    cases = ((" (work 紅、peace 藍)", good), (" (圖檔不存在)", {"work": {"image": "assets/art-missing.png", "alt": "測試用主題圖", "edition": ed}}), (" (沒有 blessing-art.json)", None))
+    for label, art in cases:
+        with tempfile.TemporaryDirectory() as tmp:
+            for d in ("site", "data"):
+                shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
+            os.makedirs(os.path.join(tmp, "tests"))
+            shutil.copy(os.path.join(ROOT, "tests", "blessing_probe.html"), os.path.join(tmp, "tests"))
+            af = os.path.join(tmp, "data", "blessing-art.json")
+            if art is None:
+                if os.path.exists(af):
+                    os.remove(af)
+            else:
+                json.dump(art, open(af, "w", encoding="utf-8"), ensure_ascii=False)
+            open(os.path.join(tmp, "site", "assets", "art-work.png"), "wb").write(solid_png(600, 900, (255, 0, 0)))
+            open(os.path.join(tmp, "site", "assets", "art-peace.png"), "wb").write(solid_png(600, 900, (0, 0, 255)))
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
+            with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
+                threading.Thread(target=srv.serve_forever, daemon=True).start()
+                port = srv.server_address[1]
+                blessart_render(port, tmp, label, art)
+                srv.shutdown()
+
+
+def blessart_render(port, root, label, art):
+    work = blessing_state(port, "blessing.html?card=work-01")
+    rest = blessing_state(port, "blessing.html?card=rest-01")
+    swap = blessing_state(port, "blessing.html?card=work-01", act=[{"click": '#theme-tabs button[data-theme="peace"]'}])
+    narrow = blessing_state(port, "blessing.html?card=work-01", width=320)
+    if not work.get("card"):
+        check(f"blessart{label}：blessing.html?card=work-01 有輸出", False, "探測頁沒有輸出")
+        return
+    a, ra, sa, na = work.get("art") or {}, rest.get("art") or {}, swap.get("art") or {}, narrow.get("art") or {}
+    px, rpx, spx = work.get("canvasPixels") or {}, rest.get("canvasPixels") or {}, swap.get("canvasPixels") or {}
+    entry = (art or {}).get("work")
+    usable = bool(entry) and entry["image"] != "assets/art-missing.png"
+    if usable:
+        ent = art["work"]
+        ext = os.path.splitext(ent["image"])[1]
+        check(f"blessart{label}：有圖的主題（work）卡片頂部顯示 .card-art，img 的 src／alt 等於設定，圖真的載入", a.get("shown") is True and a.get("src") == ent["image"] and a.get("alt") == ent["alt"] and a.get("natural", 0) >= 600, json.dumps(a, ensure_ascii=False)[:300])
+        check(f"blessart{label}：版次徽章 .card-edition 顯示設定的版次文字", a.get("editionShown") is True and ent["edition"] in a.get("edition", ""), a.get("edition", ""))
+        check(f"blessart{label}：#blessing-card 的 data-art 等於該主題的圖片路徑", a.get("artAttr") == ent["image"], str(a.get("artAttr")))
+        check(f"blessart{label}：「下載經文圖」a#art-download 顯示，href 是原圖路徑，download 檔名是 blessing-work-…{ext}", a.get("dlTag") == "A" and a.get("dlShown") is True and a.get("dlHref") == ent["image"]
+              and (a.get("dlName") or "").startswith("blessing-work") and (a.get("dlName") or "").endswith(ext), json.dumps({k: a.get(k) for k in ("dlTag", "dlShown", "dlHref", "dlName")}, ensure_ascii=False))
+        src_bytes = open(os.path.join(root, "site", ent["image"]), "rb").read()
+        try:
+            got = urllib.request.urlopen(f"http://127.0.0.1:{port}/site/{a.get('dlHref', '')}", timeout=10).read()
+        except Exception as e:
+            got = str(e).encode()
+        check(f"blessart{label}：下載連結抓到的檔案與上傳的原圖位元組相同（不重新壓縮）", got == src_bytes)
+        total = (work.get("canvasW", 0) or 1) * (work.get("canvasH", 0) or 1)
+        check(f"blessart{label}：下載圖片（canvas）把主題圖合成進去（紅色像素 ≥ 10%），文字仍在，直式比原本更高", px.get("red", 0) >= total * 0.10 and px.get("dark", 0) > 500 and work.get("canvasH", 0) > 900, json.dumps({"canvasPixels": px, "H": work.get("canvasH")}))
+        fr = a.get("frame") or {}
+        check(f"blessart{label}：燙金框只在圖檔裡，頁面不另加框（.card-art 沒有邊框、沒有漸層），三處看到的是同一張圖", fr.get("border", 9) == 0 and "gradient" not in (fr.get("bg", "") + fr.get("borderImage", "")), json.dumps(fr))
+        check(f"blessart{label}：下載圖片（canvas）不另畫框（測試圖是純紅，canvas 不該出現金色）", px.get("gold", 0) < 500, json.dumps(px))
+        peace = (art or {}).get("peace")
+        if peace:
+            check(f"blessart{label}：切換到有圖的另一主題（peace）會換圖，canvas 也跟著換成藍色", sa.get("shown") is True and sa.get("src") == peace["image"] and spx.get("blue", 0) >= total * 0.10 and spx.get("red", 0) < total * 0.01, json.dumps(sa, ensure_ascii=False)[:300])
+        check(f"blessart{label}：320px 寬時畫框在視窗內、頁面沒有水平溢出", bool(na.get("box")) and na["box"]["right"] <= na.get("vw", 0) and na.get("scrollW", 9999) <= na.get("vw", 0), json.dumps(na.get("box")))
+    else:
+        check(f"blessart{label}：沒有可用的圖時，work 卡片維持純文字（沒有 .card-art、沒有版次、#art-download 隱藏、data-art 為空）", not a.get("shown") and not a.get("editionShown") and not a.get("dlShown") and not a.get("artAttr"), json.dumps(a, ensure_ascii=False)[:300])
+        check(f"blessart{label}：沒有可用的圖時，下載圖片照舊只畫文字（底色 #fbf7ee、沒有紅色像素、文字在）", px.get("corner") == [251, 247, 238] and px.get("red", 0) == 0 and px.get("dark", 0) > 500, json.dumps(px))
+    check(f"blessart{label}：沒有設定圖的主題（rest）維持純文字卡", not ra.get("shown") and not ra.get("editionShown") and not ra.get("dlShown") and not ra.get("artAttr") and (rpx.get("red", 0) == 0 and rpx.get("blue", 0) == 0 and rpx.get("gold", 0) < 500), json.dumps(ra, ensure_ascii=False)[:300])
+    errs = work.get("errors", []) + rest.get("errors", []) + swap.get("errors", [])
+    check(f"blessart{label}：沒有 JavaScript 錯誤", not errs, "；".join(errs[:3]))
+
+
 def rendering(groups):
     if not CHROME:
         check("頁面實際顯示（headless Chrome）", False, "找不到 Chrome")
@@ -551,6 +835,12 @@ def rendering(groups):
         if "home" in groups:
             home_render(port)
             home_variants()
+        if "zonemusic" in groups:
+            zone_render(port)
+            zone_render(port, pages=["blessing.html", "card.html", "index.html"], width=320)
+            zone_variants()
+        if "blessart" in groups:
+            blessart_variants()
         srv.shutdown()
 
 
@@ -564,15 +854,22 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home"}
+    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart"}
     links()
     external()
     single_book_text()
     if "blessing" in groups:
         blessing_data()
+        blessing_frozen()
+    if "blessart" in groups:
+        blessart_data()
+        blessart_static()
     if "home" in groups:
         home_data()
         home_static()
+    if "zonemusic" in groups:
+        zone_data()
+        zone_static()
     rendering(groups)
     if ONLY and not results:
         results.append(False)   # a typo in --grep must not pass silently

@@ -7,7 +7,7 @@ import argparse, json, os, re, shutil, sys
 
 SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 REPO = os.path.abspath(os.path.join(SITE_ROOT, ".."))
-DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json"]
+DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json"]
 ALWAYS_ASSETS = {"assets/jordan.jpg", "assets/home-music.mp3"}
 MAX_FILE = 25 * 1024 * 1024
 # Cloudflare joins the values of every matching rule for the same header, so each path may match at most ONE Cache-Control rule.
@@ -63,6 +63,17 @@ def referenced_assets():
     if os.path.exists(home):
         cfg = json.load(open(home, encoding="utf-8"))
         used.update(v for k, v in cfg.items() if k in ("image", "music") and isinstance(v, str))
+    zone_music = os.path.join(SITE_ROOT, "data", "zone-music.json")
+    if os.path.exists(zone_music):
+        zone_cfg = json.load(open(zone_music, encoding="utf-8"))
+        used.update(v for k, v in zone_cfg.items() if k == "music" and isinstance(v, str))
+
+    blessing_art = os.path.join(SITE_ROOT, "data", "blessing-art.json")
+    if os.path.exists(blessing_art):
+        blessing_cfg = json.load(open(blessing_art, encoding="utf-8"))
+        for work in blessing_cfg.values():
+            if isinstance(work, dict) and "image" in work and isinstance(work["image"], str):
+                used.add(work["image"])
     return used
 
 

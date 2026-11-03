@@ -27,7 +27,47 @@ roles:
     timeout_min: 20
     max_files: 1
     escalate_to: e500
-  cloud:                      # 貓聽 / DeepSeek cloud model: never called by the script (uses quota); the task is reported as needs-cloud
+  fe:                         # Harness「Front-end Engineer」(cloud DeepSeek V4.1 Flash, uses quota): front-end and admin UI.
+    provider: deepseek-official   # the web session routes it through Command Code, which headless dsh cannot load; same model via the official API
+    model: deepseek-flash
+    builtin: true
+    timeout_min: 30
+    max_files: 2
+    escalate_to: pm
+  pm:                         # Harness「PM」(cloud DeepSeek V4.1 Flash, uses quota): server endpoints, fallback for fe.
+    provider: deepseek-official   # the web session routes it through CodeBuddy, which headless dsh cannot load; same model via the official API
+    model: deepseek-flash
+    builtin: true
+    timeout_min: 30
+    max_files: 2
+    escalate_to: cloud
+  cmd:                        # Command Code CLI (`cmd -p`, Command Code account, uses quota): DeepSeek V4.1 Flash, same model as the Harness Front-end Engineer
+    runner: cmd
+    model: deepseek/deepseek-v4.1-flash
+    timeout_min: 30
+    max_files: 2
+    escalate_to: fe
+  cb:                         # CodeBuddy CLI (`codebuddy -p`, CodeBuddy account, uses quota): DeepSeek V4.1 Flash (SG) — full-stack: server + front end in one task, same model as the Harness PM
+    runner: codebuddy
+    model: deepseek-v4.1-flash-sg
+    timeout_min: 30
+    max_files: 3
+    escalate_to: fe
+  agy:                        # AGY CLI (`agy -p`, Google account, uses quota): Gemini 3.8 Flash High — front-end engineer and image engineer
+    runner: agy
+    model: gemini-3.8-flash-high
+    effort: high
+    timeout_min: 30
+    max_files: 2
+    escalate_to: fe
+  qoder:                      # Qoder CLI (`qodercli -p`, Bailian Token Plan): Qwen3.8 Flash; generates images through the bailian-image MCP server (bl profile)
+    runner: qoder
+    model: bailian-token-plan/qwen3.8-flash   # Qoder's own Qwen3.8-Flash sat in its server queue > 2 min on 2026-11-03
+    allowed_tools: [mcp__bailian-image__generate_image]
+    timeout_min: 30
+    max_files: 2
+    escalate_to: agy
+  cloud:                    # 貓聽 / DeepSeek cloud model: never called by the script (uses quota); the task is reported as needs-cloud
     manual: true
 
 # Files that dispatch itself, the checks, or the models may legitimately rewrite while a task runs.
@@ -37,5 +77,6 @@ ignore_changes:
   - bible-site/TEST-REPORT.md
   - bible-site/FAILS.md
   - bible-site/logs/
+  - bible-site/admin/.token          # written by admin/server.py when a model starts it to test
   - bible-site/tools/dispatch/generated/
   - __pycache__/

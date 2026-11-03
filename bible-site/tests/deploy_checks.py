@@ -36,6 +36,8 @@ def bundle():
         check("dist 有 index.html、site/home.html、site/index.html、data/ 四卷經文、_headers", all(f in files for f in (
             "index.html", "site/home.html", "site/index.html", "site/app.js", "site/style.css", "data/mat.json", "data/mrk.json", "data/luk.json", "data/jhn.json", "_headers")))
         check("dist 有 data/blessing.json 與 data/home.json", "data/blessing.json" in files and "data/home.json" in files)
+        check("dist 有 data/zone-music.json 與 site/music.js（前台四區音樂）", "data/zone-music.json" in files and "site/music.js" in files)
+        check("dist 有 data/blessing-art.json（抽經文卡主題收藏卡圖）", "data/blessing-art.json" in files)
         bad = [f for f in files if re.match(r"(admin|tests|tools|tasks|prompts|logs|\.verify|\.git)/", f) or f.endswith((".md", ".py", ".sh", ".pid", ".log")) or os.path.basename(f).startswith(".") or "token" in f.lower()]
         check("dist 不含 admin／tests／tools／報告／腳本／token／隱藏檔", not bad, "、".join(bad[:6]))
         check("dist 只含 index.html、404.html、_headers、site/、data/ 五種頂層項目", {f.split("/")[0] for f in files} <= {"index.html", "404.html", "_headers", "site", "data"})
@@ -74,6 +76,8 @@ def bundle():
         # assets: the ones home.json names (and the defaults) ship; an unreferenced upload does not
         cfg = json.load(open(os.path.join(out, "data", "home.json"), encoding="utf-8")) if "data/home.json" in files else {}
         check("home.json 指定的圖片與音樂、預設素材都在 dist/site/assets", all(os.path.isfile(os.path.join(out, "site", p)) for p in (cfg.get("image", "x"), cfg.get("music", "x"), "assets/jordan.jpg", "assets/home-music.mp3")))
+        zcfg = json.load(open(os.path.join(out, "data", "zone-music.json"), encoding="utf-8")) if "data/zone-music.json" in files else {}
+        check("zone-music.json 指定的音樂在 dist/site/assets", os.path.isfile(os.path.join(out, "site", zcfg.get("music", "x"))), str(zcfg))
         # unreferenced upload is skipped; a referenced one ships (built from a temp copy, never from the live files)
         copy = os.path.join(tmp, "copy")
         shutil.copytree(os.path.join(SITE_ROOT, "site"), os.path.join(copy, "site"))
@@ -84,10 +88,18 @@ def bundle():
         c = json.load(open(os.path.join(copy, "data", "home.json"), encoding="utf-8")) if os.path.exists(os.path.join(copy, "data", "home.json")) else {}
         c["image"] = "assets/upload-used.png"
         json.dump(c, open(os.path.join(copy, "data", "home.json"), "w", encoding="utf-8"), ensure_ascii=False)
+        for n in ("zone-stray", "zone-used"):
+            open(os.path.join(copy, "site", "assets", f"upload-{n}.mp3"), "wb").write(b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb\x90\x00" + b"\0" * 64)
+        json.dump({"music": "assets/upload-zone-used.mp3"}, open(os.path.join(copy, "data", "zone-music.json"), "w", encoding="utf-8"))
+        for n in ("art-stray", "art-used"):
+            open(os.path.join(copy, "site", "assets", f"upload-{n}.png"), "wb").write(b"\x89PNG\r\n\x1a\n" + b"\0" * 64)
+        json.dump({"work": {"image": "assets/upload-art-used.png", "alt": "測試", "edition": "2026 年 11 月版"}}, open(os.path.join(copy, "data", "blessing-art.json"), "w", encoding="utf-8"), ensure_ascii=False)
         out2 = os.path.join(tmp, "dist2")
         subprocess.run([sys.executable, BUILD, "--out", out2, "--root", copy], capture_output=True, timeout=120)
         f2 = listing(out2) if os.path.isdir(out2) else []
         check("沒被使用的上傳檔不會發佈，home.json 指定的上傳檔會發佈", "site/assets/upload-stray.png" not in f2 and "site/assets/upload-used.png" in f2)
+        check("沒被使用的收藏卡圖不會發佈，blessing-art.json 指定的圖會發佈", "site/assets/upload-art-stray.png" not in f2 and "site/assets/upload-art-used.png" in f2)
+        check("沒被使用的上傳音樂不會發佈，zone-music.json 指定的上傳音樂會發佈", "site/assets/upload-zone-stray.mp3" not in f2 and "site/assets/upload-zone-used.mp3" in f2)
         # serve dist and fetch the pages the way a browser would (relative ../data paths must work)
         handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=out)
         http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
@@ -96,7 +108,7 @@ def bundle():
             base = f"http://127.0.0.1:{srv.server_address[1]}"
             codes = {}
             for path in ("/", "/index.html", "/site/home.html", "/site/index.html", "/site/chapter.html", "/site/search.html", "/site/blessing.html", "/site/card.html",
-                         "/data/luk.json", "/data/home.json", "/data/blessing.json", "/site/assets/jordan.jpg", "/site/assets/home-music.mp3", "/admin/index.html", "/tests/site_checks.py", "/FAILS.md"):
+                         "/data/luk.json", "/data/home.json", "/data/zone-music.json", "/data/blessing-art.json", "/site/music.js", "/data/blessing.json", "/site/assets/jordan.jpg", "/site/assets/home-music.mp3", "/admin/index.html", "/tests/site_checks.py", "/FAILS.md"):
                 try:
                     r = urllib.request.urlopen(base + path, timeout=10)
                     r.read()
