@@ -1,1 +1,22 @@
-{}
+{
+  "work": {
+    "image": "assets/upload-20261103-151917-d5c4.jpg",
+    "alt": "天父賜福你的工作收藏卡",
+    "edition": "2026 年 11 月版"
+  },
+  "peace": {
+    "image": "assets/upload-20261103-151531-dd12.jpg",
+    "alt": "天父賜你平安收藏卡",
+    "edition": "2026 年 11 月版"
+  },
+  "rest": {
+    "image": "assets/upload-20261103-151540-489b.jpg",
+    "alt": "天父給你安息收藏卡",
+    "edition": "2026 年 11 月版"
+  },
+  "faith": {
+    "image": "assets/upload-20261103-151549-c910.jpg",
+    "alt": "在神凡事都能收藏卡",
+    "edition": "2026 年 11 月版"
+  }
+}
