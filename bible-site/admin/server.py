@@ -317,6 +317,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_home_get()
         elif path.startswith("/api/book/"):
             self.handle_api_book(path[len("/api/book/"):])
+        elif path.startswith("/site-assets/"):
+            self.handle_site_asset(path[len("/site-assets/"):])
         elif path.startswith("/api/"):
             # 未認知的 API 端點
             self.send_json({"error": "找不到該操作端點"}, code=404)
@@ -326,6 +328,57 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             # 其他路徑一律回 404
             self.send_json({"error": "找不到檔案"}, code=404)
+
+    def handle_site_asset(self, name):
+        """唯讀提供 site/assets/ 的圖片與音樂給後台預覽（同源，不必連到前台埠）；支援單一 Range 讓音訊可拖曳。"""
+        low = name.lower()
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name) or not low.endswith(IMAGE_EXTS + MUSIC_EXTS):
+            self.send_json({"error": "找不到檔案"}, code=404)
+            return
+        path = os.path.join(SITE_ROOT, "site", "assets", name)
+        if not os.path.isfile(path):
+            self.send_json({"error": "找不到檔案"}, code=404)
+            return
+        ctype = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".mp3": "audio/mpeg"}[os.path.splitext(low)[1]]
+        size = os.path.getsize(path)
+        start, end, code = 0, size - 1, 200
+        m = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", "").strip())
+        if m and (m.group(1) or m.group(2)):
+            if m.group(1):
+                start = int(m.group(1))
+                end = int(m.group(2)) if m.group(2) else size - 1
+            else:
+                start = max(0, size - int(m.group(2)))
+            end = min(end, size - 1)
+            if start > end or start >= size:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            code = 206
+        length = end - start + 1
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(length))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        if code == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.end_headers()
+        with open(path, "rb") as f:
+            f.seek(start)
+            left = length
+            while left > 0:
+                chunk = f.read(min(65536, left))
+                if not chunk:
+                    break
+                try:
+                    self.wfile.write(chunk)
+                except (BrokenPipeError, ConnectionResetError):
+                    return
+                left -= len(chunk)
 
     def do_HEAD(self):
         # HEAD 套用與 do_GET 完全相同的路由規則；非靜態檔只回標頭、不送內容

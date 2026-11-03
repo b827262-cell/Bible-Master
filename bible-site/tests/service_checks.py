@@ -150,6 +150,7 @@ def homeadmin():
     miss = [i for i in ids if f'id="{i}"' not in page]
     check("後台 index.html 有「主頁設定」區塊需要的 16 個 id", not miss, "、".join(miss))
     check("後台「主頁設定」文字是繁體中文：有「主頁設定」「儲存」「還原預設」「記得執行發佈」", all(t in page + src for t in ("主頁設定", "儲存", "還原預設", "發佈")))
+    check("admin.js 的素材預覽走同源 /site-assets/（不再指向 :8090/assets/）", "/site-assets/" in src and not re.search(r":8090/\$\{path\}", src))
     check("admin.js 使用 /api/token、/api/home、/api/home/reset、/api/upload", all(u in src for u in ("/api/token", "/api/home", "/api/home/reset", "/api/upload")))
     check("admin.js 的經文預覽用 /api/book/（不寫死經文）且不載入外部資源", "/api/book/" in src and "https://" not in src)
     gi = open(os.path.join(ROOT, ".gitignore"), encoding="utf-8").read()
@@ -225,6 +226,17 @@ def homeadmin():
         check("所有被拒絕的請求都沒有改動 home.json", md5(cfgf) == before)
         up = lambda kind, data, name="photo.jpg", hdr=None: req2(base + f"/api/upload?kind={kind}&name={urllib.parse.quote(name)}", "POST",
                                                                    {k: v for k, v in dict(good, **{"Content-Type": "application/octet-stream"}, **(hdr or {})).items()}, data)
+        # previews: the admin page shows uploaded files through its own origin (/site-assets/<name>), never through :8090
+        st, h, body = req2(base + "/site-assets/jordan.jpg")
+        check("GET /site-assets/jordan.jpg 回 200、Content-Type 是 image/jpeg、內容與檔案相同", st == 200 and h.get("Content-Type", "").startswith("image/jpeg") and md5(os.path.join(assets, "jordan.jpg")) == hashlib.md5(urllib.request.urlopen(base + "/site-assets/jordan.jpg").read()).hexdigest(), f"HTTP {st} {h.get('Content-Type')}")
+        st, h, _ = req2(base + "/site-assets/home-music.mp3", headers={"Range": "bytes=0-9"})
+        check("GET /site-assets/home-music.mp3 支援 Range（回 206、Content-Range、10 位元組），音訊才能拖曳進度", st == 206 and h.get("Content-Range", "").startswith("bytes 0-9/") and h.get("Content-Length") == "10", f"HTTP {st} {h.get('Content-Range')}")
+        st, h, _ = req2(base + "/site-assets/home-music.mp3")
+        check("GET /site-assets/home-music.mp3 回 200、audio/mpeg、Accept-Ranges: bytes", st == 200 and h.get("Content-Type", "").startswith("audio/mpeg") and h.get("Accept-Ranges") == "bytes", f"HTTP {st} {h.get('Content-Type')}")
+        codes = {n: req2(base + "/site-assets/" + n)[0] for n in ("nope.jpg", "..%2f..%2fdata%2fluk.json", "%2e%2e/data/luk.json", "a.json", ".hidden.jpg", "jordan.jpg/x")}
+        check("GET /site-assets/ 不存在、跳出目錄、非素材副檔名的檔名都回 404", all(c == 404 for c in codes.values()), json.dumps(codes))
+        st, _, _ = req2(base + "/site-assets/jordan.jpg", "POST", good)
+        check("POST /site-assets/ 不接受（不回 200）", st != 200, f"HTTP {st}")
         st, _, _ = up("image", JPEG, hdr={"X-Bible-Token": ""})
         check("POST /api/upload 沒帶 token 回 403", st == 403, f"HTTP {st}")
         names = {}
@@ -234,6 +246,8 @@ def homeadmin():
             names[label] = path
             check(f"POST /api/upload 收下真的 {label}，存成 assets/upload-*.{ext}，內容與上傳的相同",
                   st == 200 and re.fullmatch(r"assets/upload-[A-Za-z0-9._-]+\." + ext, path) is not None and open(os.path.join(tmp, "site", path), "rb").read() == data, f"HTTP {st} {path}")
+        st, _, got = req2(base + "/site-assets/" + names["jpg"].split("/")[-1])
+        check("剛上傳的檔案可以經 /site-assets/ 預覽（回 200，位元組相同）", st == 200 and len(got) > 0 and hashlib.md5(urllib.request.urlopen(base + "/site-assets/" + names["jpg"].split("/")[-1]).read()).hexdigest() == hashlib.md5(JPEG).hexdigest(), f"HTTP {st}")
         st, _, body2 = up("image", JPEG, "photo.jpg")
         check("連續上傳同一個檔案不會覆蓋前一個（檔名不重複）", st == 200 and json.loads(body2).get("path") != names["jpg"], body2[:100])
         for label, kind, data, name in (("文字檔改名 .jpg", "image", b"hello world" * 300, "fake.jpg"), ("mp3 當圖片", "image", MP3, "a.jpg"), ("png 當音樂", "music", PNG, "a.mp3"),

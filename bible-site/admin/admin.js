@@ -330,9 +330,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderVersePreview();
   }
 
-  // 後台只提供 index.html／admin.js／admin.css，圖片與音樂要從前台網域讀取
+  // 圖片與音樂的預覽由後台自己的 /site-assets/ 唯讀提供（同源，測試埠與正式埠都能用）
   function assetUrl(path) {
-    return `${location.protocol}//${location.hostname}:8090/${path}`;
+    return `/site-assets/${encodeURIComponent(String(path).replace(/^assets\//, ""))}`;
   }
 
   function updateImagePreview(path) {
