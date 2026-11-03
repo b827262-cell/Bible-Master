@@ -4,10 +4,9 @@
 
 ## 共通規格
 
-- **經典小卡片**：直式 **5:7**（球員卡 63×88 mm 的比例），成品 **1000×1400 JPG**，**單檔 3 MB 以內**（後台上限是 5 MB，3 MB 為主）。
-- 生成時請直接要 1000×1400（或接近的直式比例，例如 3:4），生成後一律跑 `python3 bible-site/tools/art_convert.py <圖檔>`：置中裁成 5:7、縮成 1000×1400、存成 3 MB 以內的 JPG（檔名 `<原檔名>-card.jpg`），再拿這個檔上傳。
-- **燙金框由轉檔工具畫進圖檔**（外圍 24px 金色漸層＋深金細線），網站不再另外加框：頁面顯示、「下載經文圖」、「下載圖片」合成卡都是同一張有框的圖，一個主題只存一個檔。所以生成時**不要自己畫框、不要畫邊線**，畫面滿版即可。
-- 主角放在畫面中間偏上，四邊各留約 5%：轉檔裁切時邊緣可能被切掉一點。
+- **經典小卡片**：直式（目前用 3:4，例如 1792×2400），JPG，**單檔 3 MB 以內**（後台上限 5 MB，3 MB 為主）。
+- 生成後可跑 `python3 bible-site/tools/art_convert.py <圖檔>`：比例不變、**不裁切、不加框**，長邊超過 2400 才縮小，存成 3 MB 以內的 JPG（檔名 `<原檔名>-card.jpg`）。已經是 3 MB 以內的 JPG 可直接上傳。
+- **燙金框在生成時直接畫進圖裡**（站長自 2026-11 起用 Gemini 4 Agon 生成），網站與轉檔工具都不再加框：頁面顯示、「下載經文圖」、「下載圖片」合成卡都是同一張有框的圖，一個主題只存一個檔。
 - **圖內不放任何文字**（經文、標題、版次都由網站畫，避免錯字、方便無障礙與搜尋）。
 - 四個主題風格一致：以 AGY 的「約翰福音牧羊人水彩」為風格錨點，ChatGPT 與 Qoder 都拿它當參考圖；水彩質感、柔邊、留白。
 - 畫面下方約 1/3 保持較淡、較簡單，因為下載圖片卡時文字會接在圖下方，圖本身不被文字覆蓋。
@@ -17,7 +16,7 @@
 
 ## 每月換圖流程
 
-1. 在 AGY／ChatGPT／Qoder 生成新圖，跑 `tools/art_convert.py` 轉成 5:7 小卡 → 2. 後台「收藏卡圖片」對應主題上傳 → 3. 改「版次」文字（例如 2026 年 12 月版）與替代文字 → 4. 儲存 → 5. 執行「發佈」→ 6. 到公開網站抽一張卡確認。
+1. 在 AGY／ChatGPT／Qoder 生成新圖，（需要時）跑 `tools/art_convert.py` 壓到 3 MB 以內 → 2. 後台「收藏卡圖片」對應主題上傳 → 3. 改「版次」文字（例如 2026 年 12 月版）與替代文字 → 4. 儲存 → 5. 執行「發佈」→ 6. 到公開網站抽一張卡確認。
 
 ## 四個主題
 
@@ -97,5 +96,5 @@
 ## 提示詞範本（可直接貼給製圖工具，再依主題替換「畫面」）
 
 ```
-Soft watercolor illustration in the same style as the reference image (Gospel of John shepherd watercolor), portrait 5:7 classic trading card, 1000×1400, gentle wet-on-wet washes, warm natural light, no text, no letters, no faces of Jesus (back view or distant figures only), calm and reverent mood, lower third kept light and simple. Scene: <畫面>. Palette: <色調>.
+Soft watercolor illustration in the same style as the reference image (Gospel of John shepherd watercolor), portrait 3:4 classic trading card with an ornate gold-foil frame drawn into the image, gentle wet-on-wet washes, warm natural light, no text, no letters, no faces of Jesus (back view or distant figures only), calm and reverent mood, lower third kept light and simple. Scene: <畫面>. Palette: <色調>.
 ```

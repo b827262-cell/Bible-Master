@@ -651,7 +651,7 @@ def blessart_static():
 
 
 def art_convert_check():
-    """tools/art_convert.py: any picture → 1000×1400 (5:7) JPG ≤ 3 MB with the gold-foil frame baked in."""
+    """tools/art_convert.py: keeps the ratio, never crops or adds a frame (the generator draws the frame), long side ≤ 2400, JPG ≤ 3 MB."""
     try:
         from PIL import Image
     except ImportError:
@@ -659,15 +659,13 @@ def art_convert_check():
         return
     with tempfile.TemporaryDirectory() as tmp:
         src, out = os.path.join(tmp, "in.png"), os.path.join(tmp, "out.jpg")
-        open(src, "wb").write(solid_png(1200, 1600, (255, 0, 0)))
+        open(src, "wb").write(solid_png(1800, 2400, (255, 0, 0)))
         r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "art_convert.py"), src, "-o", out], capture_output=True, text=True, timeout=60)
         ok = r.returncode == 0 and os.path.exists(out)
         im = Image.open(out).convert("RGB") if ok else None
-        gold = lambda p: p[0] > 170 and 120 < p[1] < 225 and p[2] < 130 and p[0] - p[2] > 90 and p[0] >= p[1]
-        edge = [im.getpixel((x, y)) for x, y in ((12, 700), (987, 700), (500, 12), (500, 1387), (12, 500), (987, 900))]   # corners use the darker gold stops if im else []
-        mid = im.getpixel((500, 700)) if im else (0, 0, 0)
-        check("blessart：tools/art_convert.py 產生 1000×1400 JPG、3 MB 以內", ok and im.size == (1000, 1400) and Image.open(out).format == "JPEG" and os.path.getsize(out) <= 3 * 1024 * 1024, (r.stderr or r.stdout)[-200:])
-        check("blessart：tools/art_convert.py 把燙金框畫進圖檔（四邊是金色、中間仍是原圖）", bool(edge) and all(gold(p) for p in edge) and mid[0] > 200 and mid[1] < 60, json.dumps({"edge": edge, "mid": mid}))
+        edge = [im.getpixel((x, y)) for x, y in ((2, 1200), (1797, 1200), (900, 2), (900, 2397))] if im else []
+        check("blessart：tools/art_convert.py 產生 JPG、3 MB 以內、比例與尺寸不變（1800×2400 不縮、不裁）", ok and im.size == (1800, 2400) and Image.open(out).format == "JPEG" and os.path.getsize(out) <= 3 * 1024 * 1024, (r.stderr or r.stdout)[-200:])
+        check("blessart：tools/art_convert.py 不加框（邊緣仍是原圖的顏色）", bool(edge) and all(p[0] > 200 and p[1] < 60 and p[2] < 60 for p in edge), json.dumps(edge))
 
 
 def solid_png(w, h, rgb):
@@ -736,7 +734,7 @@ def blessart_render(port, root, label, art):
         total = (work.get("canvasW", 0) or 1) * (work.get("canvasH", 0) or 1)
         check(f"blessart{label}：下載圖片（canvas）把主題圖合成進去（紅色像素 ≥ 10%），文字仍在，直式比原本更高", px.get("red", 0) >= total * 0.10 and px.get("dark", 0) > 500 and work.get("canvasH", 0) > 900, json.dumps({"canvasPixels": px, "H": work.get("canvasH")}))
         fr = a.get("frame") or {}
-        check(f"blessart{label}：燙金框只在圖檔裡，頁面不另加框（.card-art 沒有邊框、沒有漸層），三處看到的是同一張圖", fr.get("border", 9) == 0 and "gradient" not in (fr.get("bg", "") + fr.get("borderImage", "")), json.dumps(fr))
+        check(f"blessart{label}：金框只在圖檔裡（生成時畫好），頁面不另加框（.card-art 沒有邊框、沒有漸層），三處看到的是同一張圖", fr.get("border", 9) == 0 and "gradient" not in (fr.get("bg", "") + fr.get("borderImage", "")), json.dumps(fr))
         check(f"blessart{label}：下載圖片（canvas）不另畫框（測試圖是純紅，canvas 不該出現金色）", px.get("gold", 0) < 500, json.dumps(px))
         peace = (art or {}).get("peace")
         if peace:
