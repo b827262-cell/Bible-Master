@@ -11,3 +11,9 @@ logs/
 # admin write endpoints (home page settings)
 bible-site/admin/.token
 dist/
+
+# 禱讀草稿與審查稿：未經人工及神學核准，不可進入公開儲存庫
+bible-site/devotional/batch-365/
+bible-site/devotional/batch-365-backup-*/
+bible-site/devotional/*.md
+!bible-site/devotional/README.md

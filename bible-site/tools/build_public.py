@@ -7,7 +7,7 @@ import argparse, json, os, re, shutil, sys
 
 SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 REPO = os.path.abspath(os.path.join(SITE_ROOT, ".."))
-DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json"]
+DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json", "devotional.json"]
 ALWAYS_ASSETS = {"assets/jordan.jpg", "assets/home-music.mp3"}
 MAX_FILE = 25 * 1024 * 1024
 # Cloudflare joins the values of every matching rule for the same header, so each path may match at most ONE Cache-Control rule.

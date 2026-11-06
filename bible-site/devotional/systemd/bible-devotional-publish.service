@@ -1,0 +1,9 @@
+[Unit]
+Description=Bible-Master daily devotional release (approved entries up to today)
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=PUBLISH_DIR=%h/.local/share/bible-devotional/main
+# 發佈用的獨立 checkout：每次先對齊 origin/main，再執行 main 上的 publish_daily.py
+ExecStart=/bin/bash -c 'set -e; git -C "$PUBLISH_DIR" fetch -q origin main; git -C "$PUBLISH_DIR" checkout -q --detach -f origin/main; git -C "$PUBLISH_DIR" clean -qfd; S="$PUBLISH_DIR/bible-site/devotional/publish_daily.py"; if [ ! -f "$S" ]; then echo "origin/main 尚未包含每日禱讀發佈程式，略過"; exit 0; fi; exec /usr/bin/python3 -B "$S"'
