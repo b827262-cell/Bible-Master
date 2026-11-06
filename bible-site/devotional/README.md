@@ -8,6 +8,7 @@
 python3 -B bible-site/devotional/cli.py dry-run --devotional-csv 清單.csv --media-csv 影音.csv --output-report /tmp/preview.json
 python3 -B bible-site/devotional/cli.py show --date 2026-11-06
 python3 -B bible-site/devotional/cli.py today
+python3 -B bible-site/devotional/cli.py pending --from 2026-11-09 --to 2026-11-30
 python3 -B bible-site/devotional/cli.py import --devotional-csv 清單.csv --media-csv 影音.csv
 python3 -B bible-site/devotional/cli.py review 1 --type source --reviewer 審核者
 python3 -B bible-site/devotional/cli.py draft 1 --summary 原創摘要 --reflection 原創反思
@@ -19,6 +20,8 @@ python3 -B bible-site/devotional/cli.py export --output /tmp/devotional.json
 
 `show` 供審核者查看指定日期的經文、默想、反思、禱告和審核狀態，經文即時取自專案四福音 JSON。這個命令會顯示待審草稿，不代表已核准公開。
 
+`pending` 以 TSV 列出指定日期區間（含起日與迄日）內尚未完成雙重審核的篇章。加上 `--flagged` 可只列出本機 `batch-365/argon-review-findings.md` 標記的日期。審查報告由本機保管，缺少報告時指令會提示。查詢全程唯讀。
+
 使用 AGY 的 Gemini 4 Argon Medium 產生下一篇原創草稿，會將所選專案經文送往該模型服務，並消耗其額度。預設只輸出草稿，加入 `--save` 才寫入 PostgreSQL 的待審狀態。該日期已有紀錄時不呼叫模型，也不覆蓋。
 
 ```bash
@@ -26,7 +29,7 @@ python3 -B bible-site/devotional/generate_draft.py --date 2026-11-20 --reference
 python3 -B bible-site/devotional/generate_draft.py --date 2026-11-20 --reference '路加福音 19:1–10' --save
 ```
 
-產生草稿不代表神學審核通過。請先確認內容、來源與日期，再由人員完成既有雙重審核；工具沒有自動排程或自動發佈。
+產生草稿不代表神學審核通過。請先確認內容、來源與日期，再由人員完成既有雙重審核。
 
 兩項審核完成後，可執行 `python3 -B bible-site/devotional/cli.py export --output bible-site/data/devotional.json`，將核准內容匯出供 `site/devotional.html` 閱讀。執行網站公開建置前，請先檢查匯出內容。沒有資料或當日沒有核准內容時，頁面會顯示提示。
 
@@ -37,3 +40,18 @@ python3 -B bible-site/devotional/generate_draft.py --date 2026-11-20 --reference
 測試請只使用隔離資料庫，SQL 測試本身會 rollback。範本 CSV 是假資料，不代表真實發布日期或影音來源。原創與神學正確性須人員審核，程式無法保證。
 
 新建隔離測試庫時，依序執行 `schema.sql`、`grants.sql`、`002_policy.sql`、`003_scripture_bounds.sql`、`004_title.sql` 與 `integration_test.sql`。章節上限依專案四福音 JSON 的 89 章建立，經文來源版本更新時須同步檢查上限。撰寫草稿時可加上 `--title` 和 `--prayer`，修改主題會撤銷神學核准。
+
+## 每日發佈排程
+
+備妥 `~/.local/share/bible-devotional/main` 獨立 Git checkout，確認使用者可透過 SSH 查詢資料庫，並具備推送權限。在專案根目錄執行下列指令安裝或更新排程與本機失敗記錄。
+
+```bash
+install -Dm644 -t ~/.config/systemd/user \
+  bible-site/devotional/systemd/bible-devotional-publish.service \
+  bible-site/devotional/systemd/bible-devotional-publish-failed.service \
+  bible-site/devotional/systemd/bible-devotional-publish.timer
+systemctl --user daemon-reload
+systemctl --user enable --now bible-devotional-publish.timer
+```
+
+排程每天台北時間 06:00 執行。發佈失敗時會在使用者狀態目錄（預設 `~/.local/state/bible-devotional/PUBLISH-FAILED.log`）附加一筆含時間的紀錄。詳細原因可用 `journalctl --user -u bible-devotional-publish.service -n 50` 查看。

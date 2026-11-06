@@ -1,0 +1,8 @@
+[Unit]
+Description=記錄 Bible-Master 每日禱讀發佈失敗
+
+[Service]
+Type=oneshot
+StateDirectory=bible-devotional
+StandardOutput=append:%S/bible-devotional/PUBLISH-FAILED.log
+ExecStart=/bin/sh -c 'echo "$$(/usr/bin/date --iso-8601=seconds) 每日禱讀發佈失敗，請查看 bible-devotional-publish.service 的日誌。"'

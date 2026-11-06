@@ -1,6 +1,7 @@
 [Unit]
 Description=Bible-Master daily devotional release (approved entries up to today)
 After=network-online.target
+OnFailure=bible-devotional-publish-failed.service
 
 [Service]
 Type=oneshot
