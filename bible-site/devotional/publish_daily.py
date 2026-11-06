@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfo
 START = datetime.date(2026, 11, 9)
 REPO = Path(__file__).resolve().parents[2]
 TARGET = 'bible-site/data/devotional.json'
+BUILT = 'data/devotional.json'
 
 
 def git(*args, check=True):
@@ -65,8 +66,11 @@ def main():
             return 0
         with tempfile.TemporaryDirectory() as out:
             run('bible-site/tools/build_public.py', '--out', out)
-            if not (Path(out) / TARGET).exists():
+            built_file = Path(out) / BUILT
+            if not built_file.is_file():
                 raise RuntimeError('發佈包沒有 devotional.json')
+            if built_file.read_bytes() != (REPO / TARGET).read_bytes():
+                raise RuntimeError('發佈包的 devotional.json 與匯出檔不同')
         if args.dry_run:
             print(f'{today}：--dry-run，已核准 {count} 篇，會更新 {TARGET}')
             git('checkout', '--', TARGET)
