@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test daily publication with a disposable PostgreSQL database and a local Git remote."""
+import csv
 import json
 import os
 import shutil
@@ -126,6 +127,44 @@ def verify_publish(temp, env):
     print("通過：只有當日已核准資料進入匯出與建置，本機遠端收到單檔提交，重跑沒有新增提交")
 
 
+def verify_pending(temp, env):
+    devotional = temp / 'checkout' / 'bible-site' / 'devotional'
+    command = (sys.executable, '-B', str(devotional / 'cli.py'), 'pending')
+    date_args = ('--from', TODAY, '--to', '2026-11-10')
+    header = ['ID', '日期', '經文範圍', '標題', '來源審核', '神學審核']
+
+    def listed(*args):
+        rows = list(csv.reader(run(*command, *args, env=env).splitlines(), delimiter='\t'))
+        assert rows[0] == header, rows
+        assert all(row[0].isdigit() for row in rows[1:]), rows
+        return [row[1:] for row in rows[1:]]
+
+    def expect_error(args, message):
+        process = subprocess.run((*command, *args), env=env, capture_output=True, text=True, timeout=30)
+        assert process.returncode == 1 and message in process.stderr, process
+
+    today_pending = [TODAY, '馬太福音 4:1', '今日待審', 'PENDING', 'PENDING']
+    future_pending = ['2026-11-10', '馬太福音 4:1', '未來已核准', 'APPROVED', 'PENDING']
+    assert listed(*date_args) == [today_pending, future_pending]
+    assert listed('--from', TODAY, '--to', TODAY) == [today_pending]
+    assert listed('--from', '2026-11-08', '--to', '2026-11-08') == []
+    expect_error(('--from', '2026-02-30', '--to', TODAY), 'YYYY-MM-DD')
+    expect_error(('--from', TODAY, '--to', '2026-11-08'), '不可晚於')
+    expect_error((*date_args, '--flagged'), '找不到本機 Argon 審查報告')
+
+    report = devotional / 'batch-365' / 'argon-review-findings.md'
+    report.parent.mkdir(exist_ok=True)
+    report.write_text(
+        '# 測試報告\n'
+        '## 第 2 天｜2026-11-10｜馬太福音 4:1\n'
+        '僅在內文提到 2026-11-09。\n'
+        '## 第 3 天｜2026-11-11｜馬太福音 4:2\n',
+        encoding='utf-8',
+    )
+    assert listed(*date_args, '--flagged') == [future_pending]
+    print('通過：待審查詢含日期邊界及兩項狀態，並可依本機 Argon 報告篩選')
+
+
 def main():
     host = os.environ.get("DEVOTIONAL_SSH_HOST", "debian-toshiba")
     env = dict(os.environ, DEVOTIONAL_DATABASE=TEST_DB)
@@ -140,6 +179,11 @@ def main():
             temp = Path(directory)
             verify_crawler(temp)
             verify_publish(temp, env)
+            postgres(host, *psql, input="""
+                UPDATE entries SET theology_status='PENDING', theology_reviewer=NULL, theology_reviewed_at=NULL
+                WHERE canonical_url='https://example.test/approved-future';
+            """)
+            verify_pending(temp, env)
     finally:
         postgres(host, "dropdb", "-p", "5433", TEST_DB)
 

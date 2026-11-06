@@ -58,6 +58,41 @@ def import_rows(records,kind):
             book=x['ranges'][0]['book_code'] if len(x['ranges'])==1 else None
             commands.append('INSERT INTO media_links(canonical_url,recorded_date,raw_reference,scope,book_code,is_template) VALUES('+','.join(q(z) for z in [x['url'],x['date'],x['reference'],x['scope'],book,x['is_template']])+') ON CONFLICT DO NOTHING;')
     commands.append('COMMIT;');sql('\n'.join(commands))
+def pending(from_date, to_date, flagged):
+    if any(parse_iso_date(date) != date for date in (from_date, to_date)):
+        raise ValueError('--from 與 --to 須為 YYYY-MM-DD')
+    if from_date > to_date:
+        raise ValueError('--from 不可晚於 --to')
+
+    flagged_dates = None
+    if flagged:
+        report = Path(__file__).resolve().parent / 'batch-365' / 'argon-review-findings.md'
+        try:
+            findings = report.read_text(encoding='utf-8')
+        except FileNotFoundError as exc:
+            raise ValueError(f'找不到本機 Argon 審查報告：{report}') from exc
+        flagged_dates = set(re.findall(r'^## 第 [0-9]+ 天｜([0-9]{4}-[0-9]{2}-[0-9]{2})｜', findings, re.MULTILINE))
+
+    result = sql(f"""
+        BEGIN READ ONLY;
+        SELECT COALESCE(jsonb_agg(to_jsonb(pending) ORDER BY devotional_date, id), '[]'::jsonb)
+        FROM (
+            SELECT id, devotional_date, raw_reference, title, source_status, theology_status
+            FROM entries
+            WHERE devotional_date BETWEEN {q(from_date)}::date AND {q(to_date)}::date
+              AND (source_status <> 'APPROVED' OR theology_status <> 'APPROVED')
+        ) AS pending;
+        COMMIT;
+    """)
+    writer = csv.writer(sys.stdout, delimiter='\t', lineterminator='\n')
+    writer.writerow(('ID', '日期', '經文範圍', '標題', '來源審核', '神學審核'))
+    for entry in json.loads(result):
+        if flagged_dates is None or entry['devotional_date'] in flagged_dates:
+            writer.writerow([entry[key] for key in (
+                'id', 'devotional_date', 'raw_reference', 'title', 'source_status', 'theology_status',
+            )])
+
+
 def main():
     p=argparse.ArgumentParser();sub=p.add_subparsers(dest='cmd',required=True)
     for c in ['dry-run','import']:
@@ -68,6 +103,10 @@ def main():
     x=sub.add_parser('media-review');x.add_argument('media_id',type=int);x.add_argument('--reviewer',required=True)
     x=sub.add_parser('show');x.add_argument('--date',required=True,help='日期 YYYY-MM-DD')
     x=sub.add_parser('today');x.add_argument('--date',help='指定日期 YYYY-MM-DD，預設台灣時間今天')
+    x = sub.add_parser('pending', help='列出日期區間內尚未完成雙重審核的篇章')
+    x.add_argument('--from', dest='from_date', required=True, help='起日 YYYY-MM-DD（含）')
+    x.add_argument('--to', dest='to_date', required=True, help='迄日 YYYY-MM-DD（含）')
+    x.add_argument('--flagged', action='store_true', help='只列出本機 Argon 報告標記的日期')
     x=sub.add_parser('export');x.add_argument('--output',required=True);x.add_argument('--through',help='只匯出到此日期 YYYY-MM-DD，預設台灣時間今天')
     args=p.parse_args()
     if args.cmd in ('dry-run','import'):
@@ -80,6 +119,8 @@ def main():
         text=json.dumps(report,ensure_ascii=False,indent=2)
         if args.output_report:Path(args.output_report).write_text(text,encoding='utf-8')
         else: print(text)
+    elif args.cmd == 'pending':
+        pending(args.from_date, args.to_date, args.flagged)
     elif args.cmd in ('show','today'):
         requested_date=args.date or datetime.datetime.now(ZoneInfo('Asia/Taipei')).date().isoformat()
         date=parse_iso_date(requested_date)
