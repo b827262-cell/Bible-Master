@@ -68,7 +68,7 @@ def main():
     x=sub.add_parser('media-review');x.add_argument('media_id',type=int);x.add_argument('--reviewer',required=True)
     x=sub.add_parser('show');x.add_argument('--date',required=True,help='日期 YYYY-MM-DD')
     x=sub.add_parser('today');x.add_argument('--date',help='指定日期 YYYY-MM-DD，預設台灣時間今天')
-    x=sub.add_parser('export');x.add_argument('--output',required=True)
+    x=sub.add_parser('export');x.add_argument('--output',required=True);x.add_argument('--through',help='只匯出到此日期 YYYY-MM-DD，預設台灣時間今天')
     args=p.parse_args()
     if args.cmd in ('dry-run','import'):
         report={}
@@ -134,8 +134,13 @@ def main():
         result=sql("UPDATE media_links SET status='VERIFIED', reviewer="+q(args.reviewer)+", reviewed_at=now() WHERE id="+q(args.media_id)+' RETURNING id;')
         if not result:raise ValueError('找不到影音紀錄')
     else:
-        data=sql("SELECT COALESCE(jsonb_agg(row_to_json(v)),'[]'::jsonb) FROM v_approved_export v;",True)
-        Path(args.output).write_text(json.dumps(json.loads(data),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        # 每日上架：只匯出到指定日期（預設台灣時間今天）為止的已核准內容，未來日期不進公開檔
+        through=args.through or datetime.datetime.now(ZoneInfo('Asia/Taipei')).date().isoformat()
+        if parse_iso_date(through) != through:raise ValueError('--through 須為 YYYY-MM-DD')
+        data=sql("SELECT COALESCE(jsonb_agg(row_to_json(v) ORDER BY v.devotional_date,v.id),'[]'::jsonb) FROM v_approved_export v WHERE v.devotional_date<="+q(through)+"::date;",True)
+        output=Path(args.output);temporary=output.with_suffix('.tmp')
+        temporary.write_text(json.dumps(json.loads(data),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        temporary.replace(output)
 if __name__=='__main__':
     try:main()
     except (ValueError,RuntimeError,OSError) as e:print(str(e),file=sys.stderr);sys.exit(1)

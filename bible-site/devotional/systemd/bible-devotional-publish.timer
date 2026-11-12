@@ -1,0 +1,9 @@
+[Unit]
+Description=Release the Bible-Master daily devotional at 06:00 Asia/Taipei
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 Asia/Taipei
+Persistent=true
+
+[Install]
+WantedBy=timers.target

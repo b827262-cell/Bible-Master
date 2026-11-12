@@ -10,6 +10,8 @@
   }).formatToParts(new Date());
   const component = (name) => parts.find((part) => part.type === name).value;
   date.value = `${component('year')}-${component('month')}-${component('day')}`;
+  date.max = date.value; // 每日上架：只開放到今天
+
   let entries = [];
   let generation = 0;
 

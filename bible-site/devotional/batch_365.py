@@ -17,6 +17,8 @@ START = datetime.date(2026, 11, 21)
 OUTPUT = Path(__file__).resolve().parent / 'batch-365'
 BOOKS = [('mat', '馬太福音'), ('mrk', '馬可福音'), ('luk', '路加福音'), ('jhn', '約翰福音')]
 BATCH_SIZE = 8
+# 人工審查：這幾天的默想需要下一節才完整（可 14:52、路 17:10、路 24:43），段落多帶一節
+EXTEND = {161, 242, 278}
 
 
 def reading_plan():
@@ -32,9 +34,18 @@ def reading_plan():
     result = []
     for ch in chapters:
         verses, count = ch['verses'], ch['parts']
+        cuts = [len(verses) * index // count for index in range(count + 1)]
+        for index in range(1, count):
+            day = len(result) + index
+            # 不在句子中間斷開：段落最後一節以「、」結尾時，把後面的節併入，直到句子結束
+            while cuts[index] < cuts[index + 1] - 1 and (
+                    re.sub(r'〈[^〉]*〉$', '', verses[cuts[index] - 1]['text']).endswith('、')
+                    or (day in EXTEND and cuts[index] == len(verses) * index // count)):
+                cuts[index] += 1
+            if cuts[index] - len(verses) * index // count > 3:
+                cuts[index] = len(verses) * index // count  # 家譜等整段長句，保留原切點
         for index in range(count):
-            start = len(verses) * index // count
-            end = len(verses) * (index + 1) // count
+            start, end = cuts[index], cuts[index + 1]
             first, last = verses[start], verses[end - 1]
             first_num = first['v']
             last_num = last.get('end', last['v'])
