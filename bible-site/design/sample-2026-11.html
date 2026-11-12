@@ -93,6 +93,9 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.25; m
   text-decoration: none; display: grid; gap: 6px; align-content: end; min-height: 170px; transition: transform .25s, box-shadow .25s; }
 a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .book { grid-column: span 3; color: #fff; border: 0; background: linear-gradient(150deg, color-mix(in srgb, var(--hue) 88%, #000), color-mix(in srgb, var(--hue) 62%, #06231d)); }
+/* 深色模式的書卷色調是亮色（給深底上的文字用），當方塊底色時要再壓暗，白字才有 4.5:1 */
+:root[data-theme="dark"] .book { background: linear-gradient(150deg, color-mix(in srgb, var(--hue) 50%, #000), color-mix(in srgb, var(--hue) 36%, #06231d)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .book { background: linear-gradient(150deg, color-mix(in srgb, var(--hue) 50%, #000), color-mix(in srgb, var(--hue) 36%, #06231d)); } }
 .book .glyph { position: absolute; right: -.12em; top: -.32em; font-family: var(--display); font-size: 9.5rem; font-weight: 900; line-height: 1; opacity: .2; }
 .book h3 { font-size: 1.5rem; }
 .book span { font-size: .9rem; opacity: .88; font-variant-numeric: tabular-nums; }
@@ -179,6 +182,17 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
   .hero-pic::after { inset: auto 0 0 0; width: auto; height: 22%; background: linear-gradient(180deg, transparent, #33402f); }
   .hero-body { background: radial-gradient(130% 80% at 50% 0%, rgba(253, 228, 170, .32), rgba(253, 228, 170, .08) 50%, transparent 75%); }
 }
+[hidden] { display: none !important; }
+/* 樣本六：抽卡頁的愛心小驚喜與背景圖案。GIF 邊緣已預先混合到 --paper，舞台底色必須是 --paper */
+.bless { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 36px 20px; border-radius: var(--r-lg); background: var(--paper) url("pattern-light.png") repeat; background-size: 360px; }
+:root[data-theme="dark"] .bless { background-image: url("pattern-dark.png"); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bless { background-image: url("pattern-dark.png"); } }
+.heart { width: 240px; height: 240px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.heart img { width: 100%; height: 100%; display: block; }
+.heart:focus-visible { outline: 3px solid var(--river); outline-offset: 4px; }
+.reveal { width: 220px; aspect-ratio: 3 / 4; border-radius: 14px; background: center / cover url("eagle-A.jpg"); box-shadow: var(--shadow); display: none; }
+.reveal.show { display: block; animation: rise .5s ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (max-width: 640px) { .states { grid-template-columns: 1fr; } }
 @media (max-width: 380px) { .dock a { min-width: 48px; padding: 0 9px; font-size: .86rem; } .book .glyph { font-size: 7.5rem; } }
 @media (prefers-reduced-motion: reduce) { .hero-pic img { animation: none; } .tile, .pill, .fan i, .toast { transition: none; } .spin, .status::before, .pill.keep { animation: none !important; } html { scroll-behavior: auto; } }
@@ -269,10 +283,19 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
     </div>
   </div>
 </div>
+<div class="wrap" style="padding-top:0;margin-top:-92px">
+  <div class="part" id="heart-demo"><p class="eyebrow">樣本六</p><h2>抽經文卡：點愛心的小驚喜（背景是新圖案）</h2></div>
+  <div class="bless">
+    <button class="heart" id="heart" type="button" aria-describedby="heart-status"><img id="heart-img" src="heart-idle-light.gif" alt="金框綠色愛心，點一下領受祝福"></button>
+    <p class="status" id="heart-status" role="status" aria-live="polite">點愛心領受今天的祝福</p>
+    <div class="reveal" id="reveal" role="img" aria-label="金色飛鷹卡背"></div>
+    <button class="pill" id="heart-again" type="button" hidden>再抽一次</button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <nav class="dock" aria-label="主要導覽">
-  <a href="#home" aria-current="page">首頁</a><a href="#reader">目錄</a><a href="#devotional">禱讀</a><a href="#home">抽卡</a><a href="#find-q">搜尋</a>
+  <a href="#home" aria-current="page">首頁</a><a href="#reader">目錄</a><a href="#devotional">禱讀</a><a href="#heart-demo">抽卡</a><a href="#find-q">搜尋</a>
 </nav>
 
 <script>
@@ -365,6 +388,24 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
     if (hits.length) say("ok", `找到 ${hits.length} 節：${D.reader.book} ${D.reader.ch}:${hits.map((x) => x.v).join("、")}`);
     else { q.setAttribute("aria-invalid", "true"); say("fix", `找不到「${word}」，請換個字句再試一次`); }
   });
+
+  // 樣本六：愛心待機 → 點擊播放小驚喜（1.6 秒，只播一次）→ 翻出卡背。減少動態時只換靜態圖。
+  const heart = $("heart"), hs = $("heart-status"), reveal = $("reveal"), again = $("heart-again");
+  const GIF = { idle: { light: "heart-idle-light.gif", dark: "heart-idle-dark.gif" }, surprise: { light: "heart-surprise-light.gif", dark: "heart-surprise-dark.gif" } };
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  const tone = () => (root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  function setHeart(src) { const img = new Image(); img.id = "heart-img"; img.alt = "金框綠色愛心，點一下領受祝福"; img.src = src; $("heart-img").replaceWith(img); }
+  function idle() { setHeart(still.matches ? "heart-still.png" : GIF.idle[tone()]); }
+  idle(); btn.addEventListener("click", () => setTimeout(idle, 0));
+  heart.addEventListener("click", async () => {
+    if (heart.getAttribute("aria-busy") === "true") return;
+    heart.setAttribute("aria-busy", "true"); hs.dataset.state = "busy"; hs.textContent = "正在為你抽一張卡…";
+    if (!still.matches) { setHeart(GIF.surprise[tone()]); await wait(1600); } else await wait(300);
+    reveal.classList.add("show"); again.hidden = false; heart.hidden = true;
+    hs.dataset.state = "ok"; hs.textContent = "抽到了！點卡片就能翻開經文（樣本只示範到卡背）";
+    heart.removeAttribute("aria-busy");
+  });
+  again.addEventListener("click", () => { reveal.classList.remove("show"); again.hidden = true; heart.hidden = false; hs.removeAttribute("data-state"); hs.textContent = "點愛心領受今天的祝福"; idle(); heart.focus(); });
 }());
 </script>
 </body>
