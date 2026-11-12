@@ -4,7 +4,7 @@
 環境檢查與基準線：`bash bible-site/tools/pm_setup.sh`；更新狀態：`python3 bible-site/tools/pm_status.py`。
 
 <!-- pm:auto:start -->
-更新時間：2026-11-02 19:42（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
+更新時間：2026-11-12 18:33（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
 
 | 步驟 | 狀態 |
 |---|---|
@@ -16,7 +16,7 @@
 | 5 TODO.md 清空或不存在 | 完成 |
 
 - site 檔案：6/6（缺：無）
-- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過
+- check_all.py：總結：3/3 項檢查通過
 - 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）
 - TODO.md 未完成項目：沒有 TODO.md
 <!-- pm:auto:end -->
@@ -95,3 +95,8 @@
 - 2026-11-03 22:10　dispatch：99-zone-admin-ui 通過（fe）。
 - 2026-11-03 22:13　dispatch：104-art-admin-ui 通過（fe）。
 - 2026-11-03 22:50　前台四區背景音樂（`site/music.js`、`data/zone-music.json`、後台 `/api/zone-music`）與抽經文卡主題收藏卡圖（`data/blessing-art.json`、5:7 小卡片、燙金框畫進圖檔、`tools/art_convert.py`、後台 `/api/blessing-art`）完成。派工 13 個任務（地端 7、fe 4、pm 2），新增雲端角色 fe／pm／cb／cmd／agy／qoder。`check_all.py` 3/3，visual 通過。使用者回報 iPad 實機測試 OK（首次點擊開始播、換頁後再點接續）。背景音樂候選曲 Ballade pour Adeline 的來源（Audio.com 免費下載）已記在 `ASSETS-LICENSE.md`，檔案不放進 repo。
+- 2026-11-05 09:03　dispatch：106-site-music-zones 通過（e500）。
+- 2026-11-05 09:09　dispatch：109-admin-html-zone-cards 需要雲端（貓聽）（de1050 → de1050 → e500）。
+- 2026-11-05 09:12　dispatch：107-site-blessing-single-art 通過（e500 → e500）。
+- 2026-11-05 09:19　dispatch：105-build-zone-art-assets 通過（a16 → a16）。
+- 2026-11-12 23:30　PM 盤點區域音樂／單卡收藏圖（任務 105–110）：105／106／107 已由 dispatch 通過；108（server.py）、109（index.html）、109b（admin.js）的改動已在工作樹（11-12 18:00 前後，不是經 dispatch.py 完成，沒有派工紀錄），PM 重跑三份任務檔的 checks 全過。110 最終審查原本卡在「跨頁續播探測 2/3」：原因是測試伺服器不支援 HTTP Range，headless Chrome 對未整檔下載的 mp3 無法 seek（不是 `music.js` 缺陷）。PM 改測試：`site_checks.py` 加 `RangeHandler`、`zone_probe.html` 第三頁同曲時最多等 6 秒、四區改用不同曲目並加「兩區同曲」與 blessing 獨立曲案例；zonemusic 平行 8 次全過（改前 6 次有 1 次失敗），四個突變（永不續播、忽略分區鍵、search 誤用 index 鍵、忽略 blessing 鍵）都被抓到。地端 `dsh` 與三台 Ollama 端點當時無回應，110b 複審改用 `tools/herdr_team.py` 派給 w2:p1（Codex）：`REVIEW-zone-art.md` 狀態 PASS、無中度以上問題。PM 複驗：`check_all.py` 3/3、`service_checks.py zoneadmin blessartadmin homeadmin admin`、`deploy_checks.py`、`visual_checks.py` 全過；四福音 JSON、`blessing.json`、`home.json` 無 diff。待：使用者決定 commit／發佈；`devotional`（禱讀）尚無任務檔與驗收檢查。

@@ -149,3 +149,102 @@
 2. **暫存清理**：已完整刪除 `/tmp/agy-music-test` 複本目錄與 `/tmp/chrome-music-*` 臨時使用者資料目錄。
 3. **線上服務保護**：線上生產環境 `8090`（PID 1439868）與 `8091`（PID 2158975）全程保持運行，未受任何干擾。
 4. **工作目錄乾淨度**：未修改任何程式碼、未執行 `git commit` 或 `git push`；真實工作目錄僅新增驗收報告 `bible-site/AGY-MUSIC-TOUCH-TEST.md` 與截圖目錄 `bible-site/screenshots-music/`。
+
+
+---
+
+## 複測實測報告（M3、M3b、M1 回歸、M2 回歸）
+
+- **實測時間**：2026-11-03 16:42（Asia/Taipei）
+- **實測版本**：最新本機 `main` 分支（Commit `734fd3a`：引入 `disarmFirstGesture()` 解除全域監聽）
+- **實測環境**：
+  - Chrome 156.0.8078.73（X11 真實視窗，`DISPLAY=:0`）
+  - Chrome 預設自動播放政策（無 `--autoplay-policy=no-user-gesture-required`）
+  - 每個項目均使用獨立全新 User Data Profile（杜絕 MEI 記憶）
+  - 裝置模擬：375×812、`mobile: true`、`setTouchEmulationEnabled: true`、CDP `Input.dispatchTouchEvent`（真觸控點擊與滑動）
+  - 測試站點：`/tmp/agy-music-test` 複本，埠號 `18190`（`8090`/`8091` 全程未觸碰）
+
+### 複測判定總表
+
+| 項目代號 | 測試項目 | 判定結果 | 一句核心證據 |
+|---|---|:---:|---|
+| **M3** | 直接點按鈕播/停，再點經文卡與空白處維持暫停 | **通過** | 按鈕暫停後（`paused: true, currentTime: 1.48s`），隨後分別點擊經文卡與空白處，`audio` 均維持暫停、未再重複播放。 |
+| **M3b** | 先觸控經文卡起播，再點按鈕暫停，再點按鈕播放 | **通過** | 觸碰經文卡成功起播（`currentTime: 1.40s`）；隨後點按鈕成功暫停（`paused: true`）；再次點按鈕順利恢復播放（`currentTime: 2.98s`）。 |
+| **M1 回歸** | 手機觸控點擊經文卡文字起播 | **通過** | 觸控點擊經文卡文字，`audio.paused` 變為 `false`，按鈕切換為「 暫停音樂」，`currentTime` 推進至 `1.41s`，功能完好未受破壞。 |
+| **M2 回歸** | 先捲動（維持暫停），隨後點擊觸發播放 | **通過** | 滑動捲動時呼叫 `play()` 被拒絕（`NotAllowedError`），維持暫停；隨後點擊經文卡重新掛載成功起播（`currentTime: 1.39s`），功能完好。 |
+
+---
+
+### 逐項細部客觀數據
+
+#### M3. 直接點按鈕起播 → 再點一次暫停 → 之後點經文卡與空白處維持暫停
+- **測試目標**：驗證使用者點擊 `#music-btn` 後立即執行 `disarmFirstGesture()`，解除全域第一次手勢監聽，避免主動暫停後點擊畫面其他區域意外自動播放。
+- **判定結果**：**通過**
+- **客觀數據**：
+  1. 初始狀態（未觸碰）：
+     - `audio.paused === true`
+     - `audio.currentTime === 0`
+     - `#music-btn` aria-pressed: `"false"`，文字: `"♪ 播放音樂"`
+  2. 第一次點擊 `#music-btn`（座標 `x: 293, y: 238`）：
+     - `audio.paused === false`
+     - `audio.currentTime === 1.410700s`
+     - `#music-btn` aria-pressed: `"true"`，文字: `" 暫停音樂"`（成功起播，且觸發 `disarmFirstGesture()` 卸載全域監聽）
+  3. 第二次點擊 `#music-btn`：
+     - `audio.paused === true`
+     - `audio.currentTime === 1.483645s`
+     - `#music-btn` aria-pressed: `"false"`，文字: `"♪ 播放音樂"`（成功暫停）
+  4. 第三次觸碰：點擊經文卡文字（座標 `x: 180, y: 380`）：
+     - `audio.paused === true`（維持暫停）
+     - `audio.currentTime === 1.483645s`（時間未前進）
+     - `#music-btn` aria-pressed: `"false"`，文字: `"♪ 播放音樂"`
+  5. 第四次觸碰：點擊畫面空白處（座標 `x: 200, y: 100`）：
+     - `audio.paused === true`（維持暫停）
+     - `audio.currentTime === 1.483645s`（時間未前進）
+     - `#music-btn` aria-pressed: `"false"`，文字: `"♪ 播放音樂"`
+- **實測截圖**：[`bible-site/screenshots-music/M3_retest_button_stay_paused.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-music/M3_retest_button_stay_paused.png) (802 KB)
+
+---
+
+#### M3b. 先點經文卡起播 → 再點按鈕暫停 → 再點按鈕恢復播放
+- **測試目標**：驗證先透過全域第一次手勢起播後，按鈕的暫停與恢復播放切換依舊正常運作。
+- **判定結果**：**通過**
+- **客觀數據**：
+  1. 全新乾淨 Profile 載入頁面，初始狀態 `paused: true, currentTime: 0`。
+  2. 第一次觸碰：不點按鈕，直接點擊經文卡中央文字（座標 `x: 180, y: 380`）：
+     - `audio.paused === false`
+     - `audio.currentTime === 1.395226s`
+     - `#music-btn` aria-pressed: `"true"`，文字: `" 暫停音樂"`（起播成功）
+  3. 第二次觸碰：點擊 `#music-btn`：
+     - `audio.paused === true`
+     - `audio.currentTime === 1.472793s`
+     - `#music-btn` aria-pressed: `"false"`，文字: `"♪ 播放音樂"`（暫停成功）
+  4. 第三次觸碰：再次點擊 `#music-btn`：
+     - `audio.paused === false`
+     - `audio.currentTime === 2.981343s`
+     - `#music-btn` aria-pressed: `"true"`，文字: `" 暫停音樂"`（恢復播放成功）
+- **實測截圖**：[`bible-site/screenshots-music/M3b_tap_then_button_toggle.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-music/M3b_tap_then_button_toggle.png) (802 KB)
+
+---
+
+#### M1 回歸. 手機觸控點擊經文卡文字起播
+- **測試目標**：確認修復 M3 後，手機觸控任意非按鈕區域起播之功能未受回歸影響。
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 初始狀態：`audio.paused === true`，`currentTime === 0`，`aria-pressed === "false"`。
+  - 觸控點擊經文卡文字（座標 `x: 180, y: 380`）：
+    - 點擊後狀態：`audio.paused === false`，`currentTime === 1.408429s`，`aria-pressed === "true"`，按鈕切換為「 暫停音樂」。
+- **實測截圖**：[`bible-site/screenshots-music/M1_regression.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-music/M1_regression.png) (810 KB)
+
+---
+
+#### M2 回歸. 先捲動畫面（保持暫停），隨後點擊觸發起播
+- **測試目標**：確認捲動被瀏覽器判定拒絕後，重新掛載機制仍正常運作。
+- **判定結果**：**通過**
+- **客觀數據**：
+  - 捲動操作：手指自 `y: 520` 向上滑動至 `y: 180`（touchMove 系列事件）：
+    - 監聽記錄：`audio.play() called` → `play() rejected: NotAllowedError`。
+    - 捲動後檢測：`audio.paused === true`，`currentTime === 0`（維持暫停，並重新 arm 監聽）。
+  - 隨後點擊經文卡（座標 `x: 180, y: 350`）：
+    - 監聽記錄：`audio.play() called` → `play() resolved`。
+    - 點擊後檢測：`audio.paused === false`，`currentTime === 1.393496s`，`aria-pressed === "true"`，按鈕切換為「 暫停音樂」。
+- **實測截圖**：[`bible-site/screenshots-music/M2_regression.png`](file:///home/b827262/project/AI/Bible-Master/bible-site/screenshots-music/M2_regression.png) (806 KB)
