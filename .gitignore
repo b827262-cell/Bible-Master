@@ -11,3 +11,6 @@ logs/
 # admin write endpoints (home page settings)
 bible-site/admin/.token
 dist/
+
+# 本機環境覆寫（各機器不同，例如埠口）
+.env.local

@@ -33,6 +33,12 @@ fi
 
 cd "${PROJECT_ROOT}"
 
+# 本機覆寫（不納入版控）：存在 .env.local 時載入，例如 BACKEND_PORT=8092
+if [ -f "${PROJECT_ROOT}/.env.local" ]; then
+  # shellcheck disable=SC1091
+  . "${PROJECT_ROOT}/.env.local"
+fi
+
 # 參數與目錄配置
 FRONTEND_PORT="${FRONTEND_PORT:-8090}"
 BACKEND_PORT="${BACKEND_PORT:-8091}"

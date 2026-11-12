@@ -68,7 +68,7 @@ def provider_block(key):
 
 def overlay_text(role):
     r = ROLES[role]
-    eff = f"\n    reasoningEffort: {r['reasoning']}" if "reasoning" in r else ""
+    eff = f"\n    reasoningEffort: {json.dumps(r['reasoning'])}" if "reasoning" in r else ""
     if r.get("builtin"):                              # provider ships as its own dsh plugin (cloud), nothing to copy
         return (f"- id: agent-default-model\n  name: \"@deepseek-ai/dsh-agent-default-model\"\n  config:\n"
                 f"    provider: {r['provider']}\n    model: {r['model']}{eff}\n")
@@ -223,8 +223,10 @@ def cli_command(role, prompt):
         return ["cmd", "--no-auto-update", "--skip-onboarding", "--trust", "--no-session", "--yolo",
                 "-m", r["model"], "--output-format", "json", "-p", prompt]
     if r["runner"] == "codebuddy":
-        return ["codebuddy", "--permission-mode", "acceptEdits", "--model", r["model"],
-                "--output-format", "stream-json", "-p", prompt]
+        cmd = ["codebuddy", "--permission-mode", "acceptEdits", "--model", r["model"]]
+        if r.get("effort"):
+            cmd += ["--effort", r["effort"]]
+        return cmd + ["--output-format", "stream-json", "-p", prompt]
     if r["runner"] == "agy":                                           # file edits auto-approved, nothing broader
         return ["agy", "--model", r["model"], "--effort", r.get("effort", "high"), "--mode", "accept-edits",
                 "--output-format", "stream-json", "--print-timeout", f"{r['timeout_min']}m", "-p", prompt]

@@ -5,23 +5,25 @@ dsh_bin: ~/.npm/_npx/7eff65a5cfe9d1d1/node_modules/.bin/dsh
 web_patch: ~/.dsh/profiles/web/cordis.patch.yml
 
 roles:
-  e500:                       # editor: hard files (RTX 3060, Bonsai 2 27B, 160K)
-    provider: bonsai-e500
-    model: /home/b827262/project/Bonsai-demo/models/bonsai2-gguf/27B/Ternary-Bonsai-2-27B-PQ2_0.gguf
-    health: http://127.0.0.1:8082/v1/models
+  e500:                       # E500 專案主力：Qwen3.5 4B Q4 128K，基準 25/30、89/98、87.32 tok/s
+    provider: qwen-e500
+    model: qwen35-4b-q4_k_m-gpu-128k:latest
+    reasoning: "off"
+    health: http://127.0.0.1:11437/v1/models
     timeout_min: 45
     max_files: 2
     escalate_to: cloud
-  a16:                        # reviewer / small edits (TUF A16, Bonsai 2 9B, 128K)
-    provider: bonsai-a16-64k
-    model: bonsai2-9b-q2-tufa16-128k
-    health: http://127.0.0.1:18083/v1/models
+  a16:                        # TUF A16：Qwen3.5 4B Q4 128K，25/30、89/98、95.74 tok/s
+    provider: qwen-a16
+    model: qwen35-4b-q4_k_m-gpu-128k-pp03:latest
+    reasoning: "off"
+    health: http://127.0.0.1:18088/v1/models
     timeout_min: 30
     max_files: 2
     escalate_to: e500
   de1050:                     # tests / one-line edits (GTX 1050 Ti, Qwen3.5 4B, 48K, no-think, greedy)
     provider: qwen35-de1050
-    model: qwen35-4b-fast-48k
+    model: qwen35-4b-fast-48k:latest
     reasoning: "off"
     health: http://127.0.0.1:18087/v1/models
     timeout_min: 20
@@ -53,6 +55,13 @@ roles:
     timeout_min: 30
     max_files: 3
     escalate_to: fe
+  cbr:                        # CodeBuddy 最終審核，僅全部地端任務與獨立測試成功後觸發一次
+    runner: codebuddy
+    model: deepseek-v4.1-flash-sg
+    effort: high
+    timeout_min: 45
+    max_files: 8
+    escalate_to: cloud
   agy:                        # AGY CLI (`agy -p`, Google account, uses quota): Gemini 3.8 Flash High — front-end engineer and image engineer
     runner: agy
     model: gemini-3.8-flash-high
