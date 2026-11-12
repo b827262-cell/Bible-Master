@@ -1,1 +1,162 @@
-[]
+[
+  {
+    "id": 1,
+    "title": "在主面前領受恩典",
+    "prayer": "天父，求祢使我存謙卑的心聽耶穌的話。在我遇見的人和事中，教我活出憐憫與和平。阿們。",
+    "ranges": [
+      {
+        "book": "MAT",
+        "end_verse": 12,
+        "end_chapter": 5,
+        "start_verse": 1,
+        "start_chapter": 5
+      }
+    ],
+    "summary": "耶穌向門徒講論有福的人。祂看重虛心、憐憫、清心與使人和睦，也看見為義受苦的人。今天來到主面前，不必先證明自己足夠好，可以帶著需要，聆聽祂的教導。",
+    "media_urls": [],
+    "reflection": "今天我可以在哪一件事上選擇憐憫或促進和睦？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=mat&ch=5#v1",
+    "devotional_date": "2026-11-06",
+    "scripture_reference": "馬太福音 5:1–12"
+  },
+  {
+    "id": 2,
+    "title": "在風浪中呼求主",
+    "prayer": "主耶穌，我把心中的不安帶到祢面前。求祢幫助我在困難中信靠祢，也賜我面對今天的勇氣。阿們。",
+    "ranges": [
+      {
+        "book": "MRK",
+        "end_verse": 41,
+        "end_chapter": 4,
+        "start_verse": 35,
+        "start_chapter": 4
+      }
+    ],
+    "summary": "門徒在風浪中害怕，向船上的耶穌呼求。耶穌平靜風海，問他們為何膽怯、是否仍沒有信心；門徒也彼此問，這位連風和海都聽從的是誰。我們可以誠實帶著憂慮來到主面前，思想祂是誰，並學習信靠祂。",
+    "media_urls": [],
+    "reflection": "我現在最想向主說出的擔憂是什麼？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=mrk&ch=4#v35",
+    "devotional_date": "2026-11-07",
+    "scripture_reference": "馬可福音 4:35–41"
+  },
+  {
+    "id": 3,
+    "title": "回到父的面前",
+    "prayer": "慈愛的天父，求祢光照我，使我誠實面對自己的錯誤。感謝祢的憐憫，帶領我回到祢面前。阿們。",
+    "ranges": [
+      {
+        "book": "LUK",
+        "end_verse": 24,
+        "end_chapter": 15,
+        "start_verse": 11,
+        "start_chapter": 15
+      }
+    ],
+    "summary": "小兒子醒悟後起身回家，父親看見他，動了慈心並迎接他。這個比喻邀請我們面對自己的過錯，也認識父親等待失而復得的喜樂。",
+    "media_urls": [],
+    "reflection": "我有什麼需要向天父承認，並願意回轉的事？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=luk&ch=15#v11",
+    "devotional_date": "2026-11-08",
+    "scripture_reference": "路加福音 15:11–24"
+  },
+  {
+    "id": 4,
+    "title": "常在基督裡",
+    "prayer": "主耶穌，求祢教我常在祢裡面，記住祢的話。願我的生命結出能榮耀天父的果子。阿們。",
+    "ranges": [
+      {
+        "book": "JHN",
+        "end_verse": 8,
+        "end_chapter": 15,
+        "start_verse": 1,
+        "start_chapter": 15
+      }
+    ],
+    "summary": "耶穌以葡萄樹與枝子說明門徒與祂的關係。枝子連於樹才能結果子；我們也需要持續親近主，讓祂的話留在心裡，並在生活中回應祂。",
+    "media_urls": [],
+    "reflection": "今天我可以如何為聆聽主的話留下時間？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=jhn&ch=15#v1",
+    "devotional_date": "2026-11-09",
+    "scripture_reference": "約翰福音 15:1–8"
+  },
+  {
+    "id": 5,
+    "title": "把憂慮交給天父",
+    "prayer": "天父，祢知道我的需要。求祢引導我先尋求祢的國和義，賜我智慧處理今天的事。阿們。",
+    "ranges": [
+      {
+        "book": "MAT",
+        "end_verse": 34,
+        "end_chapter": 6,
+        "start_verse": 25,
+        "start_chapter": 6
+      }
+    ],
+    "summary": "耶穌指向飛鳥與野地的花，提醒門徒天父知道人的需要，並教導他們先求神的國和義。面對明天的憂慮，我們可以記念天父的看顧，專心面對今天。",
+    "media_urls": [],
+    "reflection": "我能將哪一項憂慮交託給天父，並採取一個合宜的行動？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=mat&ch=6#v25",
+    "devotional_date": "2026-11-10",
+    "scripture_reference": "馬太福音 6:25–34"
+  },
+  {
+    "id": 6,
+    "title": "停下來聆聽",
+    "prayer": "主耶穌，當我心裡忙亂時，求祢幫助我安靜在祢面前。讓我聽見祢的話，也有智慧回應生活中的責任。阿們。",
+    "ranges": [
+      {
+        "book": "LUK",
+        "end_verse": 42,
+        "end_chapter": 10,
+        "start_verse": 38,
+        "start_chapter": 10
+      }
+    ],
+    "summary": "馬大為許多事忙亂，馬利亞坐在耶穌腳前聽道。耶穌的回應提醒我們，在忙碌中也要珍惜親近主、聆聽祂話語的時刻。",
+    "media_urls": [],
+    "reflection": "今天我可以在哪個時刻放慢腳步，安靜閱讀經文？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=luk&ch=10#v38",
+    "devotional_date": "2026-11-11",
+    "scripture_reference": "路加福音 10:38–42"
+  },
+  {
+    "id": 7,
+    "title": "領受主所賜的平安",
+    "prayer": "主耶穌，感謝祢賜下平安。求聖靈提醒我記得祢的話，在不安中引導我信靠祢。阿們。",
+    "ranges": [
+      {
+        "book": "JHN",
+        "end_verse": 27,
+        "end_chapter": 14,
+        "start_verse": 25,
+        "start_chapter": 14
+      }
+    ],
+    "summary": "耶穌向門徒提到聖靈的教導，也應許賜下祂的平安。面對不安，我們可以記念主的話，求聖靈幫助我們明白並遵行。",
+    "media_urls": [],
+    "reflection": "今天我需要把哪一份不安帶到主面前？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=jhn&ch=14#v25",
+    "devotional_date": "2026-11-12",
+    "scripture_reference": "約翰福音 14:25–27"
+  },
+  {
+    "id": 8,
+    "title": "到主面前得安息",
+    "prayer": "主耶穌，我帶著疲憊來到祢面前。求祢教我學習祢的柔和謙卑，在祢裡面得著安息。阿們。",
+    "ranges": [
+      {
+        "book": "MAT",
+        "end_verse": 30,
+        "end_chapter": 11,
+        "start_verse": 28,
+        "start_chapter": 11
+      }
+    ],
+    "summary": "耶穌邀請勞苦擔重擔的人到祂面前，並教導人學習祂柔和謙卑的心。當我們感到疲憊，可以帶著真實的重擔親近祂，尋求祂所賜的安息。",
+    "media_urls": [],
+    "reflection": "今天我願意將哪個重擔帶到主面前？",
+    "source_url": "https://bible.b827262.org/site/chapter.html?book=mat&ch=11#v28",
+    "devotional_date": "2026-11-13",
+    "scripture_reference": "馬太福音 11:28–30"
+  }
+]
