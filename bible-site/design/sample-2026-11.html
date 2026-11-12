@@ -133,6 +133,29 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .dev p { margin: 0; font-size: 1.08rem; }
 .dev .pray { font-family: var(--display); font-size: 1.2rem; line-height: 1.9; padding: 20px 22px; border-radius: var(--r-md); background: var(--river-soft); }
 
+/* 微互動：每個操作都有回饋。三種狀態都用「圖示＋文字＋形狀」表達，不只靠顏色；訊息放在 role=status 的區域，不必取得焦點也讀得到。 */
+.pill:active, .tile:active { transform: scale(.96); }
+.pill[aria-busy="true"] { cursor: progress; }
+.spin { width: 1em; height: 1em; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.status { display: flex; align-items: center; gap: 8px; margin: 0; min-height: 1.7em; font-size: .95rem; color: var(--muted); flex-basis: 100%; }
+.status::before { flex: none; width: 1.5em; height: 1.5em; display: grid; place-items: center; border-radius: 50%; font-size: .8rem; font-weight: 700; }
+.status[data-state="busy"]::before { content: ""; border: 2px solid currentColor; border-right-color: transparent; width: 1.1em; height: 1.1em; animation: spin .7s linear infinite; }
+.status[data-state="ok"] { color: var(--river); font-weight: 600; }
+.status[data-state="ok"]::before { content: "✓"; background: var(--river); color: var(--surface); }
+.status[data-state="fix"] { color: var(--ink); font-weight: 600; }
+.status[data-state="fix"]::before { content: "!"; background: var(--ink); color: var(--paper); border-radius: 4px; }
+.find input[aria-invalid="true"] { border: 2px dashed var(--ink); }
+.pill[aria-pressed="true"].keep { background: var(--river); color: var(--surface); border-color: transparent; animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+.toast { position: fixed; left: 50%; bottom: 92px; transform: translate(-50%, 12px); z-index: 11; max-width: calc(100vw - 32px); padding: 10px 18px; border-radius: 999px;
+  background: var(--ink); color: var(--paper); font-size: .95rem; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.states { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+.states div { display: grid; gap: 8px; padding: 18px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--paper); }
+.states h4 { margin: 0; font-size: 1rem; }
+.states small { color: var(--muted); }
+
 /* 底部浮動導覽列 */
 .dock { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 10; display: flex; gap: 4px; padding: 6px;
   border-radius: 999px; border: 1px solid var(--line); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow); max-width: calc(100vw - 24px); }
@@ -143,8 +166,9 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
   .book { grid-column: span 6; min-height: 140px; } .daily, .draw { grid-column: span 12; }
   .hero { min-height: 420px; }
 }
+@media (max-width: 640px) { .states { grid-template-columns: 1fr; } }
 @media (max-width: 380px) { .dock a { min-width: 48px; padding: 0 9px; font-size: .86rem; } .book .glyph { font-size: 7.5rem; } }
-@media (prefers-reduced-motion: reduce) { .hero img { animation: none; } .tile, .pill, .fan i { transition: none; } html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .hero img { animation: none; } .tile, .pill, .fan i, .toast { transition: none; } .spin, .status::before, .pill.keep { animation: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
@@ -161,7 +185,7 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
       <blockquote id="hero-verse">正在載入經文…</blockquote>
       <div class="hero-actions">
         <a class="pill solid" href="#reader">閱讀本章</a>
-        <button class="pill" type="button">播放音樂</button>
+        <button class="pill" id="music" type="button" aria-pressed="false">播放音樂</button>
       </div>
     </div>
   </section>
@@ -185,8 +209,9 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
     <div class="tile find">
       <form id="find-form" role="search">
         <label for="find-q" class="eyebrow" style="flex-basis:100%">搜尋四福音</label>
-        <input id="find-q" type="search" placeholder="輸入想找的字句，例如：平安">
-        <button class="pill solid" type="submit">搜尋</button>
+        <input id="find-q" type="search" placeholder="輸入想找的字句，例如：重生" aria-describedby="find-status">
+        <button class="pill solid" id="find-go" type="submit">搜尋</button>
+        <p class="status" id="find-status" role="status" aria-live="polite">樣本只搜尋下方閱讀頁樣本的 8 節經文。</p>
       </form>
     </div>
   </nav>
@@ -209,6 +234,18 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
     </div>
   </article>
 </div>
+
+<div class="wrap" style="padding-top:0;margin-top:-92px">
+  <div class="part" id="feedback"><p class="eyebrow">樣本四</p><h2>操作回饋的三種狀態</h2></div>
+  <div class="panel">
+    <div class="states">
+      <div><p class="status" data-state="busy">搜尋中…</p><h4>處理中</h4><small>轉圈圖示加上「…中」的文字；按鈕暫時不能重複按。</small></div>
+      <div><p class="status" data-state="ok">找到 3 節</p><h4>已完成</h4><small>打勾圖示加上結果文字，說明完成了什麼。</small></div>
+      <div><p class="status" data-state="fix">請先輸入要找的字句</p><h4>待修正</h4><small>方形驚嘆號加上「怎麼修」的文字；欄位改成虛線粗框。</small></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <nav class="dock" aria-label="主要導覽">
   <a href="#home" aria-current="page">首頁</a><a href="#reader">目錄</a><a href="#devotional">禱讀</a><a href="#home">抽卡</a><a href="#find-q">搜尋</a>
@@ -248,7 +285,17 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
   $("r-verses").replaceChildren(...D.reader.verses.map((x, i) => {
     const li = document.createElement("li"); const b = document.createElement("b"); b.textContent = x.v;
     const t = document.createElement("span"); t.textContent = x.text; li.append(b, t);
-    if (i === 2) { li.className = "on"; const c = document.createElement("div"); c.className = "chips"; const p = document.createElement("a"); p.className = "pill"; p.href = "#home"; p.textContent = "做成經文卡片"; c.append(p); li.append(c); }
+    if (i === 2) {
+      li.className = "on"; const c = document.createElement("div"); c.className = "chips";
+      const p = document.createElement("a"); p.className = "pill"; p.href = "#home"; p.textContent = "做成經文卡片";
+      const k = document.createElement("button"); k.type = "button"; k.className = "pill keep"; k.setAttribute("aria-pressed", "false"); k.textContent = "收藏這一節";
+      k.addEventListener("click", () => {
+        const on = k.getAttribute("aria-pressed") !== "true";
+        k.setAttribute("aria-pressed", String(on)); k.textContent = on ? "✓ 已收藏" : "收藏這一節";
+        toast(on ? `已收藏${D.reader.book} ${D.reader.ch}:${x.v}` : `已取消收藏${D.reader.book} ${D.reader.ch}:${x.v}`);
+      });
+      c.append(p, k); li.append(c);
+    }
     return li;
   }));
   const v = D.devotional;
@@ -264,7 +311,36 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
     const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     root.dataset.theme = dark ? "light" : "dark"; btn.setAttribute("aria-pressed", String(!dark));
   });
-  $("find-form").addEventListener("submit", (e) => e.preventDefault());
+  // 微互動：處理中 → 已完成／待修正，都有文字；訊息寫進 role=status 的區域。
+  let toastTimer;
+  function toast(text) { const t = $("toast"); t.textContent = text; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
+  function busy(button, label) {
+    button.dataset.label = button.dataset.label || button.textContent; button.setAttribute("aria-busy", "true"); button.disabled = true;
+    const s = document.createElement("span"); s.className = "spin"; s.setAttribute("aria-hidden", "true"); button.replaceChildren(s, label);
+  }
+  function settle(button, label) { button.removeAttribute("aria-busy"); button.disabled = false; button.textContent = label || button.dataset.label; }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  const music = $("music");
+  music.addEventListener("click", async () => {
+    if (music.getAttribute("aria-pressed") === "true") { music.setAttribute("aria-pressed", "false"); music.textContent = "播放音樂"; toast("音樂已暫停"); return; }
+    busy(music, "載入音樂中…"); await wait(900);
+    settle(music, "暫停音樂"); music.setAttribute("aria-pressed", "true"); toast("音樂播放中（樣本不會真的出聲）");
+  });
+
+  const q = $("find-q"), st = $("find-status"), go = $("find-go");
+  function say(state, text) { st.dataset.state = state; st.textContent = text; }
+  q.addEventListener("input", () => { if (q.getAttribute("aria-invalid")) { q.removeAttribute("aria-invalid"); st.removeAttribute("data-state"); st.textContent = "樣本只搜尋下方閱讀頁樣本的 8 節經文。"; } });
+  $("find-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const word = q.value.trim();
+    if (!word) { q.setAttribute("aria-invalid", "true"); say("fix", "請先輸入要找的字句"); q.focus(); return; }
+    q.removeAttribute("aria-invalid"); busy(go, "搜尋中…"); say("busy", `正在搜尋「${word}」…`); await wait(700);
+    const hits = D.reader.verses.filter((x) => x.text.includes(word));
+    settle(go);
+    if (hits.length) say("ok", `找到 ${hits.length} 節：${D.reader.book} ${D.reader.ch}:${hits.map((x) => x.v).join("、")}`);
+    else { q.setAttribute("aria-invalid", "true"); say("fix", `找不到「${word}」，請換個字句再試一次`); }
+  });
 }());
 </script>
 </body>
