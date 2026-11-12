@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四福音新外觀樣本</title>
+<!-- 設計樣本（2026-11）。不是正式頁面：給各 agent 改版時對照用。
+     經文與禱讀內容不寫在這個檔案裡：從 ../data/*.json 讀取（發佈成預覽連結時由建置腳本把同一份 JSON 注入 window.SAMPLE_DATA）。
+     不載入外部資源；字體只用系統字。 -->
+<style>
+/* 版面想法：照片主視覺＋大號明體經文，下面是大小不一的「便當格」入口，底部一條浮動的玻璃導覽列。 */
+:root {
+  --paper: #f3f6f2;      /* 帶一點河水綠的霧白 */
+  --surface: #ffffff;
+  --ink: #10231f;        /* 深河綠近黑 */
+  --muted: #586a64;
+  --river: #0e6b5b;      /* 約但河的翠綠：主色 */
+  --river-soft: #dcefe9;
+  --lamp: #c98a1b;       /* 雲隙的金光：強調 */
+  --line: rgba(16, 35, 31, .12);
+  --glass: rgba(255, 255, 255, .72);
+  --shadow: 0 1px 2px rgba(16, 35, 31, .06), 0 12px 32px -12px rgba(16, 35, 31, .22);
+  --mat: #c98a1b; --mrk: #d9583b; --luk: #0e6b5b; --jhn: #3d55c4;
+  --display: "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
+  --body: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --r-lg: 28px; --r-md: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0a1412; --surface: #121f1c; --ink: #e9f1ee; --muted: #94a8a1;
+    --river: #55d3b7; --river-soft: #16302a; --lamp: #f0bf5c; --line: rgba(233, 241, 238, .14);
+    --glass: rgba(18, 31, 28, .72);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 36px -14px rgba(0, 0, 0, .7);
+    --mat: #f0bf5c; --mrk: #ff8a6b; --luk: #55d3b7; --jhn: #8fa2ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0a1412; --surface: #121f1c; --ink: #e9f1ee; --muted: #94a8a1;
+  --river: #55d3b7; --river-soft: #16302a; --lamp: #f0bf5c; --line: rgba(233, 241, 238, .14);
+  --glass: rgba(18, 31, 28, .72);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 36px -14px rgba(0, 0, 0, .7);
+  --mat: #f0bf5c; --mrk: #ff8a6b; --luk: #55d3b7; --jhn: #8fa2ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--body); line-height: 1.7; overflow-x: hidden;
+  background:
+    radial-gradient(60rem 30rem at 110% -10%, color-mix(in srgb, var(--lamp) 22%, transparent), transparent 60%),
+    radial-gradient(50rem 28rem at -20% 30%, color-mix(in srgb, var(--river) 18%, transparent), transparent 60%),
+    var(--paper);
+  background-attachment: fixed;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--lamp); outline-offset: 3px; border-radius: 8px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 16px 16px 120px; display: grid; gap: 16px; }
+.eyebrow { font-size: .8rem; letter-spacing: .14em; color: var(--muted); margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.25; margin: 0; text-wrap: balance; }
+
+/* 頂列 */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 0; }
+.brand { display: flex; align-items: baseline; gap: 10px; font-family: var(--display); font-size: 1.35rem; font-weight: 700; }
+.brand small { font-family: var(--body); font-size: .8rem; font-weight: 400; color: var(--muted); letter-spacing: .1em; }
+.pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  color: var(--ink); font: inherit; font-size: .95rem; text-decoration: none; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.pill:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.pill.solid { background: var(--ink); color: var(--paper); border-color: transparent; }
+
+/* 主視覺 */
+.hero { position: relative; border-radius: var(--r-lg); overflow: hidden; min-height: 460px; display: grid; align-items: end; box-shadow: var(--shadow); isolation: isolate; }
+.hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; animation: drift 28s ease-in-out infinite alternate; }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(6, 20, 17, .05) 20%, rgba(6, 20, 17, .55) 62%, rgba(6, 20, 17, .9) 100%); }
+@keyframes drift { from { transform: scale(1.02); } to { transform: scale(1.1) translateY(-1.5%); } }
+.hero-body { padding: clamp(20px, 4vw, 44px); color: #f4f8f6; display: grid; gap: 14px; max-width: 46rem; }
+.hero .eyebrow { color: #f6d996; font-size: .9rem; text-shadow: 0 1px 8px rgba(0, 0, 0, .7); }
+.hero blockquote { margin: 0; font-family: var(--display); font-size: clamp(1.5rem, 1.1rem + 2.2vw, 2.6rem); line-height: 1.5; font-weight: 700; text-wrap: pretty; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero .pill { background: rgba(255, 255, 255, .16); color: #fff; border-color: rgba(255, 255, 255, .28); }
+.hero .pill.solid { background: #f4f8f6; color: #10231f; }
+
+/* 便當格 */
+.bento { display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+.tile { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); padding: 22px;
+  text-decoration: none; display: grid; gap: 6px; align-content: end; min-height: 170px; transition: transform .25s, box-shadow .25s; }
+a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.book { grid-column: span 3; color: #fff; border: 0; background: linear-gradient(150deg, color-mix(in srgb, var(--hue) 88%, #000), color-mix(in srgb, var(--hue) 62%, #06231d)); }
+.book .glyph { position: absolute; right: -.12em; top: -.32em; font-family: var(--display); font-size: 9.5rem; font-weight: 900; line-height: 1; opacity: .2; }
+.book h3 { font-size: 1.5rem; }
+.book span { font-size: .9rem; opacity: .88; font-variant-numeric: tabular-nums; }
+.daily { grid-column: span 7; align-content: space-between; min-height: 230px; }
+.daily h3 { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem); }
+.daily .date { display: inline-flex; align-items: baseline; gap: 10px; }
+.daily .day { font-family: var(--display); font-size: 3.2rem; font-weight: 900; line-height: 1; color: var(--river); font-variant-numeric: tabular-nums; }
+.go { color: var(--river); font-weight: 600; }
+.draw { grid-column: span 5; min-height: 230px; background: linear-gradient(160deg, var(--river-soft), var(--surface)); }
+.fan { position: absolute; right: 18px; top: 18px; width: 150px; height: 150px; }
+.fan i { position: absolute; right: 26px; top: 6px; width: 86px; height: 120px; border-radius: 10px; background: linear-gradient(160deg, #1b3a33, #0b1f1b);
+  border: 3px solid #d8a94a; box-shadow: 0 8px 18px rgba(0, 0, 0, .25); transform-origin: 50% 110%; transition: transform .35s; }
+.fan i:nth-child(1) { transform: rotate(-18deg); } .fan i:nth-child(2) { transform: rotate(-4deg); } .fan i:nth-child(3) { transform: rotate(11deg); }
+.draw:hover .fan i:nth-child(1) { transform: rotate(-28deg); } .draw:hover .fan i:nth-child(3) { transform: rotate(22deg); }
+.draw h3 { font-size: 1.6rem; max-width: 9em; }
+.find { grid-column: span 12; min-height: 0; align-content: center; }
+.find form { display: flex; gap: 10px; flex-wrap: wrap; }
+.find input { flex: 1 1 14rem; min-height: 52px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 22px; font: inherit; font-size: 1.05rem; }
+
+/* 樣本分區標題 */
+.part { margin-top: 28px; display: grid; gap: 4px; padding: 0 4px; }
+.part h2 { font-size: 1.6rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: clamp(18px, 4vw, 40px); }
+
+/* 閱讀頁 */
+.reader { display: grid; gap: 18px; max-width: 44rem; margin: 0 auto; }
+.chap { display: flex; align-items: end; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.chap .num { font-family: var(--display); font-size: clamp(4.5rem, 3rem + 8vw, 7.5rem); font-weight: 900; line-height: .85; color: var(--river); font-variant-numeric: tabular-nums; }
+.chap h3 { font-size: 1.5rem; }
+.verses { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-family: var(--display); font-size: 1.2rem; line-height: 2; }
+.verses li { display: grid; grid-template-columns: 2.2em 1fr; gap: 6px; padding: 4px 10px; border-radius: 14px; }
+.verses b { font-family: var(--body); font-size: .78rem; font-weight: 600; color: var(--river); padding-top: .95em; font-variant-numeric: tabular-nums; }
+.verses li.on { background: var(--river-soft); box-shadow: inset 3px 0 0 var(--river); }
+.chips { grid-column: 2; display: flex; gap: 8px; flex-wrap: wrap; font-family: var(--body); padding-bottom: 6px; }
+.chips .pill { min-height: 44px; font-size: .9rem; }
+
+/* 禱讀 */
+.dev { display: grid; gap: 22px; max-width: 44rem; margin: 0 auto; }
+.dev h3 { font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem); }
+.dev section { display: grid; gap: 6px; }
+.dev h4 { margin: 0; font-size: .8rem; letter-spacing: .14em; color: var(--river); font-weight: 600; }
+.dev p { margin: 0; font-size: 1.08rem; }
+.dev .pray { font-family: var(--display); font-size: 1.2rem; line-height: 1.9; padding: 20px 22px; border-radius: var(--r-md); background: var(--river-soft); }
+
+/* 底部浮動導覽列 */
+.dock { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 10; display: flex; gap: 4px; padding: 6px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow); max-width: calc(100vw - 24px); }
+.dock a { min-width: 56px; min-height: 48px; padding: 0 14px; display: grid; place-items: center; border-radius: 999px; text-decoration: none; font-size: .92rem; white-space: nowrap; }
+.dock a[aria-current="page"] { background: var(--ink); color: var(--paper); font-weight: 600; }
+
+@media (max-width: 820px) {
+  .book { grid-column: span 6; min-height: 140px; } .daily, .draw { grid-column: span 12; }
+  .hero { min-height: 420px; }
+}
+@media (max-width: 380px) { .dock a { min-width: 48px; padding: 0 9px; font-size: .86rem; } .book .glyph { font-size: 7.5rem; } }
+@media (prefers-reduced-motion: reduce) { .hero img { animation: none; } .tile, .pill, .fan i { transition: none; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="home">
+  <header class="top">
+    <div class="brand">四福音 <small>和合本</small></div>
+    <button class="pill" id="theme" type="button" aria-pressed="false">切換深淺色</button>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-ref">
+    <img id="hero-img" src="../site/assets/jordan.jpg" alt="一位男子站在約但河水中，仰望從雲層灑下的光">
+    <div class="hero-body">
+      <p class="eyebrow" id="hero-ref">今日經文</p>
+      <blockquote id="hero-verse">正在載入經文…</blockquote>
+      <div class="hero-actions">
+        <a class="pill solid" href="#reader">閱讀本章</a>
+        <button class="pill" type="button">播放音樂</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="bento" aria-label="入口">
+    <div id="books" style="display:contents"></div>
+    <a class="tile daily" href="#devotional">
+      <div class="date"><span class="day" id="d-day">--</span><span class="eyebrow" id="d-month">每日禱讀</span></div>
+      <div style="display:grid;gap:6px">
+        <h3 id="d-title">今天的禱讀</h3>
+        <span class="eyebrow" id="d-ref"></span>
+        <span class="go">開始今天的禱讀 →</span>
+      </div>
+    </a>
+    <a class="tile draw" href="#home">
+      <div class="fan" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">抽經文卡</p>
+      <h3>抽一張卡，領受今天的祝福</h3>
+      <span class="go">37 張收藏卡 →</span>
+    </a>
+    <div class="tile find">
+      <form id="find-form" role="search">
+        <label for="find-q" class="eyebrow" style="flex-basis:100%">搜尋四福音</label>
+        <input id="find-q" type="search" placeholder="輸入想找的字句，例如：平安">
+        <button class="pill solid" type="submit">搜尋</button>
+      </form>
+    </div>
+  </nav>
+
+  <div class="part" id="reader"><p class="eyebrow">樣本二</p><h2>閱讀頁</h2></div>
+  <article class="panel">
+    <div class="reader">
+      <div class="chap"><span class="num" id="r-num">3</span><div><p class="eyebrow">共 <span id="r-count">–</span> 節</p><h3 id="r-book">約翰福音</h3></div></div>
+      <ol class="verses" id="r-verses"></ol>
+    </div>
+  </article>
+
+  <div class="part" id="devotional"><p class="eyebrow">樣本三</p><h2>每日禱讀</h2></div>
+  <article class="panel">
+    <div class="dev">
+      <div style="display:grid;gap:8px"><p class="eyebrow" id="v-meta"></p><h3 id="v-title">今天的禱讀</h3></div>
+      <section><h4>默想</h4><p id="v-summary"></p></section>
+      <section><h4>反思</h4><p id="v-reflection"></p></section>
+      <section><h4>禱告</h4><p class="pray" id="v-prayer"></p></section>
+    </div>
+  </article>
+</div>
+
+<nav class="dock" aria-label="主要導覽">
+  <a href="#home" aria-current="page">首頁</a><a href="#reader">目錄</a><a href="#devotional">禱讀</a><a href="#home">抽卡</a><a href="#find-q">搜尋</a>
+</nav>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const BOOKS = [["mat", "太"], ["mrk", "可"], ["luk", "路"], ["jhn", "約"]];
+  async function fromJson() {
+    const get = (f) => fetch("../data/" + f).then((r) => r.json());
+    const [home, dev, ...books] = await Promise.all([get("home.json"), get("devotional.json"), ...BOOKS.map((b) => get(b[0] + ".json"))]);
+    const by = Object.fromEntries(books.map((b) => [b.key, b]));
+    const verse = (k, c, v) => by[k].chapters.find((x) => x.ch === c).verses.find((x) => x.v === v).text;
+    const ch = by.jhn.chapters.find((x) => x.ch === 3);
+    return {
+      hero: { book: by[home.book].book, ch: home.ch, v: home.v, text: verse(home.book, home.ch, home.v) },
+      books: books.map((b) => ({ key: b.key, name: b.book, chapters: b.chapters.length, verses: b.chapters.reduce((n, c) => n + c.verses.length, 0) })),
+      reader: { book: by.jhn.book, ch: 3, count: ch.verses.length, verses: ch.verses.slice(0, 8).map((x) => ({ v: x.v, text: x.text })) },
+      devotional: dev[dev.length - 1] || null
+    };
+  }
+  let D;
+  try { D = window.SAMPLE_DATA || await fromJson(); } catch (e) { $("hero-verse").textContent = "樣本資料載入失敗，請從 bible-site 目錄用本機伺服器開啟。"; return; }
+
+  $("hero-ref").textContent = `今日經文 · ${D.hero.book} ${D.hero.ch}:${D.hero.v}`;
+  $("hero-verse").textContent = D.hero.text;
+  $("books").replaceChildren(...D.books.map((b, i) => {
+    const a = document.createElement("a");
+    a.className = "tile book"; a.href = "#reader"; a.style.setProperty("--hue", `var(--${b.key})`);
+    const g = document.createElement("span"); g.className = "glyph"; g.setAttribute("aria-hidden", "true"); g.textContent = BOOKS[i][1];
+    const h = document.createElement("h3"); h.textContent = b.name;
+    const s = document.createElement("span"); s.textContent = `${b.chapters} 章 · ${b.verses} 節`;
+    a.append(g, h, s); return a;
+  }));
+  $("r-book").textContent = D.reader.book; $("r-num").textContent = D.reader.ch; $("r-count").textContent = D.reader.count;
+  $("r-verses").replaceChildren(...D.reader.verses.map((x, i) => {
+    const li = document.createElement("li"); const b = document.createElement("b"); b.textContent = x.v;
+    const t = document.createElement("span"); t.textContent = x.text; li.append(b, t);
+    if (i === 2) { li.className = "on"; const c = document.createElement("div"); c.className = "chips"; const p = document.createElement("a"); p.className = "pill"; p.href = "#home"; p.textContent = "做成經文卡片"; c.append(p); li.append(c); }
+    return li;
+  }));
+  const v = D.devotional;
+  if (v) {
+    const [y, m, d] = v.devotional_date.split("-");
+    $("d-day").textContent = d; $("d-month").textContent = `${y} 年 ${Number(m)} 月 · 每日禱讀`;
+    $("d-title").textContent = v.title; $("d-ref").textContent = v.scripture_reference;
+    $("v-meta").textContent = `${y} 年 ${Number(m)} 月 ${Number(d)} 日 · ${v.scripture_reference}`;
+    $("v-title").textContent = v.title; $("v-summary").textContent = v.summary; $("v-reflection").textContent = v.reflection; $("v-prayer").textContent = v.prayer;
+  }
+  const root = document.documentElement, btn = $("theme");
+  btn.addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark"; btn.setAttribute("aria-pressed", String(!dark));
+  });
+  $("find-form").addEventListener("submit", (e) => e.preventDefault());
+}());
+</script>
+</body>
+</html>
