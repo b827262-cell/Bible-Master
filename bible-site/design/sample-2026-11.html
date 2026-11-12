@@ -98,9 +98,10 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .daily .day { font-family: var(--display); font-size: 3.2rem; font-weight: 900; line-height: 1; color: var(--river); font-variant-numeric: tabular-nums; }
 .go { color: var(--river); font-weight: 600; }
 .draw { grid-column: span 5; min-height: 230px; background: linear-gradient(160deg, var(--river-soft), var(--surface)); }
-.fan { position: absolute; right: 18px; top: 18px; width: 150px; height: 150px; }
-.fan i { position: absolute; right: 26px; top: 6px; width: 86px; height: 120px; border-radius: 10px; background: linear-gradient(160deg, #1b3a33, #0b1f1b);
-  border: 3px solid #d8a94a; box-shadow: 0 8px 18px rgba(0, 0, 0, .25); transform-origin: 50% 110%; transition: transform .35s; }
+.fan { position: absolute; right: 22px; top: 20px; width: 170px; height: 160px; }
+/* 卡面是生成的金框飛鷹圖（金框畫在圖裡，CSS 不再加框） */
+.fan i { position: absolute; right: 30px; top: 0; width: 99px; height: 132px; border-radius: 8px; background: #0b1f1b url("eagle-A.jpg") center / cover;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .3); transform-origin: 50% 110%; transition: transform .35s; }
 .fan i:nth-child(1) { transform: rotate(-18deg); } .fan i:nth-child(2) { transform: rotate(-4deg); } .fan i:nth-child(3) { transform: rotate(11deg); }
 .draw:hover .fan i:nth-child(1) { transform: rotate(-28deg); } .draw:hover .fan i:nth-child(3) { transform: rotate(22deg); }
 .draw h3 { font-size: 1.6rem; max-width: 9em; }
@@ -151,6 +152,10 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .toast { position: fixed; left: 50%; bottom: 92px; transform: translate(-50%, 12px); z-index: 11; max-width: calc(100vw - 32px); padding: 10px 18px; border-radius: 999px;
   background: var(--ink); color: var(--paper); font-size: .95rem; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.pick { display: grid; gap: 20px; grid-template-columns: repeat(2, minmax(0, 300px)); justify-content: center; }
+.pick figure { margin: 0; display: grid; gap: 10px; }
+.pick img { width: 100%; height: auto; border-radius: 12px; box-shadow: var(--shadow); display: block; }
+.pick figcaption { display: grid; gap: 2px; } .pick b { font-family: var(--display); font-size: 1.15rem; } .pick small { color: var(--muted); }
 .states { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
 .states div { display: grid; gap: 8px; padding: 18px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--paper); }
 .states h4 { margin: 0; font-size: 1rem; }
@@ -242,6 +247,17 @@ a.tile:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
       <div><p class="status" data-state="busy">搜尋中…</p><h4>處理中</h4><small>轉圈圖示加上「…中」的文字；按鈕暫時不能重複按。</small></div>
       <div><p class="status" data-state="ok">找到 3 節</p><h4>已完成</h4><small>打勾圖示加上結果文字，說明完成了什麼。</small></div>
       <div><p class="status" data-state="fix">請先輸入要找的字句</p><h4>待修正</h4><small>方形驚嘆號加上「怎麼修」的文字；欄位改成虛線粗框。</small></div>
+    </div>
+  </div>
+</div>
+<div class="wrap" style="padding-top:0;margin-top:-92px">
+  <div class="part" id="cards"><p class="eyebrow">樣本五</p><h2>經文卡卡面：金色飛鷹（兩張候選）</h2></div>
+  <div class="panel">
+    <div class="pick">
+      <figure><img src="eagle-A.jpg" alt="候選 A：深綠底色上的金色飛鷹，雙翅展開，背後有放射光芒與雲紋，四周是燙金框" width="600" height="800">
+        <figcaption><b>A　卡背徽章風</b><small>深河綠底、燙金飛鷹。上方入口方塊的三張卡片目前用這一張。</small></figcaption></figure>
+      <figure><img src="eagle-B.jpg" alt="候選 B：晨光雲海上展翅飛翔的鷹，水彩質感，四周是燙金框" width="600" height="800">
+        <figcaption><b>B　水彩風</b><small>晨光雲海上的飛鷹，和現有四張收藏卡同一種畫法。</small></figcaption></figure>
     </div>
   </div>
 </div>
