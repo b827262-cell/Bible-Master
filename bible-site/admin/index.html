@@ -68,6 +68,56 @@
     #blessing-art-settings .art-preview[hidden] {
       display: none;
     }
+    #blessing-art-settings .art-card-group > summary {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    #blessing-art-settings #blessing-art-cards summary {
+      min-height: 44px;
+      padding: 10px 0;
+    }
+    #blessing-art-settings .art-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: var(--bg-primary);
+    }
+    #blessing-art-settings .art-card-ref {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    #blessing-art-settings .art-card-ref strong {
+      color: var(--text-main);
+    }
+    #zone-music-settings .zone-list {
+      margin-bottom: 14px;
+    }
+    #zone-music-settings select,
+    #blessing-art-settings select {
+      font: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: 100%;
+      min-height: 44px;
+      padding: 8px 10px;
+      background: var(--bg-primary);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    #zone-music-settings select:focus,
+    #blessing-art-settings select:focus {
+      outline: 2px solid var(--accent-light);
+      outline-offset: 2px;
+    }
+    #zone-music-settings audio {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -267,10 +317,10 @@
     <section class="card" id="zone-music-settings">
       <div class="card-header">
         <h2>🎵 前台音樂</h2>
-        <span style="font-size:0.8rem; color:var(--text-muted);">四區共用的背景音樂</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);">四區共用背景音樂＋各區獨立選擇</span>
       </div>
 
-      <p class="home-note">目錄、搜尋、經文卡片、抽經文卡四個頁面共用這一首；首頁音樂在上面的『主頁設定』另外設定。</p>
+      <p class="home-note">目錄、搜尋、經文卡片、抽經文卡四個頁面預設共用這一首，各區可在下方另外選一首（留空即沿用共用音樂）；首頁音樂在上面的『主頁設定』另外設定。</p>
 
       <div class="home-grid">
         <div class="home-field">
@@ -286,12 +336,48 @@
 
       <audio id="zone-music-preview" controls preload="none"></audio>
 
+      <p class="home-note"><strong>四區獨立音樂</strong>：目錄、搜尋、經文卡片、抽經文卡可各選一首；下拉選單留空（維持「沿用共用音樂」）即使用上方的共用曲。各區可單獨試聽。</p>
+
+      <div class="home-grid zone-list">
+        <div class="home-field">
+          <label for="zone-index-select">目錄（index.html）</label>
+          <select id="zone-index-select">
+            <option value="">沿用共用音樂</option>
+          </select>
+          <audio id="zone-index-preview" controls preload="none"></audio>
+        </div>
+
+        <div class="home-field">
+          <label for="zone-search-select">搜尋（search.html）</label>
+          <select id="zone-search-select">
+            <option value="">沿用共用音樂</option>
+          </select>
+          <audio id="zone-search-preview" controls preload="none"></audio>
+        </div>
+
+        <div class="home-field">
+          <label for="zone-card-select">經文卡片（card.html）</label>
+          <select id="zone-card-select">
+            <option value="">沿用共用音樂</option>
+          </select>
+          <audio id="zone-card-preview" controls preload="none"></audio>
+        </div>
+
+        <div class="home-field">
+          <label for="zone-blessing-select">抽經文卡（blessing.html）</label>
+          <select id="zone-blessing-select">
+            <option value="">沿用共用音樂</option>
+          </select>
+          <audio id="zone-blessing-preview" controls preload="none"></audio>
+        </div>
+      </div>
+
       <div class="home-actions-row">
         <button type="button" class="btn btn-primary" id="zone-music-save">儲存</button>
         <button type="button" class="btn btn-outline" id="zone-music-reset">還原預設</button>
       </div>
 
-      <p class="home-note">儲存後要執行『發佈』，公開網站才會換歌。</p>
+      <p class="home-note">『儲存』會一次存下共用音樂與四區的選擇（留空的區塊沿用共用音樂）；儲存後要執行『發佈』，公開網站才會換歌。</p>
       <p class="home-note">上傳新素材後，請在 ASSETS-LICENSE.md 補一行來源與授權。</p>
 
       <p class="home-status" id="zone-music-status" role="status" aria-live="polite"></p>
@@ -415,6 +501,844 @@
         </div>
       </div>
 
+      <details id="blessing-art-cards">
+        <summary>單張卡片（37 張逐張設定；沒有單獨設圖的卡片沿用所屬主題圖）</summary>
+        <p class="home-note">以下依主題分組列出全部 37 張卡，每張只標示卡片 ID 與出處（書卷 章:節），不顯示經文正文。每張卡可單獨上傳圖片、填圖片說明（alt，120 字以內）與版次（20 字以內）；沒有設定圖片的卡片自動使用上方該主題的圖，按『清除（回主題圖）』後也回到主題圖。每張卡改完請按該卡的『上傳／更新』，再執行『發佈』才會更新線上網站；最下面的『全部清除』會一次清掉四個主題與這 37 張卡的圖片設定（已上傳的檔案仍留在素材庫）。</p>
+        <details class="art-card-group">
+          <summary>天父賜福你的工作（work）－ 共 20 張</summary>
+          <div class="art-card-list">
+            <div class="art-card" data-art-card="work-01">
+              <p class="art-card-ref"><strong>work-01</strong> · 馬太福音 25:21 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-01-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-01-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-01-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-01-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-01 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-01-edition">版次</label>
+                  <input type="text" id="art-card-work-01-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-01-preview" alt="work-01 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-01-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-01-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-02">
+              <p class="art-card-ref"><strong>work-02</strong> · 馬太福音 24:46 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-02-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-02-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-02-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-02-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-02 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-02-edition">版次</label>
+                  <input type="text" id="art-card-work-02-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-02-preview" alt="work-02 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-02-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-02-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-03">
+              <p class="art-card-ref"><strong>work-03</strong> · 馬太福音 9:37 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-03-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-03-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-03-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-03-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-03 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-03-edition">版次</label>
+                  <input type="text" id="art-card-work-03-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-03-preview" alt="work-03 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-03-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-03-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-04">
+              <p class="art-card-ref"><strong>work-04</strong> · 馬太福音 9:38 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-04-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-04-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-04-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-04-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-04 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-04-edition">版次</label>
+                  <input type="text" id="art-card-work-04-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-04-preview" alt="work-04 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-04-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-04-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-05">
+              <p class="art-card-ref"><strong>work-05</strong> · 馬太福音 6:26 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-05-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-05-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-05-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-05-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-05 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-05-edition">版次</label>
+                  <input type="text" id="art-card-work-05-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-05-preview" alt="work-05 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-05-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-05-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-06">
+              <p class="art-card-ref"><strong>work-06</strong> · 馬太福音 6:33 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-06-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-06-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-06-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-06-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-06 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-06-edition">版次</label>
+                  <input type="text" id="art-card-work-06-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-06-preview" alt="work-06 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-06-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-06-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-08">
+              <p class="art-card-ref"><strong>work-08</strong> · 馬太福音 5:16 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-08-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-08-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-08-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-08-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-08 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-08-edition">版次</label>
+                  <input type="text" id="art-card-work-08-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-08-preview" alt="work-08 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-08-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-08-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-09">
+              <p class="art-card-ref"><strong>work-09</strong> · 路加福音 10:7 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-09-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-09-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-09-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-09-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-09 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-09-edition">版次</label>
+                  <input type="text" id="art-card-work-09-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-09-preview" alt="work-09 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-09-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-09-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-10">
+              <p class="art-card-ref"><strong>work-10</strong> · 路加福音 16:10 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-10-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-10-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-10-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-10-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-10 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-10-edition">版次</label>
+                  <input type="text" id="art-card-work-10-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-10-preview" alt="work-10 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-10-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-10-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-11">
+              <p class="art-card-ref"><strong>work-11</strong> · 路加福音 19:17 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-11-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-11-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-11-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-11-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-11 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-11-edition">版次</label>
+                  <input type="text" id="art-card-work-11-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-11-preview" alt="work-11 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-11-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-11-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-13">
+              <p class="art-card-ref"><strong>work-13</strong> · 路加福音 5:5 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-13-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-13-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-13-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-13-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-13 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-13-edition">版次</label>
+                  <input type="text" id="art-card-work-13-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-13-preview" alt="work-13 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-13-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-13-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-14">
+              <p class="art-card-ref"><strong>work-14</strong> · 路加福音 6:38 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-14-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-14-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-14-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-14-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-14 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-14-edition">版次</label>
+                  <input type="text" id="art-card-work-14-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-14-preview" alt="work-14 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-14-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-14-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-16">
+              <p class="art-card-ref"><strong>work-16</strong> · 約翰福音 9:4 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-16-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-16-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-16-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-16-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-16 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-16-edition">版次</label>
+                  <input type="text" id="art-card-work-16-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-16-preview" alt="work-16 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-16-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-16-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-17">
+              <p class="art-card-ref"><strong>work-17</strong> · 約翰福音 15:5 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-17-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-17-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-17-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-17-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-17 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-17-edition">版次</label>
+                  <input type="text" id="art-card-work-17-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-17-preview" alt="work-17 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-17-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-17-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-18">
+              <p class="art-card-ref"><strong>work-18</strong> · 約翰福音 15:8 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-18-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-18-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-18-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-18-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-18 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-18-edition">版次</label>
+                  <input type="text" id="art-card-work-18-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-18-preview" alt="work-18 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-18-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-18-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-19">
+              <p class="art-card-ref"><strong>work-19</strong> · 約翰福音 15:16 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-19-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-19-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-19-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-19-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-19 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-19-edition">版次</label>
+                  <input type="text" id="art-card-work-19-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-19-preview" alt="work-19 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-19-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-19-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-20">
+              <p class="art-card-ref"><strong>work-20</strong> · 馬可福音 4:29 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-20-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-20-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-20-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-20-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-20 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-20-edition">版次</label>
+                  <input type="text" id="art-card-work-20-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-20-preview" alt="work-20 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-20-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-20-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-21">
+              <p class="art-card-ref"><strong>work-21</strong> · 馬太福音 10:16 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-21-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-21-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-21-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-21-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-21 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-21-edition">版次</label>
+                  <input type="text" id="art-card-work-21-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-21-preview" alt="work-21 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-21-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-21-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-22">
+              <p class="art-card-ref"><strong>work-22</strong> · 馬太福音 5:10 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-22-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-22-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-22-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-22-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-22 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-22-edition">版次</label>
+                  <input type="text" id="art-card-work-22-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-22-preview" alt="work-22 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-22-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-22-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="work-23">
+              <p class="art-card-ref"><strong>work-23</strong> · 馬可福音 10:43 · 天父賜福你的工作</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-work-23-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-work-23-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-23-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-work-23-alt" maxlength="120" placeholder="例如：天父賜福你的工作 work-23 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-work-23-edition">版次</label>
+                  <input type="text" id="art-card-work-23-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-work-23-preview" alt="work-23 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-work-23-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-work-23-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="art-card-group">
+          <summary>天父賜你平安（peace）－ 共 6 張</summary>
+          <div class="art-card-list">
+            <div class="art-card" data-art-card="peace-01">
+              <p class="art-card-ref"><strong>peace-01</strong> · 約翰福音 14:27 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-01-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-01-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-01-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-01-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-01 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-01-edition">版次</label>
+                  <input type="text" id="art-card-peace-01-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-01-preview" alt="peace-01 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-01-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-01-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="peace-02">
+              <p class="art-card-ref"><strong>peace-02</strong> · 約翰福音 16:33 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-02-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-02-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-02-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-02-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-02 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-02-edition">版次</label>
+                  <input type="text" id="art-card-peace-02-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-02-preview" alt="peace-02 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-02-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-02-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="peace-03">
+              <p class="art-card-ref"><strong>peace-03</strong> · 約翰福音 20:21 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-03-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-03-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-03-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-03-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-03 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-03-edition">版次</label>
+                  <input type="text" id="art-card-peace-03-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-03-preview" alt="peace-03 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-03-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-03-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="peace-04">
+              <p class="art-card-ref"><strong>peace-04</strong> · 路加福音 12:27 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-04-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-04-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-04-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-04-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-04 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-04-edition">版次</label>
+                  <input type="text" id="art-card-peace-04-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-04-preview" alt="peace-04 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-04-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-04-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="peace-05">
+              <p class="art-card-ref"><strong>peace-05</strong> · 約翰福音 10:10 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-05-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-05-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-05-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-05-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-05 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-05-edition">版次</label>
+                  <input type="text" id="art-card-peace-05-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-05-preview" alt="peace-05 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-05-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-05-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="peace-06">
+              <p class="art-card-ref"><strong>peace-06</strong> · 馬可福音 4:39 · 天父賜你平安</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-peace-06-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-peace-06-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-06-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-peace-06-alt" maxlength="120" placeholder="例如：天父賜你平安 peace-06 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-peace-06-edition">版次</label>
+                  <input type="text" id="art-card-peace-06-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-peace-06-preview" alt="peace-06 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-peace-06-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-peace-06-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="art-card-group">
+          <summary>天父給你安息（rest）－ 共 5 張</summary>
+          <div class="art-card-list">
+            <div class="art-card" data-art-card="rest-01">
+              <p class="art-card-ref"><strong>rest-01</strong> · 馬太福音 11:28 · 天父給你安息</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-rest-01-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-rest-01-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-01-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-rest-01-alt" maxlength="120" placeholder="例如：天父給你安息 rest-01 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-01-edition">版次</label>
+                  <input type="text" id="art-card-rest-01-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-rest-01-preview" alt="rest-01 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-rest-01-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-rest-01-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="rest-02">
+              <p class="art-card-ref"><strong>rest-02</strong> · 馬太福音 11:29 · 天父給你安息</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-rest-02-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-rest-02-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-02-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-rest-02-alt" maxlength="120" placeholder="例如：天父給你安息 rest-02 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-02-edition">版次</label>
+                  <input type="text" id="art-card-rest-02-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-rest-02-preview" alt="rest-02 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-rest-02-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-rest-02-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="rest-03">
+              <p class="art-card-ref"><strong>rest-03</strong> · 馬可福音 6:31 · 天父給你安息</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-rest-03-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-rest-03-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-03-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-rest-03-alt" maxlength="120" placeholder="例如：天父給你安息 rest-03 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-03-edition">版次</label>
+                  <input type="text" id="art-card-rest-03-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-rest-03-preview" alt="rest-03 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-rest-03-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-rest-03-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="rest-04">
+              <p class="art-card-ref"><strong>rest-04</strong> · 馬可福音 4:28 · 天父給你安息</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-rest-04-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-rest-04-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-04-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-rest-04-alt" maxlength="120" placeholder="例如：天父給你安息 rest-04 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-04-edition">版次</label>
+                  <input type="text" id="art-card-rest-04-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-rest-04-preview" alt="rest-04 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-rest-04-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-rest-04-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="rest-05">
+              <p class="art-card-ref"><strong>rest-05</strong> · 路加福音 10:41 · 天父給你安息</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-rest-05-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-rest-05-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-05-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-rest-05-alt" maxlength="120" placeholder="例如：天父給你安息 rest-05 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-rest-05-edition">版次</label>
+                  <input type="text" id="art-card-rest-05-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-rest-05-preview" alt="rest-05 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-rest-05-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-rest-05-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="art-card-group">
+          <summary>在神凡事都能（faith）－ 共 6 張</summary>
+          <div class="art-card-list">
+            <div class="art-card" data-art-card="faith-02">
+              <p class="art-card-ref"><strong>faith-02</strong> · 馬可福音 9:23 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-02-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-02-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-02-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-02-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-02 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-02-edition">版次</label>
+                  <input type="text" id="art-card-faith-02-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-02-preview" alt="faith-02 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-02-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-02-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="faith-03">
+              <p class="art-card-ref"><strong>faith-03</strong> · 馬可福音 10:27 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-03-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-03-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-03-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-03-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-03 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-03-edition">版次</label>
+                  <input type="text" id="art-card-faith-03-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-03-preview" alt="faith-03 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-03-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-03-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="faith-04">
+              <p class="art-card-ref"><strong>faith-04</strong> · 馬可福音 11:24 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-04-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-04-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-04-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-04-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-04 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-04-edition">版次</label>
+                  <input type="text" id="art-card-faith-04-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-04-preview" alt="faith-04 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-04-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-04-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="faith-05">
+              <p class="art-card-ref"><strong>faith-05</strong> · 路加福音 1:37 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-05-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-05-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-05-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-05-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-05 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-05-edition">版次</label>
+                  <input type="text" id="art-card-faith-05-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-05-preview" alt="faith-05 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-05-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-05-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="faith-06">
+              <p class="art-card-ref"><strong>faith-06</strong> · 馬太福音 7:7 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-06-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-06-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-06-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-06-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-06 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-06-edition">版次</label>
+                  <input type="text" id="art-card-faith-06-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-06-preview" alt="faith-06 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-06-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-06-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+            <div class="art-card" data-art-card="faith-07">
+              <p class="art-card-ref"><strong>faith-07</strong> · 馬太福音 17:20 · 在神凡事都能</p>
+              <div class="home-grid">
+                <div class="home-field">
+                  <label for="art-card-faith-07-file">上傳／更新這張卡的圖片</label>
+                  <input type="file" id="art-card-faith-07-file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-07-alt">圖片說明（alt）</label>
+                  <input type="text" id="art-card-faith-07-alt" maxlength="120" placeholder="例如：在神凡事都能 faith-07 收藏卡">
+                </div>
+                <div class="home-field">
+                  <label for="art-card-faith-07-edition">版次</label>
+                  <input type="text" id="art-card-faith-07-edition" maxlength="20" placeholder="2026 年 11 月版">
+                </div>
+              </div>
+              <img class="art-preview" id="art-card-faith-07-preview" alt="faith-07 收藏卡圖片預覽" src="" hidden>
+              <div class="home-actions-row">
+                <button type="button" class="btn btn-primary" id="art-card-faith-07-save">上傳／更新</button>
+                <button type="button" class="btn btn-outline" id="art-card-faith-07-clear">清除（回主題圖）</button>
+              </div>
+            </div>
+          </div>
+        </details>
+      </details>
       <div class="home-actions-row">
         <button type="button" class="btn btn-outline" data-art-reset>全部清除</button>
       </div>

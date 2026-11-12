@@ -365,7 +365,16 @@
             if (seq !== showSeq) return;
             var verse = results[0];
             var artMap = results[1] || {};
-            var entry = artMap[themeId];
+            var entry;
+            // Check card-specific entry at multiple levels: root (blessing-art.json cards), 
+            // then card id directly at root (edge case), then theme level
+            if (artMap && artMap[cardObj.id]) {
+              entry = artMap[cardObj.id];
+            } else if (artMap && artMap.cards && artMap.cards[cardObj.id]) {
+              entry = artMap.cards[cardObj.id];
+            } else {
+              entry = artMap[themeId];
+            }
             if (!entry || typeof entry !== "object" || typeof entry.image !== "string" || entry.image === "") {
               renderCard(cardObj, themeId, verse, null, null);
               return;

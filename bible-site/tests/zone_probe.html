@@ -54,7 +54,18 @@ async function ready() { for (let i = 0; i < 60; i++) { await sleep(150); const 
     }
     o.s2click = state();
   }
-  if (qs.get("u3")) { await go(qs.get("u3")); await ready(); o.s3 = state(); }
+  if (qs.get("u3")) {
+    await go(qs.get("u3")); await ready();
+    // same track as the previous page: the module re-applies the saved position while the media loads, so give the seek up to 6 s to land
+    // (a module that never resumes still reports t = 0 after that); a different track must start from 0, so there is nothing to wait for
+    const prev = o.s2click || o.s2 || {};
+    for (let i = 0; i < 24; i++) {
+      const s = state();
+      if (!s.btn || s.src !== prev.src || s.t >= 6.5) break;
+      await sleep(250);
+    }
+    o.s3 = state();
+  }
   document.getElementById("out").textContent = "ZPROBE " + JSON.stringify(o);
 })();
 </script>

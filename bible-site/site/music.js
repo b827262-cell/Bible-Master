@@ -6,8 +6,15 @@
 
   const DEFAULT_MUSIC = "assets/home-music.mp3";
   const MUSIC_RE = /^assets\/[A-Za-z0-9._-]+\.mp3$/i;
-  const PAUSE_LABEL = "♪ 播放音樂";
+  const PAUSE_LABEL = "♫ 播放音樂";
   const PLAY_LABEL = '<span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> 暫停音樂';
+
+  // 取 zone-music.json 對應當前頁面的音樂路徑：由 pathname 檔名判斷 index/search/card/blessing，
+  // 對應 zones[...]，沒有則用 music，再沒有則回 assets/home-music.mp3。
+  function getZoneKey() {
+    const m = location.pathname.match(/(\.\/)?(index|search|card|blessing)(\.html)?$/);
+    return m ? m[2] : null;
+  }
 
   const btn = document.createElement("button");
   btn.type = "button";
@@ -33,7 +40,7 @@
   audio.addEventListener("play", render);
   audio.addEventListener("pause", render);
 
-  // sessionStorage 存取：每一次讀寫都包 try/catch（隱私模式可能丟例外）。
+  // sessionStorage 存取：每一次讀寫都包 try/catch（隐私模式可能丢例外）。
   function ssGet(key) {
     try {
       return sessionStorage.getItem(key);
@@ -48,7 +55,7 @@
   }
 
   // 目前播放秒數：timeupdate、seeked、每秒（播放中）、pagehide／beforeunload 時存。
-  // 還在等續播位置套用時（媒體尚未載入），不把 0 秒寫回去蓋掉上一頁存的秒數。
+  // 還在等续播位置套用時（媒體尚未載入），不把 0 秒寫回去蓋掉上一頁存的秒數。
   let pendingSeek = 0;
   function saveT() {
     try {
@@ -155,19 +162,30 @@
     });
   }
 
-  // 讀設定：7 只接受符合 MUSIC_RE 的 music；其他情況（404、壞 JSON、不合格）一律退回預設。
-  fetch("../data/zone-music.json")
-    .then(function (res) {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    })
-    .then(function (cfg) {
-      const m = cfg && cfg.music;
-      applySrc(typeof m === "string" && MUSIC_RE.test(m) ? m : DEFAULT_MUSIC);
-    })
-    .catch(function () {
-      applySrc(DEFAULT_MUSIC);
-    });
+  // 依頁面 (index/search/card/blessing) 取音樂：由 zone-music.json 的 zones[...] 或 music 或預設。
+  function applyMusicForPage() {
+    return fetch("../data/zone-music.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (cfg) {
+        if (!Object.prototype.hasOwnProperty.call(cfg, "zones") || !cfg.zones) {
+          return cfg.music || DEFAULT_MUSIC;
+        }
+        const key = getZoneKey();
+        if (key && Object.prototype.hasOwnProperty.call(cfg.zones, key)) {
+          return cfg.zones[key];
+        }
+        return cfg.music || DEFAULT_MUSIC;
+      })
+      .then(function (src) {
+        applySrc(typeof src === "string" && MUSIC_RE.test(src) ? src : DEFAULT_MUSIC);
+      })
+      .catch(function () {
+        applySrc(DEFAULT_MUSIC);
+      });
+  }
 
   // 按鈕 click：先拆掉「第一次觸碰」監聽；暫停中 → 播（寫 on=1），否則 → 停（寫 on=0）。
   btn.addEventListener("click", function () {
@@ -183,6 +201,9 @@
       render();
     }
   });
+
+  // 頁面載入時讀設定
+  applyMusicForPage();
 
   render();
 })();

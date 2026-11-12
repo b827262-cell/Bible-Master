@@ -97,6 +97,14 @@ HOME_MAX_BODY = 65536
 ZONE_FIELDS = ("music",)
 ZONE_DEFAULTS = {"music": "assets/home-music.mp3"}
 ZONE_MAX_BODY = 65536
+# 前台四區：鍵只允許 index/search/card/blessing，標題為中文名稱
+ZONE_AREAS = ("index", "search", "card", "blessing")
+ZONE_TITLES = {
+    "index": "目錄",
+    "search": "搜尋",
+    "card": "經文卡片",
+    "blessing": "抽經文卡",
+}
 # ---- 抽經文卡四個主題的收藏卡圖（寫入端點）----
 ART_FIELDS = ("image", "alt", "edition")
 ART_MAX_BODY = 65536
@@ -156,13 +164,16 @@ def load_home_config():
 
 
 def load_zone_config():
-    """讀 zone-music.json；不存在、壞掉或不合格時回預設值（深拷貝，避免污染常數）。"""
+    """讀 zone-music.json；不存在、壞掉或不合格時回預設值（深拷貝，避免污染常數）。
+    保留 music 與 zones（若設定檔中有 zones 則一併讀回）。"""
     cfg = dict(ZONE_DEFAULTS)
     try:
         with open(zone_config_path(), "r", encoding="utf-8") as f:
             data = json.load(f)
         if validate_zone_config(data) is None:
             cfg["music"] = data["music"]
+            if "zones" in data:
+                cfg["zones"] = data["zones"]
     except (OSError, ValueError):
         pass
     return cfg
@@ -285,11 +296,16 @@ def validate_home_config(obj):
 
 
 def validate_zone_config(obj):
-    """驗證前台音樂設定；通過回 None，失敗回錯誤訊息字串。"""
+    """驗證前台音樂設定；通過回 None，失敗回錯誤訊息字串。
+    music 為必填；zones 為選填，鍵只允許 index/search/card/blessing，值同 music 驗證。
+    """
     if not isinstance(obj, dict):
         return "內容必須是 JSON 物件"
-    if set(obj.keys()) != set(ZONE_FIELDS):
-        return "欄位必須剛好是 music"
+    keys = set(obj.keys())
+    if "music" not in keys:
+        return "缺少 music 欄位"
+    if not keys <= {"music", "zones"}:
+        return "欄位只能是 music 與 zones"
     music = obj.get("music")
     if not isinstance(music, str) or not ASSET_RE.match(music) or ".." in music:
         return "音樂路徑不正確"
@@ -297,6 +313,19 @@ def validate_zone_config(obj):
         return "音樂副檔名不正確"
     if not os.path.isfile(os.path.join(SITE_ROOT, "site", music)):
         return "音樂檔案不存在"
+    zones = obj.get("zones")
+    if zones is not None:
+        if not isinstance(zones, dict):
+            return "zones 必須是物件"
+        for area, val in zones.items():
+            if area not in ZONE_AREAS:
+                return "未知的分區：" + area
+            if not isinstance(val, str) or not ASSET_RE.match(val) or ".." in val:
+                return "分區「" + area + "」的路徑不正確"
+            if not val.lower().endswith(MUSIC_EXTS):
+                return "分區「" + area + "」的副檔名不正確"
+            if not os.path.isfile(os.path.join(SITE_ROOT, "site", val)):
+                return "分區「" + area + "」的檔案不存在"
     return None
 
 
@@ -318,37 +347,60 @@ def load_blessing_themes():
     return themes, cards
 
 
+def validate_art_entry(ent, label):
+    """驗證單一圖片設定（image/alt/edition）；通過回 None，失敗回錯誤訊息字串。"""
+    if not isinstance(ent, dict):
+        return label + "的設定必須是物件"
+    if set(ent.keys()) != set(ART_FIELDS):
+        return label + "的欄位必須剛好是 image、alt、edition"
+    image = ent.get("image")
+    if not isinstance(image, str) or not ASSET_RE.match(image) or ".." in image:
+        return label + "的圖片路徑不正確"
+    if not image.lower().endswith(IMAGE_EXTS):
+        return label + "的圖片副檔名不正確"
+    if not os.path.isfile(os.path.join(SITE_ROOT, "site", image)):
+        return label + "的圖片檔案不存在"
+    alt = ent.get("alt")
+    if not isinstance(alt, str):
+        return label + "的圖片說明必須是文字"
+    if not 1 <= len(alt.strip()) <= 120:
+        return label + "的圖片說明長度必須是 1 到 120 字"
+    edition = ent.get("edition")
+    if not isinstance(edition, str):
+        return label + "的版次必須是文字"
+    if len(edition) > 20:
+        return label + "的版次長度必須是 0 到 20 字"
+    return None
+
+
 def validate_art_config(obj):
-    """驗證收藏卡圖設定；通過回 None，失敗回錯誤訊息字串。"""
+    """驗證收藏卡圖設定；通過回 None，失敗回錯誤訊息字串。
+    頂層鍵只允許 work/peace/rest/faith 主題與可選的 cards；cards 鍵必須是
+    blessing.json 已存在的 37 個卡 ID，value 嚴格同主題 entry（image/alt/edition）。
+    """
     if not isinstance(obj, dict):
         return "內容必須是 JSON 物件"
-    themes, _ = load_blessing_themes()
+    themes, all_cards = load_blessing_themes()
     theme_ids = [t["id"] for t in themes]
+    card_ids = [c.get("id") for c in all_cards if isinstance(c, dict) and c.get("id")]
+    allowed_keys = set(theme_ids) | {"cards"}
     for key in obj:
-        if key not in theme_ids:
+        if key not in allowed_keys:
             return "主題代號不正確"
-    for theme_id, ent in obj.items():
-        if not isinstance(ent, dict):
-            return "主題「" + theme_id + "」的設定必須是物件"
-        if set(ent.keys()) != set(ART_FIELDS):
-            return "主題「" + theme_id + "」的欄位必須剛好是 image、alt、edition"
-        image = ent.get("image")
-        if not isinstance(image, str) or not ASSET_RE.match(image) or ".." in image:
-            return "主題「" + theme_id + "」的圖片路徑不正確"
-        if not image.lower().endswith(IMAGE_EXTS):
-            return "主題「" + theme_id + "」的圖片副檔名不正確"
-        if not os.path.isfile(os.path.join(SITE_ROOT, "site", image)):
-            return "主題「" + theme_id + "」的圖片檔案不存在"
-        alt = ent.get("alt")
-        if not isinstance(alt, str):
-            return "主題「" + theme_id + "」的圖片說明必須是文字"
-        if not 1 <= len(alt.strip()) <= 120:
-            return "主題「" + theme_id + "」的圖片說明長度必須是 1 到 120 字"
-        edition = ent.get("edition")
-        if not isinstance(edition, str):
-            return "主題「" + theme_id + "」的版次必須是文字"
-        if len(edition) > 20:
-            return "主題「" + theme_id + "」的版次長度必須是 0 到 20 字"
+    for key, ent in obj.items():
+        if key == "cards":
+            if not isinstance(ent, dict):
+                return "cards 必須是物件"
+            for card_id, card_ent in ent.items():
+                if card_id not in card_ids:
+                    return "cards 的卡片代號不正確：" + card_id
+                err = validate_art_entry(card_ent, "cards 的卡片「" + card_id + "」")
+                if err:
+                    return err
+        else:
+            err = validate_art_entry(ent, "主題「" + key + "」")
+            if err:
+                return err
     return None
 
 
@@ -708,9 +760,13 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     # ---------- 前台四區共用背景音樂 ----------
     def handle_api_zone_music_get(self):
         _, music = list_assets()
+        zones = [
+            {"id": area, "title": ZONE_TITLES[area]} for area in ZONE_AREAS
+        ]
         self.send_json({
             "config": load_zone_config(),
             "default": dict(ZONE_DEFAULTS),
+            "zones": zones,
             "music": music,
         })
 
@@ -729,6 +785,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"error": err}, code=400)
             return
         cfg = {"music": obj["music"]}
+        if "zones" in obj:
+            cfg["zones"] = obj["zones"]
         try:
             atomic_write_json(zone_config_path(), cfg)
         except Exception:
@@ -769,7 +827,12 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "count": len(refs),
                 "refs": refs,
             })
-        self.send_json({"themes": out, "config": load_art_config(), "images": images})
+        cards_list = [
+            {"id": c.get("id"), "theme": c.get("theme"), "book": c.get("book"), "ch": c.get("ch"), "v": c.get("v")}
+            for c in cards
+            if isinstance(c, dict)
+        ]
+        self.send_json({"themes": out, "cards": cards_list, "config": load_art_config(), "images": images})
 
     def handle_api_blessing_art_post(self):
         raw = self.read_body(ART_MAX_BODY)

@@ -304,6 +304,8 @@ def zoneadmin():
     check("zoneadmin：後台 index.html 有「前台音樂」區塊需要的 7 個 id", not miss, "、".join(miss))
     check("zoneadmin：後台「前台音樂」文字是繁體中文：有「前台音樂」「儲存」「還原預設」「發佈」", all(t in page + src for t in ("前台音樂", "儲存", "還原預設", "發佈")))
     check("zoneadmin：admin.js 使用 /api/zone-music、/api/zone-music/reset，寫入時帶 X-Bible-Token，預覽走 /site-assets/", all(u in src for u in ("/api/zone-music", "/api/zone-music/reset", "X-Bible-Token", "/site-assets/")))
+    zids = [f"zone-{z}-{k}" for z in ("index", "search", "card", "blessing") for k in ("select", "preview")]
+    check("zoneadmin：後台有四個獨立曲目選單與試聽 id", all(f'id="{i}"' in page for i in zids), str([i for i in zids if f'id="{i}"' not in page]))
     live_cfg = os.path.join(ROOT, "bible-site", "data", "zone-music.json")
     live_before = md5(live_cfg)
     tmp = tempfile.mkdtemp()
@@ -333,6 +335,9 @@ def zoneadmin():
         info = json.loads(body) if st == 200 else {}
         check("zoneadmin：GET /api/zone-music 沒有設定檔時回 200 與預設值 assets/home-music.mp3", st == 200 and info.get("config") == {"music": "assets/home-music.mp3"} and info.get("default") == {"music": "assets/home-music.mp3"}, f"HTTP {st} {body[:120]}")
         check("zoneadmin：GET /api/zone-music 列出 assets/ 的 mp3", "assets/home-music.mp3" in info.get("music", []), body[:160])
+        check("zoneadmin：GET 回傳四區 id／名稱，供後台獨立設定",
+              {z.get("id") for z in info.get("zones", []) if isinstance(z, dict)} == {"index", "search", "card", "blessing"}
+              and all(z.get("title") for z in info.get("zones", []) if isinstance(z, dict)), str(info.get("zones")))
         post = lambda path, obj, hdr=None, raw=None: req2(base + path, "POST", dict(good, **(hdr or {})), raw if raw is not None else json.dumps(obj, ensure_ascii=False).encode("utf-8"))
         up = lambda data, name="song.mp3": req2(base + f"/api/upload?kind=music&name={urllib.parse.quote(name)}", "POST", dict(good, **{"Content-Type": "application/octet-stream"}), data)
         st, _, body = up(MP3)
@@ -348,8 +353,23 @@ def zoneadmin():
         check("zoneadmin：POST /api/zone-music 合法設定回 200，檔案內容就是 {\"music\": 上傳的 mp3}", st == 200 and saved == {"music": new} and json.loads(body).get("config") == {"music": new}, f"HTTP {st} {body[:100]}")
         st, _, body = req2(base + "/api/zone-music")
         check("zoneadmin：GET /api/zone-music 回傳剛存的設定", st == 200 and json.loads(body).get("config") == {"music": new})
+        extended = {"music": "assets/home-music.mp3", "zones": {"index": new, "search": new, "blessing": new}}
+        st, _, body = post("/api/zone-music", extended)
+        check("zoneadmin：四區可各自設 mp3、zone 缺省沿用 music、完整設定原子寫回",
+              st == 200 and json.load(open(cfgf, encoding="utf-8")) == extended
+              and json.loads(body).get("config") == extended, f"HTTP {st}")
+        st, _, body = req2(base + "/api/zone-music")
+        check("zoneadmin：GET 回傳設定 zones 並保留未設定的 card 回退共用曲",
+              st == 200 and json.loads(body).get("config") == extended
+              and "card" not in json.loads(body).get("config", {}).get("zones", {}), f"HTTP {st}")
         before = md5(cfgf)
-        bad = {"檔案不存在": {"music": "assets/nope.mp3"}, "跳出 assets/": {"music": "assets/../../data/luk.json"}, "指向 data/": {"music": "data/luk.json"},
+        bad = {"zones 不是物件": {"music": new, "zones": []},
+               "未知分區": {"music": new, "zones": {"evil": new}},
+               "分區不是字串": {"music": new, "zones": {"index": 3}},
+               "分區跨目錄": {"music": new, "zones": {"search": "assets/../../x.mp3"}},
+               "分區指向 jpg": {"music": new, "zones": {"card": "assets/jordan.jpg"}},
+               "分區檔不存在": {"music": new, "zones": {"blessing": "assets/nope.mp3"}},
+               "檔案不存在": {"music": "assets/nope.mp3"}, "跳出 assets/": {"music": "assets/../../data/luk.json"}, "指向 data/": {"music": "data/luk.json"},
                "是 jpg": {"music": "assets/jordan.jpg"}, "絕對路徑": {"music": "/etc/passwd"}, "網址": {"music": "https://evil.example/a.mp3"},
                "多出欄位": {"music": new, "extra": "x"}, "缺欄位": {}, "不是字串": {"music": 5}}
         for label, obj in bad.items():
@@ -393,6 +413,10 @@ def blessartadmin():
     check("blessartadmin：後台 index.html 有「收藏卡圖片」區塊需要的 26 個 id（四個主題各 6 個＋區塊＋狀態）", not miss, "、".join(miss))
     check("blessartadmin：後台「收藏卡圖片」文字是繁體中文：有「收藏卡圖片」「每月」「版次」「儲存」「清除」「發佈」", all(t in page + src for t in ("收藏卡圖片", "每月", "版次", "儲存", "清除", "發佈")))
     check("blessartadmin：admin.js 使用 /api/blessing-art、/api/blessing-art/reset，寫入時帶 X-Bible-Token，預覽走 /site-assets/", all(u in src for u in ("/api/blessing-art", "/api/blessing-art/reset", "X-Bible-Token", "/site-assets/")))
+    ids37 = [c["id"] for c in json.load(open(os.path.join(ROOT, "bible-site", "data", "blessing.json"), encoding="utf-8"))["cards"]]
+    all_id_names = [f'art-card-{cid}-{suffix}' for cid in ids37 for suffix in ("file", "alt", "edition", "preview", "save", "clear")]
+    check("blessartadmin：後台 37 張單卡按鈕／輸入 id 齊備", all(f'id="{v}"' in page for v in all_id_names),
+          str([v for v in all_id_names if f'id="{v}"' not in page][:8]))
     live_cfg = os.path.join(ROOT, "bible-site", "data", "blessing-art.json")
     live_before = md5(live_cfg)
     tmp = tempfile.mkdtemp()
@@ -407,7 +431,7 @@ def blessartadmin():
     proc = subprocess.Popen([sys.executable, os.path.join(ADMIN, "server.py"), "--host", "127.0.0.1", "--port", str(port)],
                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, env=env)
     base = f"http://127.0.0.1:{port}"
-    guard = {n: md5(os.path.join(tmp, "data", n)) for n in ("blessing.json", "home.json", "zone-music.json", "mat.json")}
+    guard = {n: md5(os.path.join(tmp, "data", n)) for n in ("blessing.json", "home.json", "zone-music.json", "mat.json", "mrk.json", "luk.json", "jhn.json")}
     try:
         for _ in range(50):
             if request(base + "/api/ping", timeout=2)[0] == 200:
@@ -422,6 +446,11 @@ def blessartadmin():
         check("blessartadmin：GET /api/blessing-art 回 200，四個主題 work／peace／rest／faith 的張數是 20／6／5／6、每個主題列出每張卡的出處",
               st == 200 and [th.get(t, {}).get("count") for t in themes] == [20, 6, 5, 6] and all(len(th[t].get("refs", [])) == th[t]["count"] for t in themes if t in th), body[:160])
         check("blessartadmin：GET /api/blessing-art 沒有設定檔時 config 是空物件，並列出 assets 的圖片", info.get("config") == {} and "assets/jordan.jpg" in info.get("images", []), body[:160])
+        check("blessartadmin：GET 含 37 張卡 id、主題、出處（不傳經文）",
+              st == 200 and len(info.get("cards", [])) == 37
+              and {c.get("id") for c in info.get("cards", []) if isinstance(c, dict)} == set(ids37)
+              and all(set(c) >= {"id", "theme", "book", "ch", "v"} and "message" not in c and "text" not in c for c in info.get("cards", [])),
+              str(info.get("cards", [])[:1]))
         check("blessartadmin：出處用書卷代號、章、節（不含經文文字）", all(set(r) >= {"book", "ch", "v"} and "text" not in r for t in th.values() for r in t.get("refs", [])) and "耶穌" not in body.split('"refs"')[-1][:200])
         post = lambda path, obj, hdr=None, raw=None: req2(base + path, "POST", dict(good, **(hdr or {})), raw if raw is not None else json.dumps(obj, ensure_ascii=False).encode("utf-8"))
         up = lambda data, name="art.png": req2(base + f"/api/upload?kind=image&name={urllib.parse.quote(name)}", "POST", dict(good, **{"Content-Type": "application/octet-stream"}), data)
@@ -443,8 +472,21 @@ def blessartadmin():
         two = {"work": ent, "peace": dict(ent, alt="另一張", edition="")}
         st, _, _ = post("/api/blessing-art", two)
         check("blessartadmin：可以同時設定多個主題，edition 可以是空字串", st == 200 and json.load(open(cfgf, encoding="utf-8")) == two, f"HTTP {st}")
+        per_card = {"work": ent, "cards": {"work-03": dict(ent, alt="單卡圖片", edition="2026/11")}}
+        st, _, body = post("/api/blessing-art", per_card)
+        check("blessartadmin：POST 單卡圖合法、保留主題與 cards、不動其他資料", st == 200
+              and json.load(open(cfgf, encoding="utf-8")) == per_card and json.loads(body).get("config") == per_card, f"HTTP {st}")
+        st, _, body = req2(base + "/api/blessing-art")
+        check("blessartadmin：GET 回傳單卡圖設定", st == 200 and json.loads(body).get("config") == per_card)
         before = md5(cfgf)
-        bad = {"主題不存在": {"xyz": ent}, "圖片檔不存在": {"work": dict(ent, image="assets/nope.png")}, "圖片是 mp3": {"work": dict(ent, image="assets/home-music.mp3")},
+        bad = {"cards 不是物件": {"cards": []},
+               "cards 未知 id": {"cards": {"work-99": ent}},
+               "cards 多個上層欄位": {"cards": {"work-01": ent}, "bad": ent},
+               "cards 跳出 assets": {"cards": {"work-01": dict(ent, image="assets/../bad.png")}},
+               "cards 副檔名錯": {"cards": {"work-01": dict(ent, image="assets/home-music.mp3")}},
+               "cards 缺 alt": {"cards": {"work-01": {"image": new, "edition": ""}}},
+               "cards alt 空白": {"cards": {"work-01": dict(ent, alt="  ")}},
+               "主題不存在": {"xyz": ent}, "圖片檔不存在": {"work": dict(ent, image="assets/nope.png")}, "圖片是 mp3": {"work": dict(ent, image="assets/home-music.mp3")},
                "圖片跳出 assets/": {"work": dict(ent, image="assets/../../data/luk.json")}, "圖片指向 data/": {"work": dict(ent, image="data/luk.json")},
                "圖片是絕對路徑": {"work": dict(ent, image="/etc/passwd")}, "圖片是網址": {"work": dict(ent, image="https://evil.example/a.png")},
                "alt 空白": {"work": dict(ent, alt="  ")}, "alt 超過 120 字": {"work": dict(ent, alt="字" * 121)}, "版次超過 20 字": {"work": dict(ent, edition="字" * 21)},

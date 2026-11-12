@@ -492,8 +492,13 @@ def zone_data():
     except ValueError as e:
         check("zonemusic：data/zone-music.json 是合法 JSON", False, str(e))
         return
-    check("zonemusic：zone-music.json 只有 music 一個欄位", isinstance(cfg, dict) and set(cfg) == {"music"}, ",".join(sorted(cfg)) if isinstance(cfg, dict) else "不是物件")
+    check("zonemusic：zone-music.json 保留 music、只允許選填 zones", isinstance(cfg, dict) and "music" in cfg and set(cfg) <= {"music", "zones"}, ",".join(sorted(cfg)) if isinstance(cfg, dict) else "不是物件")
     val = cfg.get("music", "") if isinstance(cfg, dict) else ""
+    zones = cfg.get("zones", {}) if isinstance(cfg, dict) else {}
+    valid = lambda m: isinstance(m, str) and bool(ASSET_NAME.match(m)) and ".." not in m and m.lower().endswith(".mp3") and os.path.isfile(os.path.join(SITE, m))
+    check("zonemusic：zones 只能使用四區名、可省略或留空、各值為存在的 mp3",
+          isinstance(zones, dict) and set(zones) <= {"index", "search", "card", "blessing"} and all(valid(m) for m in zones.values()), str(zones))
+
     check("zonemusic：zone-music.json 的 music 是 assets/ 底下的 .mp3 檔名且檔案存在、不是空檔",
           isinstance(val, str) and bool(ASSET_NAME.match(val)) and val.lower().endswith(".mp3") and os.path.isfile(os.path.join(SITE, val)) and os.path.getsize(os.path.join(SITE, val)) > 10000, str(val))
 
@@ -532,6 +537,52 @@ def zone_static():
     check("zonemusic：style.css 的 animation 都包在 prefers-reduced-motion: no-preference 裡", not moving, "；".join(moving[:3]))
 
 
+class RangeHandler(http.server.SimpleHTTPRequestHandler):
+    """Static handler that also answers `Range: bytes=a-b` (206). Real hosts do; without it headless Chrome cannot seek inside an mp3
+    it has not fully downloaded, and the probe's jump to second 7 silently stays at 0."""
+
+    def log_message(self, *a):
+        pass
+
+    def send_head(self):
+        m = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", "").strip())
+        path = self.translate_path(self.path)
+        if not m or not (m.group(1) or m.group(2)) or not os.path.isfile(path):
+            return super().send_head()
+        size = os.path.getsize(path)
+        if m.group(1):
+            start, end = int(m.group(1)), min(int(m.group(2)) if m.group(2) else size - 1, size - 1)
+        else:
+            start, end = max(size - int(m.group(2)), 0), size - 1
+        if start > end or start >= size:
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{size}")
+            self.end_headers()
+            return None
+        f = open(path, "rb")
+        f.seek(start)
+        self.send_response(206)
+        self.send_header("Content-Type", self.guess_type(path))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(end - start + 1))
+        self.end_headers()
+        self._range_left = end - start + 1
+        return f
+
+    def copyfile(self, source, outputfile):
+        left = getattr(self, "_range_left", None)
+        if left is None:
+            return super().copyfile(source, outputfile)
+        self._range_left = None
+        while left > 0:
+            buf = source.read(min(65536, left))
+            if not buf:
+                break
+            outputfile.write(buf)
+            left -= len(buf)
+
+
 def zone_state(port, pages, width=None):
     """Run tests/zone_probe.html through the local server with up to three pages in a row (same iframe); returns its ZPROBE object."""
     q = "u=" + urllib.parse.quote("../site/" + pages[0], safe="")
@@ -554,6 +605,8 @@ def zone_render(port, root=None, label="", pages=None, width=None):
     """Drive the shared music button on `pages` (first page → click → second page → click → third page) and check state, config, layout."""
     cfg = zone_config(root)
     pages = pages or ZONE_PAGES[:3]
+    def selected(p):
+        return (cfg.get("zones") or {}).get(p.removesuffix(".html"), cfg["music"])
     for _ in range(3):                                 # headless Chrome sometimes drops the probe's own seek to 7 s on page 2; that is setup, not the site
         st = zone_state(port, pages, width)
         if st and st.get("s1") and ((st.get("s2click") or {}).get("t") or 0) >= 6.5:
@@ -569,12 +622,12 @@ def zone_render(port, root=None, label="", pages=None, width=None):
     s1, c1, s2, c2, s3 = seq
     check(f"zonemusic{tag}：每一頁都有 #zone-music-btn 與 #zone-music，aria-pressed 永遠和 audio 是否播放一致", all(sync(s) for s in seq if s), brief)
     check(f"zonemusic{tag}：按鈕文字是「播放音樂」或「暫停音樂」，隨狀態改變", all(labelled(s) for s in seq if s), brief)
-    check(f"zonemusic{tag}：<audio> 是 zone-music.json 指定的音樂、loop、preload=none", all(s.get("src", "").endswith(cfg["music"]) and s.get("loop") is True and s.get("preload") == "none" for s in seq if s), brief)
+    check(f"zonemusic{tag}：<audio> 是 zone-music.json 指定的音樂、loop、preload=none", all(s.get("src", "").endswith(selected(p)) and s.get("loop") is True and s.get("preload") == "none" for s, p in zip(seq, [pages[0], pages[0], pages[1], pages[1], pages[2]]) if s), brief)
     check(f"zonemusic{tag}：第一次進來（沒有任何紀錄）會嘗試自動播放", s1 and s1.get("pressed") == "true" and s1.get("on") in (None, "1"), brief)
     check(f"zonemusic{tag}：按下按鈕暫停，並記下 bm.zone.on=0", c1 and c1.get("pressed") == "false" and c1.get("paused") is True and c1.get("on") == "0", brief)
     check(f"zonemusic{tag}：跳到下一頁，暫停狀態被記住（不自己播起來）", s2 and s2.get("pressed") == "false" and s2.get("paused") is True and s2.get("on") == "0", brief)
     check(f"zonemusic{tag}：再按一次開始播放，記下 bm.zone.on=1", c2 and c2.get("pressed") == "true" and c2.get("on") == "1", brief)
-    check(f"zonemusic{tag}：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播", bool(s3) and s3.get("pressed") == "true" and (s3.get("t") or 0) >= 6.5 and s3.get("savedSrc", "").endswith(cfg["music"]), brief)
+    check(f"zonemusic{tag}：跳到第三頁，開著的狀態被記住並從上一頁的位置（第 7 秒）續播", bool(s3) and s3.get("pressed") == "true" and ((s3.get("t") or 0) >= 6.5 if selected(pages[1]) == selected(pages[2]) else (s3.get("t") or 0) < 6.5) and s3.get("savedSrc", "").endswith(selected(pages[2])), brief)
     err = st.get("errors", [])
     check(f"zonemusic{tag}：沒有 JavaScript 錯誤", not err, "；".join(err[:3]))
     box = [s for s in seq if s]
@@ -586,7 +639,11 @@ def zone_variants():
     """Serve temp copies: (a) a different zone-music.json with a copied mp3, (b) no zone-music.json at all (falls back to home-music.mp3)."""
     import shutil
     http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
-    for label, cfg in ((" (自訂設定)", {"music": "assets/custom-zone.mp3"}), (" (沒有 zone-music.json)", None)):
+    for label, cfg in ((" (自訂設定)", {"music": "assets/custom-zone.mp3"}),
+                       # every zone gets its own file (blessing has no key and falls back to `music`), so swapped zone keys show up as a wrong <audio src>
+                       (" (四區獨立)", {"music": "assets/home-music.mp3", "zones": {"index": "assets/custom-zone.mp3", "search": "assets/custom-zone-b.mp3", "card": "assets/custom-zone-c.mp3"}}),
+                       (" (兩區同曲)", {"music": "assets/home-music.mp3", "zones": {"index": "assets/custom-zone.mp3", "search": "assets/custom-zone.mp3", "blessing": "assets/custom-zone-b.mp3"}}),   # blessing has its own file here
+                       (" (沒有 zone-music.json)", None)):
         with tempfile.TemporaryDirectory() as tmp:
             for d in ("site", "data"):
                 shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
@@ -594,14 +651,18 @@ def zone_variants():
             shutil.copy(os.path.join(ROOT, "tests", "zone_probe.html"), os.path.join(tmp, "tests"))
             zf = os.path.join(tmp, "data", "zone-music.json")
             if cfg:
-                shutil.copy(os.path.join(tmp, "site", "assets", "home-music.mp3"), os.path.join(tmp, "site", "assets", "custom-zone.mp3"))
+                for name in ("custom-zone.mp3", "custom-zone-b.mp3", "custom-zone-c.mp3"):
+                    shutil.copy(os.path.join(tmp, "site", "assets", "home-music.mp3"), os.path.join(tmp, "site", "assets", name))
                 json.dump(cfg, open(zf, "w", encoding="utf-8"), ensure_ascii=False)
             elif os.path.exists(zf):
                 os.remove(zf)
-            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
+            handler = functools.partial(RangeHandler, directory=tmp)
             with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
                 threading.Thread(target=srv.serve_forever, daemon=True).start()
                 zone_render(srv.server_address[1], tmp, label, pages=["card.html", "search.html", "blessing.html"])
+                if cfg and "zones" in cfg:
+                    same = cfg["zones"].get("index") == cfg["zones"].get("search")
+                    zone_render(srv.server_address[1], tmp, label + ("（同曲跨頁）" if same else "（換曲跨頁）"), pages=["card.html", "index.html", "search.html"] if same else ["index.html", "search.html", "card.html"])
                 srv.shutdown()
 
 
@@ -632,8 +693,12 @@ def blessart_data():
         check("blessart：data/blessing-art.json 是合法 JSON", False, str(e))
         return
     themes = {t["id"] for t in json.load(open(os.path.join(ROOT, "data", "blessing.json"), encoding="utf-8"))["themes"]}
-    check("blessart：blessing-art.json 是物件，鍵都是 blessing.json 的主題 id", isinstance(art, dict) and set(art) <= themes, ",".join(sorted(set(art) - themes)) if isinstance(art, dict) else "不是物件")
-    ents = art.values() if isinstance(art, dict) else []
+    check("blessart：blessing-art.json 是物件，鍵只能是主題 id 或 cards", isinstance(art, dict) and set(art) <= themes | {"cards"}, ",".join(sorted(set(art) - themes)) if isinstance(art, dict) else "不是物件")
+    cards = art.get("cards", {}) if isinstance(art, dict) else {}
+    ids = {c["id"] for c in json.load(open(os.path.join(ROOT, "data", "blessing.json"), encoding="utf-8"))["cards"]}
+    check("blessart：cards 可省略、卡 id 只能是 blessing.json 的 37 張",
+          isinstance(cards, dict) and set(cards) <= ids, str(set(cards) - ids) if isinstance(cards, dict) else "不是物件")
+    ents = [v for k, v in art.items() if k != "cards"] + list(cards.values()) if isinstance(art, dict) and isinstance(cards, dict) else []
     check("blessart：每個主題的設定剛好有 image、alt、edition 三個欄位", all(isinstance(e, dict) and set(e) == ART_ENTRY_KEYS for e in ents))
     check("blessart：image 是 assets/ 底下的 jpg／png／webp 且檔案存在", all(isinstance(e, dict) and isinstance(e.get("image"), str) and bool(ASSET_NAME.match(e["image"])) and e["image"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
                                                                   and os.path.isfile(os.path.join(SITE, e["image"])) for e in ents))
@@ -682,7 +747,12 @@ def blessart_variants():
     http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
     ed = "2026 年 11 月版"
     good = {"work": {"image": "assets/art-work.png", "alt": "測試用主題圖：金黃麥田", "edition": ed}, "peace": {"image": "assets/art-peace.png", "alt": "測試用主題圖：靜水旁的羊群", "edition": ed}}
-    cases = ((" (work 紅、peace 藍)", good), (" (圖檔不存在)", {"work": {"image": "assets/art-missing.png", "alt": "測試用主題圖", "edition": ed}}), (" (沒有 blessing-art.json)", None))
+    per_card = dict(good)
+    per_card["cards"] = {"work-01": {"image": "assets/art-peace.png", "alt": "單卡獨立藍圖", "edition": "單卡版"}}
+    cases = ((" (work 紅、peace 藍)", good), (" (單卡蓋過主題)", per_card),
+             (" (只有單卡)", {"cards": per_card["cards"]}),
+             (" (圖檔不存在)", {"work": {"image": "assets/art-missing.png", "alt": "測試用主題圖", "edition": ed}}),
+             (" (沒有 blessing-art.json)", None))
     for label, art in cases:
         with tempfile.TemporaryDirectory() as tmp:
             for d in ("site", "data"):
@@ -701,7 +771,26 @@ def blessart_variants():
             with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
                 threading.Thread(target=srv.serve_forever, daemon=True).start()
                 port = srv.server_address[1]
-                blessart_render(port, tmp, label, art)
+                if art and "cards" in art:
+                    one = blessing_state(port, "blessing.html?card=work-01")
+                    other = blessing_state(port, "blessing.html?card=work-02")
+                    own = art["cards"]["work-01"]
+                    a = one.get("art") or {}
+                    b = other.get("art") or {}
+                    check(f"blessart{label}：單卡圖優先於主題圖、下載連結取原單卡圖",
+                          a.get("shown") and a.get("src") == own["image"] and a.get("dlHref") == own["image"] and a.get("artAttr") == own["image"])
+                    check(f"blessart{label}：同主題另一張卡回退主題圖、無主題時純文字",
+                          (b.get("src") == art["work"]["image"]) if "work" in art else (not b.get("shown") and not b.get("dlShown") and not b.get("artAttr")))
+                    bbytes = open(os.path.join(tmp, "site", own["image"]), "rb").read()
+                    try:
+                        got = urllib.request.urlopen(f"http://127.0.0.1:{port}/site/{a.get('dlHref', '')}", timeout=10).read()
+                    except Exception:
+                        got = b""
+                    check(f"blessart{label}：單卡直接下載原檔位元組相同", got == bbytes)
+                    errs = one.get("errors", []) + other.get("errors", [])
+                    check(f"blessart{label}：兩張卡都沒有 JavaScript 錯誤", not errs, str(errs[:2]))
+                else:
+                    blessart_render(port, tmp, label, art)
                 srv.shutdown()
 
 
@@ -754,7 +843,7 @@ def rendering(groups):
         return
     data = {k: json.load(open(os.path.join(ROOT, "data", k + ".json"), encoding="utf-8"))["chapters"] for k, _ in BOOKS}
     names = dict(BOOKS)
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=ROOT)
+    handler = functools.partial(RangeHandler, directory=ROOT)
     http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
     with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
         threading.Thread(target=srv.serve_forever, daemon=True).start()

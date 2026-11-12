@@ -228,7 +228,14 @@ document.addEventListener("DOMContentLoaded", () => {
     status: document.getElementById("home-status")
   };
 
-  // 前台四區（目錄、搜尋、經文卡片、抽經文卡）共用的背景音樂
+  // 前台四區（目錄、搜尋、經文卡片、抽經文卡）：共用一首，各區可另選一首（選單留空＝沿用共用曲）
+  const ZONE_AREAS = [
+    { id: "index", title: "目錄" },
+    { id: "search", title: "搜尋" },
+    { id: "card", title: "經文卡片" },
+    { id: "blessing", title: "抽經文卡" }
+  ];
+
   const zoneEls = {
     section: document.getElementById("zone-music-settings"),
     file: document.getElementById("zone-music-file"),
@@ -236,8 +243,16 @@ document.addEventListener("DOMContentLoaded", () => {
     preview: document.getElementById("zone-music-preview"),
     save: document.getElementById("zone-music-save"),
     reset: document.getElementById("zone-music-reset"),
-    status: document.getElementById("zone-music-status")
+    status: document.getElementById("zone-music-status"),
+    areas: {}
   };
+
+  ZONE_AREAS.forEach(area => {
+    zoneEls.areas[area.id] = {
+      select: document.getElementById(`zone-${area.id}-select`),
+      preview: document.getElementById(`zone-${area.id}-preview`)
+    };
+  });
 
   function homeStatus(text, kind) {
     const el = homeEls.status;
@@ -383,6 +398,90 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     el.src = assetUrl(path);
+  }
+
+  // 分區選單留空時，實際播放的就是共用曲
+  function zoneAreaPath(areaId) {
+    const sel = zoneEls.areas[areaId] ? zoneEls.areas[areaId].select : null;
+    const value = sel ? sel.value : "";
+    return value || (zoneEls.select ? zoneEls.select.value : "");
+  }
+
+  function updateZoneAreaPreview(areaId) {
+    const els = zoneEls.areas[areaId];
+    if (!els || !els.preview) return;
+    const path = zoneAreaPath(areaId);
+    if (!path) {
+      els.preview.removeAttribute("src");
+      return;
+    }
+    const url = assetUrl(path);
+    // 同一首不重載，避免換共用曲時打斷各區正在試聽的音訊
+    if (els.preview.getAttribute("src") !== url) els.preview.src = url;
+  }
+
+  function fillZoneAreaSelect(areaId, paths, value) {
+    const sel = zoneEls.areas[areaId] ? zoneEls.areas[areaId].select : null;
+    if (!sel) return;
+    const options = [{ value: "", label: "沿用共用音樂" }].concat(
+      paths.map(p => ({ value: p, label: p.replace(/^assets\//, "") }))
+    );
+    fillSelect(sel, options, value || "");
+    updateZoneAreaPreview(areaId);
+  }
+
+  // 上傳新曲子後四區也要選得到，但不動各區目前的選擇
+  function addZoneAreaOption(path) {
+    ZONE_AREAS.forEach(area => {
+      const sel = zoneEls.areas[area.id] ? zoneEls.areas[area.id].select : null;
+      if (!sel || [...sel.options].some(o => o.value === path)) return;
+      const opt = document.createElement("option");
+      opt.value = path;
+      opt.textContent = path.replace(/^assets\//, "");
+      sel.appendChild(opt);
+    });
+  }
+
+  function zoneAssetPaths() {
+    const seen = [];
+    const selects = [zoneEls.select].concat(ZONE_AREAS.map(area => (zoneEls.areas[area.id] ? zoneEls.areas[area.id].select : null)));
+    selects.forEach(sel => {
+      [...(sel ? sel.options : [])].forEach(o => {
+        if (o.value && seen.indexOf(o.value) === -1) seen.push(o.value);
+      });
+    });
+    return seen;
+  }
+
+  // 目前表單狀態：四區全留空時不帶 zones 欄位
+  function currentZoneConfig() {
+    const music = zoneEls.select ? zoneEls.select.value : "";
+    const zones = {};
+    ZONE_AREAS.forEach(area => {
+      const sel = zoneEls.areas[area.id] ? zoneEls.areas[area.id].select : null;
+      if (sel && sel.value) zones[area.id] = sel.value;
+    });
+    return Object.keys(zones).length ? { music, zones } : { music };
+  }
+
+  // GET 回傳（或儲存後伺服器回的 config）→ 一次重繪共用曲與四區的選單、試聽
+  function applyZonePayload(data) {
+    const cfg = (data && data.config) || {};
+    const current = cfg.music || (data && data.default && data.default.music) || "assets/home-music.mp3";
+    const list = Array.isArray(data && data.music) ? data.music.slice() : [];
+    if (list.indexOf(current) === -1) list.push(current);
+    fillSelect(
+      zoneEls.select,
+      list.map(p => ({ value: p, label: p.replace(/^assets\//, "") })),
+      current
+    );
+    updateZoneMusicPreview(current);
+    const zones = cfg.zones && typeof cfg.zones === "object" ? cfg.zones : {};
+    ZONE_AREAS.forEach(area => {
+      const value = typeof zones[area.id] === "string" ? zones[area.id] : "";
+      const paths = value && list.indexOf(value) === -1 ? [value].concat(list) : list;
+      fillZoneAreaSelect(area.id, paths, value);
+    });
   }
 
   function addOption(select, value) {
@@ -573,15 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/zone-music");
       if (!res.ok) throw new Error(await readError(res));
       const data = await res.json();
-      const current = (data.config && data.config.music) || (data.default && data.default.music) || "assets/home-music.mp3";
-      const list = (data.music || []).slice();
-      if (list.indexOf(current) === -1) list.push(current);
-      fillSelect(
-        zoneEls.select,
-        list.map(p => ({ value: p, label: p.replace(/^assets\//, "") })),
-        current
-      );
-      updateZoneMusicPreview(current);
+      applyZonePayload(data);
       zoneStatus("已載入目前設定。", "success");
     } catch (err) {
       zoneStatus(`載入前台音樂設定失敗：${err.message}`, "error");
@@ -590,18 +681,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function saveZoneMusicSettings() {
     const btn = zoneEls.save;
-    const music = zoneEls.select ? zoneEls.select.value : "";
+    const payload = currentZoneConfig();
+    const areaCount = Object.keys(payload.zones || {}).length;
     if (btn) btn.disabled = true;
     zoneStatus("儲存中…");
     try {
       const res = await fetch("/api/zone-music", {
         method: "POST",
         headers: writeHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ music })
+        body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error(await readError(res));
-      await res.json();
-      zoneStatus("已儲存。記得執行發佈。", "success");
+      const data = await res.json();
+      applyZonePayload({ config: data.config || payload, music: zoneAssetPaths() });
+      zoneStatus(areaCount ? `已儲存共用曲與 ${areaCount} 區的獨立音樂。記得執行發佈。` : "已儲存。記得執行發佈。", "success");
     } catch (err) {
       zoneStatus(`儲存失敗：${err.message}`, "error");
     } finally {
@@ -610,7 +703,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function resetZoneMusicSettings() {
-    if (!window.confirm("確定要還原成預設的前台音樂嗎？")) return;
+    if (!window.confirm("確定要還原成預設的前台音樂嗎？四區的獨立選擇也會一起改回共用曲。")) return;
     const btn = zoneEls.reset;
     if (btn) btn.disabled = true;
     zoneStatus("還原中…");
@@ -622,10 +715,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (!res.ok) throw new Error(await readError(res));
       const data = await res.json();
-      const path = (data.config && data.config.music) || "assets/home-music.mp3";
-      addOption(zoneEls.select, path);
-      updateZoneMusicPreview(path);
-      zoneStatus("已還原成預設音樂。", "success");
+      applyZonePayload({ config: data.config || {}, music: zoneAssetPaths(), default: data.default || {} });
+      zoneStatus("已還原成預設音樂，四區也改回共用曲。", "success");
     } catch (err) {
       zoneStatus(`還原失敗：${err.message}`, "error");
     } finally {
@@ -657,6 +748,26 @@ document.addEventListener("DOMContentLoaded", () => {
       clear: document.getElementById(`art-${theme.id}-clear`)
     };
     artState[theme.id] = { image: "", alt: "", edition: "" };
+  });
+
+  // 單張卡片（37 張）：沒有自己圖片的卡沿用所屬主題圖
+  const artCardEls = {};
+  const artCardState = {};
+
+  [...document.querySelectorAll("#blessing-art-cards [data-art-card]")].forEach(node => {
+    const cardId = node.dataset.artCard;
+    if (!cardId || artCardEls[cardId]) return;
+    const base = `art-card-${cardId}`;
+    artCardEls[cardId] = {
+      file: document.getElementById(`${base}-file`),
+      alt: document.getElementById(`${base}-alt`),
+      edition: document.getElementById(`${base}-edition`),
+      preview: document.getElementById(`${base}-preview`),
+      save: document.getElementById(`${base}-save`),
+      clear: document.getElementById(`${base}-clear`)
+    };
+    // 卡片 ID 的前綴就是主題代號（work-01 → work）；GET 的 cards 列表載入後會再確認
+    artCardState[cardId] = { image: "", alt: "", edition: "", theme: String(cardId).split("-")[0] };
   });
 
   function artStatus(text, kind) {
@@ -702,6 +813,46 @@ document.addEventListener("DOMContentLoaded", () => {
     els.preview.hidden = false;
   }
 
+  function artCardTheme(cardId) {
+    return artThemeById(artCardState[cardId] ? artCardState[cardId].theme : "");
+  }
+
+  function artCardAltDefault(cardId) {
+    const theme = artCardTheme(cardId);
+    return `${theme ? theme.title : "收藏卡"} ${cardId} 收藏卡`;
+  }
+
+  // 卡片自己的圖優先，沒有就顯示所屬主題圖（前台也是這個回退順序）
+  function updateArtCardPreview(cardId) {
+    const els = artCardEls[cardId];
+    if (!els || !els.preview) return;
+    const state = artCardState[cardId];
+    const theme = artCardTheme(cardId);
+    const path = (state && state.image) || (theme ? artState[theme.id].image : "");
+    if (!path) {
+      els.preview.hidden = true;
+      els.preview.removeAttribute("src");
+      return;
+    }
+    els.preview.src = assetUrl(path);
+    els.preview.hidden = false;
+  }
+
+  function refreshCardPreviews(themeId) {
+    Object.keys(artCardEls).forEach(cardId => {
+      if (!themeId || artCardState[cardId].theme === themeId) updateArtCardPreview(cardId);
+    });
+  }
+
+  // GET 的 cards 只含 id／主題／出處（不含經文正文），用來確認每張卡的主題歸屬
+  function applyArtCardList(cards) {
+    (Array.isArray(cards) ? cards : []).forEach(item => {
+      if (!item || typeof item !== "object" || !artCardState[item.id]) return;
+      if (typeof item.theme === "string" && artThemeById(item.theme)) artCardState[item.id].theme = item.theme;
+    });
+    refreshCardPreviews();
+  }
+
   function applyArtConfig(config) {
     const safe = config && typeof config === "object" ? config : {};
     ART_THEMES.forEach(theme => {
@@ -714,6 +865,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (els.alt) els.alt.value = state.alt;
       if (els.edition) els.edition.value = state.edition;
       updateArtPreview(theme.id, state.image);
+    });
+    const cards = safe.cards && typeof safe.cards === "object" ? safe.cards : {};
+    Object.keys(artCardEls).forEach(cardId => {
+      const ent = cards[cardId] && typeof cards[cardId] === "object" ? cards[cardId] : {};
+      const state = artCardState[cardId];
+      state.image = typeof ent.image === "string" ? ent.image : "";
+      state.alt = typeof ent.alt === "string" ? ent.alt : "";
+      state.edition = typeof ent.edition === "string" ? ent.edition : "";
+      const els = artCardEls[cardId];
+      if (els.alt) els.alt.value = state.alt;
+      if (els.edition) els.edition.value = state.edition;
+      updateArtCardPreview(cardId);
     });
   }
 
@@ -734,6 +897,31 @@ document.addEventListener("DOMContentLoaded", () => {
     return config;
   }
 
+  // 單張卡片：只收有自己的圖片的卡；沒設定的卡不寫進設定，前台自動沿用主題圖
+  function currentArtCards(excludeCardId) {
+    const cards = {};
+    Object.keys(artCardEls).forEach(cardId => {
+      if (cardId === excludeCardId) return;
+      const image = artCardState[cardId].image;
+      if (!image) return;
+      const els = artCardEls[cardId];
+      let alt = (els.alt ? els.alt.value : artCardState[cardId].alt).trim();
+      if (!alt) alt = artCardAltDefault(cardId);
+      if (alt.length > 120) alt = alt.slice(0, 120);
+      const edition = (els.edition ? els.edition.value : artCardState[cardId].edition).trim().slice(0, 20);
+      cards[cardId] = { image, alt, edition };
+    });
+    return cards;
+  }
+
+  // 每一次 POST 都送完整物件（四個主題 + 單張卡），不會蓋掉沒動到的設定
+  function currentArtPayload(excludeThemeId, excludeCardId) {
+    const config = currentArtConfig(excludeThemeId);
+    const cards = currentArtCards(excludeCardId);
+    if (Object.keys(cards).length) config.cards = cards;
+    return config;
+  }
+
   function defaultArtEdition() {
     const now = new Date();
     return `${now.getFullYear()} 年 ${now.getMonth() + 1} 月版`;
@@ -742,6 +930,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function ensureArtAlt(theme) {
     const els = artEls[theme.id];
     if (els.alt && !els.alt.value.trim()) els.alt.value = `${theme.title}收藏卡`;
+  }
+
+  function ensureArtCardAlt(cardId) {
+    const els = artCardEls[cardId];
+    if (els.alt && !els.alt.value.trim()) els.alt.value = artCardAltDefault(cardId);
   }
 
   async function uploadArtFile(themeId, file) {
@@ -778,11 +971,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/blessing-art", {
         method: "POST",
         headers: writeHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(currentArtConfig())
+        body: JSON.stringify(currentArtPayload())
       });
       if (!res.ok) throw new Error(await readError(res));
       const data = await res.json();
-      applyArtConfig(data.config || currentArtConfig());
+      applyArtConfig(data.config || currentArtPayload());
       artStatus("已儲存。記得執行發佈。", "success");
     } catch (err) {
       artStatus(`儲存失敗：${err.message}`, "error");
@@ -802,7 +995,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/blessing-art", {
         method: "POST",
         headers: writeHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(currentArtConfig(themeId))
+        body: JSON.stringify(currentArtPayload(themeId))
       });
       if (!res.ok) throw new Error(await readError(res));
       const data = await res.json();
@@ -819,8 +1012,84 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function uploadArtCardFile(cardId, file) {
+    const els = artCardEls[cardId];
+    const state = artCardState[cardId];
+    if (!els || !state || !file) return;
+    const path = await uploadFile("image", file, {
+      select: null,
+      updatePreview: newPath => {
+        state.image = newPath;
+        updateArtCardPreview(cardId);
+      },
+      status: artStatus,
+      fileInput: els.file,
+      uploadedMessage: "已上傳，尚未儲存"
+    });
+    if (!path) return;
+    ensureArtCardAlt(cardId);
+    if (els.edition && !els.edition.value.trim()) els.edition.value = defaultArtEdition();
+    artStatus(`${cardId} 已上傳，尚未儲存`, "success");
+  }
+
+  async function saveArtCard(cardId) {
+    const els = artCardEls[cardId];
+    if (!els || !artCardState[cardId]) return;
+    if (!artCardState[cardId].image) {
+      artStatus(`${cardId}：請先上傳圖片，再儲存。`, "warning");
+      return;
+    }
+    ensureArtCardAlt(cardId);
+    const btn = els.save;
+    if (btn) btn.disabled = true;
+    artStatus(`${cardId} 儲存中…`);
+    try {
+      const res = await fetch("/api/blessing-art", {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(currentArtPayload())
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      applyArtConfig(data.config || currentArtPayload());
+      artStatus(`${cardId} 已儲存。記得執行發佈。`, "success");
+    } catch (err) {
+      artStatus(`${cardId} 儲存失敗：${err.message}`, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // 清除一張卡＝送出刪掉該 card key 的完整設定；其他卡全空時連 cards 一起不帶
+  async function clearArtCard(cardId) {
+    const els = artCardEls[cardId];
+    if (!els || !artCardState[cardId]) return;
+    const btn = els.clear;
+    if (btn) btn.disabled = true;
+    artStatus(`${cardId} 清除中…`);
+    try {
+      const res = await fetch("/api/blessing-art", {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(currentArtPayload(null, cardId))
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      artCardState[cardId].image = "";
+      if (els.alt) els.alt.value = "";
+      if (els.edition) els.edition.value = "";
+      updateArtCardPreview(cardId);
+      if (data.config) applyArtConfig(data.config);
+      artStatus(`${cardId} 已清除，改回主題圖。記得執行發佈。`, "success");
+    } catch (err) {
+      artStatus(`${cardId} 清除失敗：${err.message}`, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   async function resetAllArt() {
-    if (!window.confirm("確定要清除全部主題的收藏卡圖片嗎？")) return;
+    if (!window.confirm("確定要清除全部主題與單張卡片的收藏卡圖片嗎？")) return;
     const btn = document.querySelector("[data-art-reset]");
     if (btn) btn.disabled = true;
     artStatus("清除中…");
@@ -862,6 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const info = infos.find(item => item && item.id === theme.id);
         renderArtThemeInfo(info || { id: theme.id, count: 0, refs: [] });
       });
+      applyArtCardList(data.cards);
       applyArtConfig(data.config || {});
       artStatus("已載入目前設定。", "success");
     } catch (err) {
@@ -900,16 +1170,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (zoneEls.section) {
     if (zoneEls.select) {
-      zoneEls.select.addEventListener("change", () => updateZoneMusicPreview(zoneEls.select.value));
+      // 換共用曲時，留空（沿用共用曲）的區塊試聽跟著換
+      zoneEls.select.addEventListener("change", () => {
+        updateZoneMusicPreview(zoneEls.select.value);
+        ZONE_AREAS.forEach(area => updateZoneAreaPreview(area.id));
+      });
     }
+    ZONE_AREAS.forEach(area => {
+      const els = zoneEls.areas[area.id];
+      if (els.select) {
+        els.select.addEventListener("change", () => updateZoneAreaPreview(area.id));
+      }
+    });
     if (zoneEls.file) {
-      zoneEls.file.addEventListener("change", () => uploadFile("music", zoneEls.file.files[0], {
-        select: zoneEls.select,
-        updatePreview: updateZoneMusicPreview,
-        status: zoneStatus,
-        fileInput: zoneEls.file,
-        uploadedMessage: "已上傳，尚未儲存"
-      }));
+      zoneEls.file.addEventListener("change", async () => {
+        const path = await uploadFile("music", zoneEls.file.files[0], {
+          select: zoneEls.select,
+          updatePreview: updateZoneMusicPreview,
+          status: zoneStatus,
+          fileInput: zoneEls.file,
+          uploadedMessage: "已上傳，尚未儲存"
+        });
+        if (path) {
+          addZoneAreaOption(path);
+          ZONE_AREAS.forEach(area => updateZoneAreaPreview(area.id));
+        }
+      });
     }
     if (zoneEls.save) zoneEls.save.addEventListener("click", saveZoneMusicSettings);
     if (zoneEls.reset) zoneEls.reset.addEventListener("click", resetZoneMusicSettings);
@@ -929,6 +1215,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (els.save) els.save.addEventListener("click", () => saveArtTheme(theme.id));
       if (els.clear) els.clear.addEventListener("click", () => clearArtTheme(theme.id));
+    });
+
+    Object.keys(artCardEls).forEach(cardId => {
+      const els = artCardEls[cardId];
+      if (els.file) {
+        els.file.addEventListener("change", () => {
+          const file = els.file.files && els.file.files[0];
+          if (file) uploadArtCardFile(cardId, file);
+        });
+      }
+      if (els.save) els.save.addEventListener("click", () => saveArtCard(cardId));
+      if (els.clear) els.clear.addEventListener("click", () => clearArtCard(cardId));
     });
 
     const artResetBtn = document.querySelector("[data-art-reset]");

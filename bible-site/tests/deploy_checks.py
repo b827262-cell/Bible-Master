@@ -77,7 +77,12 @@ def bundle():
         cfg = json.load(open(os.path.join(out, "data", "home.json"), encoding="utf-8")) if "data/home.json" in files else {}
         check("home.json 指定的圖片與音樂、預設素材都在 dist/site/assets", all(os.path.isfile(os.path.join(out, "site", p)) for p in (cfg.get("image", "x"), cfg.get("music", "x"), "assets/jordan.jpg", "assets/home-music.mp3")))
         zcfg = json.load(open(os.path.join(out, "data", "zone-music.json"), encoding="utf-8")) if "data/zone-music.json" in files else {}
-        check("zone-music.json 指定的音樂在 dist/site/assets", os.path.isfile(os.path.join(out, "site", zcfg.get("music", "x"))), str(zcfg))
+        check("zone-music.json 指定的音樂在 dist/site/assets",
+              all(os.path.isfile(os.path.join(out, "site", path)) for path in [zcfg.get("music", "x"), *(zcfg.get("zones") or {}).values()]), str(zcfg))
+        artcfg = json.load(open(os.path.join(out, "data", "blessing-art.json"), encoding="utf-8")) if "data/blessing-art.json" in files else {}
+        artpaths = [v["image"] for k, v in artcfg.items() if k != "cards"] + [v["image"] for v in artcfg.get("cards", {}).values()]
+        check("blessing-art.json 指定的主題與 cards 單卡圖片都在 dist/site/assets",
+              all(os.path.isfile(os.path.join(out, "site", path)) for path in artpaths), str(artpaths[:3]))
         # unreferenced upload is skipped; a referenced one ships (built from a temp copy, never from the live files)
         copy = os.path.join(tmp, "copy")
         shutil.copytree(os.path.join(SITE_ROOT, "site"), os.path.join(copy, "site"))
@@ -90,16 +95,21 @@ def bundle():
         json.dump(c, open(os.path.join(copy, "data", "home.json"), "w", encoding="utf-8"), ensure_ascii=False)
         for n in ("zone-stray", "zone-used"):
             open(os.path.join(copy, "site", "assets", f"upload-{n}.mp3"), "wb").write(b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb\x90\x00" + b"\0" * 64)
-        json.dump({"music": "assets/upload-zone-used.mp3"}, open(os.path.join(copy, "data", "zone-music.json"), "w", encoding="utf-8"))
+        json.dump({"music": "assets/home-music.mp3", "zones": {"index": "assets/upload-zone-used.mp3"}},
+                  open(os.path.join(copy, "data", "zone-music.json"), "w", encoding="utf-8"))
         for n in ("art-stray", "art-used"):
             open(os.path.join(copy, "site", "assets", f"upload-{n}.png"), "wb").write(b"\x89PNG\r\n\x1a\n" + b"\0" * 64)
-        json.dump({"work": {"image": "assets/upload-art-used.png", "alt": "測試", "edition": "2026 年 11 月版"}}, open(os.path.join(copy, "data", "blessing-art.json"), "w", encoding="utf-8"), ensure_ascii=False)
+        json.dump({"work": {"image": "assets/jordan.jpg", "alt": "主題圖片", "edition": ""},
+                   "cards": {"work-03": {"image": "assets/upload-art-used.png", "alt": "單卡圖片", "edition": "2026 年 11 月版"}}},
+                  open(os.path.join(copy, "data", "blessing-art.json"), "w", encoding="utf-8"), ensure_ascii=False)
         out2 = os.path.join(tmp, "dist2")
         subprocess.run([sys.executable, BUILD, "--out", out2, "--root", copy], capture_output=True, timeout=120)
         f2 = listing(out2) if os.path.isdir(out2) else []
         check("沒被使用的上傳檔不會發佈，home.json 指定的上傳檔會發佈", "site/assets/upload-stray.png" not in f2 and "site/assets/upload-used.png" in f2)
-        check("沒被使用的收藏卡圖不會發佈，blessing-art.json 指定的圖會發佈", "site/assets/upload-art-stray.png" not in f2 and "site/assets/upload-art-used.png" in f2)
-        check("沒被使用的上傳音樂不會發佈，zone-music.json 指定的上傳音樂會發佈", "site/assets/upload-zone-stray.mp3" not in f2 and "site/assets/upload-zone-used.mp3" in f2)
+        check("沒被使用的收藏卡圖不會發佈，cards 單卡指定的圖會發佈",
+              "site/assets/upload-art-stray.png" not in f2 and "site/assets/upload-art-used.png" in f2)
+        check("沒被使用的上傳音樂不會發佈，zones 中指定的曲目會發佈",
+              "site/assets/upload-zone-stray.mp3" not in f2 and "site/assets/upload-zone-used.mp3" in f2)
         # serve dist and fetch the pages the way a browser would (relative ../data paths must work)
         handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=out)
         http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
