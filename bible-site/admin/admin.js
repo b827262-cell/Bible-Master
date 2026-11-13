@@ -106,6 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       `).join("");
+      const timeEl = document.getElementById("model-probe-time");
+      if (timeEl && data.timestamp) timeEl.textContent = ` · 上次探測 ${data.timestamp.slice(11, 16)}`;
     } catch (err) {
       console.error("無法取得模型節點狀態:", err);
     }
@@ -1410,4 +1412,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     loadStatus();
   }, 15000);
+
+  // 地端模型叢集每 20 分鐘探測一次
+  setInterval(() => {
+    loadModels();
+  }, 20 * 60 * 1000);
 });

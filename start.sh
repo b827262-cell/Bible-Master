@@ -34,10 +34,21 @@ fi
 cd "${PROJECT_ROOT}"
 
 # 本機覆寫（不納入版控）：存在 .env.local 時載入，例如 BACKEND_PORT=8092
+# 呼叫端已明確指定的環境變數優先於 .env.local（測試用自己的埠啟動時不可被本機覆寫蓋掉）。
+_PRESET_VARS=()
+for _v in FRONTEND_PORT BACKEND_PORT BIND_HOST BACKEND_BIND; do
+  if [ -n "${!_v+x}" ]; then
+    _PRESET_VARS+=("${_v}=${!_v}")
+  fi
+done
 if [ -f "${PROJECT_ROOT}/.env.local" ]; then
   # shellcheck disable=SC1091
   . "${PROJECT_ROOT}/.env.local"
 fi
+for _v in "${_PRESET_VARS[@]}"; do
+  export "${_v?}"
+done
+unset _v _PRESET_VARS
 
 # 參數與目錄配置
 FRONTEND_PORT="${FRONTEND_PORT:-8090}"
@@ -184,21 +195,15 @@ check_status() {
   echo -e "${BOLD}--- [ 地端 AI 模型叢集連線狀態 ] ---${NC}"
   probe() { curl -s -m 2 -o /dev/null -w '%{http_code}' "$1" 2>/dev/null || echo "000"; }
   
-  [ "$(probe http://127.0.0.1:8082/health)" = "200" ] && \
-    echo -e " 🤖 E500 主編 (RTX 3060 · 27B · :8082):        ${GREEN}● 在線${NC}" || \
-    echo -e " 🤖 E500 主編 (RTX 3060 · 27B · :8082):        ${YELLOW}○ 離線${NC}"
-
-  [ "$(probe http://127.0.0.1:18083/health)" = "200" ] && \
-    echo -e " 🤖 A16 審核 Tunnel (Bonsai 9B · :18083):      ${GREEN}● 在線${NC}" || \
-    echo -e " 🤖 A16 審核 Tunnel (Bonsai 9B · :18083):      ${YELLOW}○ 離線${NC}"
-
-  [ "$(probe http://127.0.0.1:18087/api/tags)" = "200" ] && \
-    echo -e " 🤖 De1050 測試 Tunnel (Qwen 4B · :18087):     ${GREEN}● 在線${NC}" || \
-    echo -e " 🤖 De1050 測試 Tunnel (Qwen 4B · :18087):     ${YELLOW}○ 離線${NC}"
-
-  [ "$(probe http://127.0.0.1:3080/)" != "000" ] && \
-    echo -e " 🖥️  Harness Web 控制台 (:3080):                ${GREEN}● 在線${NC}" || \
-    echo -e " 🖥️  Harness Web 控制台 (:3080):                ${YELLOW}○ 離線${NC}"
+  # 三台地端機器的 Ollama（預設埠 11434）；Harness Web 控制台已停用，不再探測
+  local node
+  for node in "E500 主編|10.0.3.68" "TUF A16 審核|10.0.3.71" "De1050 測試|10.0.3.70"; do
+    if [ "$(probe "http://${node#*|}:11434/api/tags")" = "200" ]; then
+      echo -e " 🤖 ${node%%|*} Ollama (${node#*|}:11434): ${GREEN}● 在線${NC}"
+    else
+      echo -e " 🤖 ${node%%|*} Ollama (${node#*|}:11434): ${YELLOW}○ 離線${NC}"
+    fi
+  done
   echo ""
 }
 

@@ -2,7 +2,7 @@
 """Bible-Master Admin & Operations Backend Server
 零外部依賴（純 Python 3 標準庫），提供專案管理儀表板與 REST API：
   - 專案總覽與四福音統計（3,776 節）
-  - 地端 AI 模型節點健康檢查 (E500, A16, De1050, Harness)
+  - 地端 AI 模型節點健康檢查 (E500, A16, De1050 的 Ollama)
   - 自動化測試觸發 (check_all.py, visual_checks.py, verify_text.py)
   - 測試報告、派工進度與任務追蹤
 """
@@ -36,42 +36,34 @@ BOOKS = [
     ("jhn", "約翰福音", 21, 878),
 ]
 
+# 三台地端機器的 Ollama（預設埠 11434）。Harness Web 控制台已停用，不再探測。
 MODEL_NODES = [
     {
         "id": "e500",
-        "name": "E500 (主編 · Bonsai 2 27B 160K)",
-        "host": "127.0.0.1",
-        "port": 8082,
-        "url": "http://127.0.0.1:8082/health",
-        "alt_url": "http://127.0.0.1:8082/v1/models",
-        "hint": "~/project/Bonsai-demo/start_e500_pq2_160k.sh"
+        "name": "E500 Ollama（主編）",
+        "host": "10.0.3.68",
+        "port": 11434,
+        "url": "http://10.0.3.68:11434/api/tags",
+        "alt_url": "http://10.0.3.68:11434/v1/models",
+        "hint": "在 E500 上執行：systemctl start ollama（需設 OLLAMA_HOST=0.0.0.0 才能從區網連入）"
     },
     {
         "id": "a16",
-        "name": "TUF A16 Tunnel (審核 · Bonsai 2 9B 128K)",
-        "host": "127.0.0.1",
-        "port": 18083,
-        "url": "http://127.0.0.1:18083/health",
-        "alt_url": "http://127.0.0.1:18083/v1/models",
-        "hint": "systemctl --user start bonsai-a16-tunnel"
+        "name": "TUF A16 Ollama（審核）",
+        "host": "10.0.3.71",
+        "port": 11434,
+        "url": "http://10.0.3.71:11434/api/tags",
+        "alt_url": "http://10.0.3.71:11434/v1/models",
+        "hint": "在 TUF A16 上執行：systemctl start ollama（需設 OLLAMA_HOST=0.0.0.0 才能從區網連入）"
     },
     {
         "id": "de1050",
-        "name": "De1050 Tunnel (測試 · Qwen 3.5 4B 48K)",
-        "host": "127.0.0.1",
-        "port": 18087,
-        "url": "http://127.0.0.1:18087/api/tags",
-        "alt_url": "http://127.0.0.1:18087/v1/models",
-        "hint": "systemctl --user start bonsai-de1050-tunnel"
-    },
-    {
-        "id": "harness",
-        "name": "Harness Web 控制台",
-        "host": "127.0.0.1",
-        "port": 3080,
-        "url": "http://127.0.0.1:3080/",
-        "alt_url": None,
-        "hint": "npx @deepseek-ai/dsh web --no-open"
+        "name": "De1050 Ollama（測試）",
+        "host": "10.0.3.70",
+        "port": 11434,
+        "url": "http://10.0.3.70:11434/api/tags",
+        "alt_url": "http://10.0.3.70:11434/v1/models",
+        "hint": "在 De1050 上執行：systemctl start ollama（需設 OLLAMA_HOST=0.0.0.0 才能從區網連入）"
     }
 ]
 
