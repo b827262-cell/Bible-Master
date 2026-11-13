@@ -8,8 +8,10 @@
 5. home (site/home.html, assets, root redirect): see home_static() and home_render().
 6. zonemusic (site/music.js on index/search/card/blessing, data/zone-music.json, tests/zone_probe.html): see zone_static() and zone_render().
 7. blessart (data/blessing-art.json + site/blessing.html: one collectible art image per theme, direct download, canvas composite) and blessing_frozen() (the 37 cards are fixed).
+8. devotional (site/devotional.html + site/devotional.js): the fake data/devotional.json is written only into a /tmp copy of site/ + data/, carries just ids, dates, titles, references, ranges and placeholder prose, and the expected scripture is computed at run time from data/{mat,mrk,luk,jhn}.json — no verse is ever hard-coded here. See devotional_static() and devotional_variants().
+9. restyle (2026-11 redesign, the checks come first): the two gold-eagle card images (size/weight/licence and registered in ASSETS-LICENSE.md), the sample's colour tokens in style.css (light and dark), the sunlight verse colour, the five-item bottom floating dock on every front-end page, the hero picture never overlapping today's verse at 320/375/768/1440px, the bento entrances with the B-A-B fan cards, and the three micro-interaction states (busy / ok / fix) with text, distinct icons and a live region. See restyle_assets(), restyle_shared() and restyle_render() — they fail until the pages are restyled, by design.
 """
-import functools, html, http.server, json, os, re, socketserver, subprocess, sys, tempfile, threading, urllib.parse, urllib.request
+import datetime, functools, html, http.server, json, os, re, socketserver, subprocess, sys, tempfile, threading, urllib.parse, urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SITE = os.path.join(ROOT, "site")
@@ -159,20 +161,38 @@ def blessing_state(port, url, act=None, width=None):
         return {}
 
 
-PALETTE = {  # BLESSING-STYLE-REVIEW-PM.md (B): light, dark
-    "--bg": ("#f7f5ef", "#161513"), "--surface": ("#ffffff", "#22201c"), "--card-bg": ("#fffcf5", "#28251f"),
-    "--fg": ("#2c2b28", "#ede9df"), "--muted": ("#635f56", "#aba69b"), "--border": ("#ded8cc", "#3d3932"),
-    "--accent": ("#7a4a1f", "#deb068"), "--accent-fg": ("#ffffff", "#171614"), "--accent-soft": ("#f3ead8", "#352c1e")}
+PALETTE = {  # design/sample-2026-11.html 的 :root（2026-11 改版唯一的視覺依據）：淺色, 深色
+    "--paper": ("#f3f6f2", "#0a1412"), "--surface": ("#ffffff", "#121f1c"), "--ink": ("#10231f", "#e9f1ee"),
+    "--muted": ("#586a64", "#94a8a1"), "--river": ("#0e6b5b", "#55d3b7"), "--river-soft": ("#dcefe9", "#16302a"),
+    "--lamp": ("#c98a1b", "#f0bf5c"), "--mat": ("#c98a1b", "#f0bf5c"), "--mrk": ("#d9583b", "#ff8a6b"),
+    "--luk": ("#0e6b5b", "#55d3b7"), "--jhn": ("#3d55c4", "#8fa2ff")}
+SUNLIGHT = "#fdf2da"          # 樣本取樣：照片裡灑在人物身上的光；首页今日經文必須同色
+SUNLIGHT_RGB = "rgb(253, 242, 218)"
+NAV5 = [("首頁", "home.html"), ("目錄", "index.html"), ("禱讀", "devotional.html"), ("抽卡", "blessing.html"), ("搜尋", "search.html")]
+DOCK_PAGES = ["home.html", "index.html", "chapter.html?book=mat&ch=1", "search.html?q=耶穌", "card.html?book=luk&ch=1&v=1",
+              "blessing.html", "devotional.html"]
+
+
+def css_vars(css):
+    """取 :root 淺色與深色兩套變數（深色可以是 @media 或 :root[data-theme="dark"]）。"""
+    light = re.search(r"^:root\s*\{(.*?)\}", css, re.S | re.M)
+    dark = re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*:root[^{]*\{(.*?)\}", css, re.S | re.M)
+    if not dark:
+        dark = re.search(r':root\[data-theme="dark"\]\s*\{(.*?)\}', css, re.S)
+    got = {}
+    for i, block in enumerate((light, dark)):
+        for k, v in re.findall(r"(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})", block.group(1) if block else ""):
+            got.setdefault(k, [None, None])[i] = v.lower()
+    return got, bool(light), bool(dark)
 
 
 def blessing_style(port, card_ok):
     css = open(os.path.join(SITE, "style.css"), encoding="utf-8").read()
-    light = re.search(r"^:root\s*\{(.*?)\}", css, re.S | re.M)
-    dark = re.search(r"prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{(.*?)\}", css, re.S)
-    for i, (scheme, block) in enumerate((("淺色", light), ("深色", dark))):
-        got = dict(re.findall(r"(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{6})", block.group(1))) if block else {}
-        bad = [f"{k} {got.get(k)}≠{v[i]}" for k, v in PALETTE.items() if (got.get(k) or "").lower() != v[i]]
-        check(f"style.css {scheme}配色變數等於審查定案的配色表（含 --card-bg、--accent-soft）", not bad, "；".join(bad))
+    got, has_light, has_dark = css_vars(css)
+    for i, scheme in enumerate(("淺色", "深色")):
+        bad = [f"{k} {got.get(k, [None, None])[i]}≠{v[i]}" for k, v in PALETTE.items() if (got.get(k, [None, None])[i] or "") != v[i]]
+        check(f"style.css {scheme}配色變數等於 2026-11 樣本（--paper／--ink／--river／--lamp＋四卷色，含 --river-soft）",
+              (has_light if i == 0 else has_dark) and not bad, "；".join(bad) or "找不到該套 :root 變數")
     st = blessing_state(port, "blessing.html?card=work-01")
     s = st.get("style") or {}
     ok, why = card_ok(st.get("card"), st.get("canvasRef"), "work-01")
@@ -182,7 +202,7 @@ def blessing_style(port, card_ok):
           why or json.dumps({"canvasShown": s.get("canvasShown"), "pixels": px}, ensure_ascii=False))
     active = [t["id"] for t in s.get("tabs", []) if t["active"]]
     want = sorted(["again-btn"] + ["theme:" + a for a in active])
-    check("blessing.html 實心 accent 按鈕只有兩顆：選中的主題與「再抽一次」", sorted(s.get("solid", [])) == want and len(want) == 2,
+    check("blessing.html 實心主色（翠綠）按鈕只有兩顆：選中的主題與「再抽一次」", sorted(s.get("solid", [])) == want and len(want) == 2,
           f"實心：{s.get('solid')}")
     tabs = s.get("tabs", [])
     for w in (320, 375, 1000):
@@ -200,9 +220,15 @@ def blessing_style(port, card_ok):
     check("blessing.html「下載圖片」「分享」是次要樣式（surface 底色＋邊框）",
           len(sec) == 2 and all(b.get("bg") == s.get("surface") and b.get("border", 0) >= 1 for b in sec), json.dumps(sec))
     v = s.get("verse") or {}
-    check("blessing.html 經文用明體（serif），左側有 ≥3px accent 豎線",
-          "serif" in v.get("font", "") and "sans-serif" not in v.get("font", "") and v.get("left", 0) >= 3 and v.get("leftColor") == s.get("accent"),
+    check("blessing.html 經文用明體（--display 那組系統字型），不再是舊版左側 3px 棕色豎線（改以大號明體呈現）",
+          "serif" in v.get("font", "") and "sans-serif" not in v.get("font", "") and v.get("left", 99) <= 1 and v.get("px", 0) >= 20,
           json.dumps(v, ensure_ascii=False))
+    pill = s.get("pills") or {}
+    check("blessing.html 的動作按鈕是膠囊形（圓角 ≥ 元素高度的一半）",
+          bool(pill) and pill.get("radius", 0) + 0.5 >= pill.get("h", 1e9) / 2, json.dumps(pill))
+    cov = s.get("cover") or {}
+    check("blessing.html 抽卡前的畫面顯示金色飛鷹卡背圖（eagle-A 由共用樣式提供，不是愛心＋空白）",
+          bool(cov.get("hasA")) and cov.get("shown") is True and not cov.get("blankBlock"), json.dumps(cov, ensure_ascii=False)[:200])
     check("blessing.html 署名前有「——」（用 CSS 加，署名文字仍是「愛你的天父」）", "——" in (s.get("signBefore") or ""), str(s.get("signBefore")))
     rl = s.get("readLink") or {}
     check("blessing.html「閱讀本章 →」連結在卡片內、與出處同一列、在動作按鈕之前",
@@ -251,8 +277,12 @@ def blessing_render(port, groups):
 
     base = f"http://127.0.0.1:{port}/site/"
     if "blessnav" in groups:
+        app = open(os.path.join(SITE, "app.js"), encoding="utf-8").read()
         for page in ("index.html", "chapter.html?ch=1", "search.html", "card.html"):
-            check(f"{page.split('?')[0]} 的導覽列有「抽經文卡」連結（指向 blessing.html）", "抽經文卡" in dump(base + page) and "blessing.html" in open(os.path.join(SITE, "app.js"), encoding="utf-8").read())
+            src = dump(base + page)
+            check(f"{page.split('?')[0]} 的導覽列有「抽卡」（或含「抽」字）連結，指向 blessing.html",
+                  re.search(r"抽[^\s<]{0,3}", src) is not None and "blessing.html" in app,
+                  "找不到抽卡連結" if "blessing.html" not in app else "導覽文字沒有「抽」字")
     if "blessindex" in groups:
         idx = open(os.path.join(SITE, "index.html"), encoding="utf-8").read()
         check("index.html 的 <main> 內有指向 blessing.html 的入口連結", re.search(r"<main[^>]*>.*?<a[^>]+href=\"blessing\.html\"[^>]*>[^<]*抽[^<]*</a>.*?</main>", idx, re.S) is not None)
@@ -343,9 +373,11 @@ def home_data():
     check("home.json 沒有任何經文文字（沒有連續 8 字與經文相同）", not hit, "；".join(hit[:3]))
 
 
-def home_state(port, click=False, width=None):
-    """Open site/home.html in tests/home_probe.html (autoplay allowed, so the music button can be tested) and return its state."""
-    q = "u=" + urllib.parse.quote("../site/home.html", safe="") + ("&click=1" if click else "") + (f"&w={width}" if width else "")
+def home_state(port, click=False, width=None, page="home.html", do=None, wides=False):
+    """Open a front-end page in tests/home_probe.html (autoplay allowed, so the music button can be tested) and return its state.
+    ?do=empty|hit|miss 跑一趟搜尋三種狀態；?wides=1 在同一輪內依序量 320／375／768／1440 的主視覺幾何。"""
+    q = "u=" + urllib.parse.quote("../site/" + page, safe="") + ("&click=1" if click else "") + (f"&w={width}" if width else "") \
+        + (f"&do={do}" if do else "") + ("&wides=1" if wides else "")
     with tempfile.TemporaryDirectory() as profile:
         out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=15000",
                               "--autoplay-policy=no-user-gesture-required", f"--user-data-dir={profile}", "--dump-dom",
@@ -441,7 +473,8 @@ def home_render(port, root=None, label=""):
     get = lambda key: next((h for t, h in links.items() if key in t), None)
     check("「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html", get("進入四福音") == "index.html" and get("抽一張經文卡") == "blessing.html", json.dumps(links, ensure_ascii=False))
     check(f"「閱讀本章」{label}連到 home.json 指定那一章的那一節", get("閱讀本章") == f"chapter.html?book={cfg['book']}&ch={cfg['ch']}#v{cfg['v']}", str(get("閱讀本章")))
-    check("home.html 的導覽列有四項、沒有任何一項標成目前頁、h1 是「四福音」", st.get("navCount") == 4 and st.get("navActive") == 0 and "四福音" in st.get("h1", ""), f"nav {st.get('navCount')}/{st.get('navActive')} h1 {st.get('h1')}")
+    check("home.html 的導覽列有五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標成目前頁、h1 是「四福音」",
+          st.get("navCount") == 5 and st.get("navActive") == 1 and "四福音" in st.get("h1", ""), f"nav {st.get('navCount')}/{st.get('navActive')} h1 {st.get('h1')}")
 
 
 def home_variants():
@@ -632,7 +665,7 @@ def zone_render(port, root=None, label="", pages=None, width=None):
     check(f"zonemusic{tag}：沒有 JavaScript 錯誤", not err, "；".join(err[:3]))
     box = [s for s in seq if s]
     check(f"zonemusic{tag}：按鈕至少 44×44、在視窗內、頁面沒有水平溢出", bool(box) and all(s.get("w", 0) >= 44 and s.get("h", 0) >= 44 and s.get("right", 9999) <= s.get("vw", 0) and s.get("bottom", 9999) <= s.get("vh", 0) and s.get("scrollW", 9999) <= s.get("vw", 0) for s in box), json.dumps(box[:1], ensure_ascii=False))
-    check(f"zonemusic{tag}：導覽列仍是四項、恰有一項標成目前頁", bool(box) and all(s.get("navCount") == 4 and s.get("navActive") == 1 for s in box), json.dumps([(s.get("navCount"), s.get("navActive")) for s in box]))
+    check(f"zonemusic{tag}：導覽列是五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標成目前頁", bool(box) and all(s.get("count") == 5 and s.get("active") == 1 for s in box), json.dumps([(s.get("count"), s.get("active")) for s in box]))
 
 
 def zone_variants():
@@ -711,7 +744,9 @@ def blessart_static():
     src = open(os.path.join(SITE, "blessing.html"), encoding="utf-8").read()
     check("blessart：blessing.html 讀 ../data/blessing-art.json（失敗時當作沒有圖）", "blessing-art.json" in src and "fetch(" in src)
     check("blessart：blessing.html 有 .card-art 畫框、.card-edition 版次、a#art-download（有 download 屬性）", "card-art" in src and "card-edition" in src and 'id="art-download"' in src and "download" in src)
-    check("blessart：blessing.html 的圖片來源只來自設定檔（原始碼沒有寫死 assets/ 圖檔）", not re.search(r"assets/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)", src, re.I))
+    check("blessart：blessing.html 的收藏卡主題圖只來自設定檔（原始碼沒有寫死上傳圖檔名；2026-11 的固定飛鷹卡背由 style.css／app.js 提供，另有檢查）",
+          not re.search(r"assets/(upload-[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp))", src, re.I),
+          "、".join(re.findall(r"assets/upload-[A-Za-z0-9._-]+", src, re.I)[:4]))
     art_convert_check()
 
 
@@ -837,6 +872,596 @@ def blessart_render(port, root, label, art):
     check(f"blessart{label}：沒有 JavaScript 錯誤", not errs, "；".join(errs[:3]))
 
 
+# ---------- devotional：每日禱讀（site/devotional.html + site/devotional.js + data/devotional.json）
+# 鐵則：這個段落不寫死任何經文。測試用的 data/devotional.json 只在 /tmp 的暫存副本裡產生，
+# 內容只有 id、日期、標題、出處文字、ranges 與佔位內文；預期的經文一律由 Python 在測試時
+# 依 ranges 從 data/{mat,mrk,luk,jhn}.json 動態讀出，再與 headless Chrome 渲染後的結果逐節比對。
+DEVOTIONAL_TITLES = {"MAT": "mat", "MRK": "mrk", "LUK": "luk", "JHN": "jhn"}
+DEVOTIONAL_MSG_NONE = "此日期尚無已審核的禱讀內容。"
+DEVOTIONAL_MSG_DATA = "禱讀資料載入失敗，請稍後再試。"
+DEVOTIONAL_MSG_VERSE = "經文載入失敗，請稍後再試。"
+
+DEVOTIONAL_PROBE = """<!doctype html>
+<meta charset="utf-8">
+<!-- 由 tests/site_checks.py 寫進 /tmp 的暫存副本後使用（不要放進工作樹）。
+     在 iframe 裡開啟 ?u=<頁面>，可帶 ?acts=<[{setdate:"YYYY-MM-DD"}]> 換日期、?widths=320,375 依序量多種寬度。
+     寫入一行 JSON：PROBE {"cases":[{status,nodes,dateValue,dateMax,nav,home,ext,scrollW,clientW,over,width}],"errors":[..]} -->
+<pre id="out">running</pre>
+<script>
+const qs = new URLSearchParams(location.search);
+const ACTS = JSON.parse(qs.get("acts") || "[]");
+const WIDTHS = (qs.get("widths") || "").split(",").filter(Boolean).map(Number);
+const errors = [];
+const sleep = t => new Promise(r => setTimeout(r, t));
+window.addEventListener("message", e => {
+  if (e.origin === location.origin && e.data && e.data.kind === "devotional-probe-error") {
+    errors.push(e.data.type + ": " + e.data.message);
+  }
+});
+async function openFrame(url, w, h) {
+  const f = document.createElement("iframe");
+  f.style.cssText = "width:" + w + "px;height:" + h + "px;border:0;display:block";
+  const loaded = new Promise(resolve => f.addEventListener("load", resolve, {once: true}));
+  f.src = url;
+  document.body.appendChild(f);
+  await loaded;
+  // 等頁面把「正在載入…」換成最終狀態（最長 8 秒）
+  for (let i = 0; i < 80; i++) {
+    await sleep(100);
+    const s = f.contentDocument.getElementById("reading-status");
+    if (s && s.textContent.indexOf("正在") !== 0) break;
+  }
+  await sleep(200);
+  return f;
+}
+function snapshot(f, w) {
+  const d = f.contentDocument, win = f.contentWindow, read = d.getElementById("reading");
+  const leaves = read ? [...read.querySelectorAll("*")].filter(e => !e.querySelector("*")).map(e => ({tag: e.tagName.toLowerCase(), text: e.textContent})) : [];
+  const date = d.getElementById("reading-date") || {};
+  const cw = d.documentElement.clientWidth;
+  return {status: (d.getElementById("reading-status") || {}).textContent || "", nodes: leaves,
+          headings: leaves.filter(n => /^h\\d$/.test(n.tag)).map(n => n.text),
+          dateValue: date.value || "", dateMax: date.max || "",
+          nav: [...d.querySelectorAll("#nav a, .dock a")].map(a => ({href: a.getAttribute("href"), text: a.textContent.trim()})),
+          navActive: [...d.querySelectorAll("#nav a, .dock a")].filter(a => a.getAttribute("aria-current") === "page" || a.classList.contains("active")).length,
+          home: !!d.querySelector('a[href="home.html"]'),
+          ext: win.performance.getEntriesByType("resource").map(r => r.name).filter(u => u.indexOf(location.origin) !== 0 && !/^data:/.test(u)),
+          scrollW: d.documentElement.scrollWidth, clientW: cw,
+          over: [...d.querySelectorAll("#reading *, #reading")].filter(e => e.getBoundingClientRect().right > cw + 1).map(e => e.tagName.toLowerCase()).slice(0, 6),
+          width: w};
+}
+(async () => {
+  const url = qs.get("u"), cases = [];
+  if (WIDTHS.length) {
+    for (const w of WIDTHS) { cases.push(snapshot(await openFrame(url, w, 900), w)); }
+  } else {
+    const f = await openFrame(url, Number(qs.get("w") || 1000), 1400);
+    cases.push(snapshot(f, Number(qs.get("w") || 1000)));
+    for (const a of ACTS) {
+      const el = f.contentDocument.getElementById("reading-date");
+      if (el && a.setdate) { el.value = a.setdate; el.dispatchEvent(new Event("change", {bubbles: true})); }
+      await sleep(1200);
+      cases.push(snapshot(f, Number(qs.get("w") || 1000)));
+    }
+  }
+  await sleep(50);
+  document.getElementById("out").textContent = "PROBE " + JSON.stringify({cases, errors});
+})();
+</script>
+"""
+
+
+def devotional_today():
+    """台灣（Asia/Taipei，無日光節約）今天的 YYYY-MM-DD，以及昨天。"""
+    tw = datetime.timezone(datetime.timedelta(hours=8))
+    today = datetime.datetime.now(tw).date()
+    return today.isoformat(), (today - datetime.timedelta(days=1)).isoformat()
+
+
+def devotional_fake(today, yday):
+    """暫存副本用的假資料：只有 id／日期／標題／出處文字／ranges＋佔位內文，一個經文字句都不寫。"""
+    def rng(book, ch, vend, ch2=None, vend2=None):
+        return {"book": book, "start_chapter": ch, "start_verse": 1, "end_chapter": ch2 or ch, "end_verse": vend2 or vend}
+    return [
+        {"id": 1, "devotional_date": today, "title": "測試禱讀標題甲", "scripture_reference": "測試出處甲 MAT 5",
+         "ranges": [rng("MAT", 5, 12)], "summary": "測試默想段落甲", "reflection": "測試反思問題甲", "prayer": "測試禱告內容甲"},
+        {"id": 2, "devotional_date": yday, "title": "測試禱讀標題乙", "scripture_reference": "測試出處乙 LUK 1＋JHN 3",
+         "ranges": [rng("LUK", 1, 4), rng("JHN", 3, 3)],
+         "summary": "測試默想段落乙", "reflection": "測試反思問題乙", "prayer": "測試禱告內容乙"},
+    ]
+
+
+def devotional_expected(entry, books):
+    """依 ranges 從四福音 JSON 算出預期經文：每節「章:節 文字」，合併節「章:節–末節 文字」。"""
+    if not isinstance(entry, dict) or not isinstance(entry.get("ranges"), list) or not entry["ranges"]:
+        return None
+    out = []
+    for r in entry["ranges"]:
+        if not isinstance(r, dict):
+            return None
+        key = DEVOTIONAL_TITLES.get(r.get("book"))
+        start_ch = r.get("start_chapter")
+        start_v = r.get("start_verse")
+        end_ch = r.get("end_chapter")
+        end_v = r.get("end_verse")
+        if (not key or any(type(n) is not int or n < 1 for n in (start_ch, start_v, end_ch, end_v))
+                or end_ch < start_ch):
+            return None
+        chapters = books.get(key, [])
+        start_data = next((ch for ch in chapters if ch["ch"] == start_ch), None)
+        end_data = next((ch for ch in chapters if ch["ch"] == end_ch), None)
+        contains = lambda ch, number: ch is not None and any(
+            v["v"] <= number <= (v.get("end") or v["v"]) for v in ch["verses"])
+        if not contains(start_data, start_v) or not contains(end_data, end_v):
+            return None
+        if start_ch == end_ch and start_v > end_v:
+            return None
+        selected = []
+        for ch in chapters:
+            if not start_ch <= ch["ch"] <= end_ch:
+                continue
+            for v in ch["verses"]:
+                if ch["ch"] == start_ch and max(v["v"], v.get("end") or v["v"]) < start_v:
+                    continue
+                if ch["ch"] == end_ch and v["v"] > end_v:
+                    continue
+                label = f"{v['v']}–{v['end']}" if v.get("end") else str(v["v"])
+                selected.append(f"{ch['ch']}:{label} {v['text']}")
+        if not selected:
+            return None
+        out.extend(selected)
+    return out or None
+
+
+def devotional_scripture(case):
+    """渲染結果裡「經文」小標之後、下一個小標之前的段落文字（不假設有沒有外層容器）。"""
+    nodes, i = case.get("nodes") or [], 0
+    while i < len(nodes) and not (nodes[i]["tag"].startswith("h") and nodes[i]["text"].strip() == "經文"):
+        i += 1
+    got = []
+    for n in nodes[i + 1:]:
+        if n["tag"].startswith("h"):
+            break
+        if n["tag"] == "p":
+            got.append(n["text"])
+    return got
+
+
+def devotional_state(port, acts=None, widths=None):
+    """用暫存副本裡的探測頁渲染 devotional.html，回傳 PROBE 的 JSON。"""
+    q = "u=" + urllib.parse.quote("../site/devotional.html", safe="")
+    if acts:
+        q += "&acts=" + urllib.parse.quote(json.dumps(acts))
+    if widths:
+        q += "&widths=" + ",".join(str(w) for w in widths)
+    with tempfile.TemporaryDirectory() as profile:
+        proc = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=25000",
+                               f"--user-data-dir={profile}", "--dump-dom", f"http://127.0.0.1:{port}/tests/devotional_probe.html?{q}"],
+                              capture_output=True, text=True, timeout=120)
+    out = proc.stdout
+    out = re.sub(r"<[^>]+>", "", out)
+    found = re.findall(r"PROBE (\{[^\n]*\})\s*$", out, re.M)
+    try:
+        if found:
+            return json.loads(html.unescape(found[-1]))
+    except ValueError:
+        pass
+    if not found:
+        diagnostic = (proc.stderr or proc.stdout or "headless Chrome returned no DOM").strip()
+        return {"_probe_error": diagnostic[-1200:]}
+    return {"_probe_error": "PROBE JSON could not be parsed"}
+
+
+def devotional_render(port, root, label=""):
+    """對暫存副本（含假 devotional.json）跑一遍禱讀頁的渲染檢查。"""
+    books = {k: json.load(open(os.path.join(root, "data", k + ".json"), encoding="utf-8"))["chapters"] for k, _ in BOOKS}
+    fake = json.load(open(os.path.join(root, "data", "devotional.json"), encoding="utf-8"))
+    by_date = {e["devotional_date"]: e for e in fake}
+    today, yday = devotional_today()
+    nodata = (datetime.date.fromisoformat(today) - datetime.timedelta(days=2)).isoformat()
+    st = devotional_state(port, acts=[{"setdate": yday}, {"setdate": nodata}])
+    cases, errs = st.get("cases") or [], st.get("errors") or []
+    if len(cases) < 3:
+        check(f"devotional{label}：暫存副本的禱讀頁能渲染並回報狀態", False,
+              f"探測頁只拿到 {len(cases)} 組結果；{st.get('_probe_error', '')[:900]}")
+        return
+    a, b, c = cases[0], cases[1], cases[2]
+    entry, yentry = by_date[today], by_date[yday]
+    want, got = devotional_expected(entry, books), devotional_scripture(a)
+    nodes = a.get("nodes") or []
+
+    check(f"devotional{label}：有資料的日期顯示 h2 標題、scripture_reference 段落與「經文」小標",
+          len(nodes) > 1 and nodes[0]["tag"] == "h2" and nodes[0]["text"] == entry["title"]
+          and nodes[1]["tag"] == "p" and nodes[1]["text"] == entry["scripture_reference"]
+          and "經文" in (a.get("headings") or []),
+          json.dumps(nodes[:3], ensure_ascii=False)[:260])
+    diff = next((i for i in range(max(len(want), len(got))) if (got[i] if i < len(got) else None) != (want[i] if i < len(want) else None)), None)
+    if not want or got == want:
+        verse_detail = "" if want else "暫存副本的測試範圍算不出預期經文"
+    else:
+        verse_detail = f"預期 {len(want)} 節、實際 {len(got)} 節"
+        if diff is not None:
+            should = want[diff].split(" ")[0] if diff < len(want) else "（這節不該出現）"
+            actual = got[diff].split(" ")[0] if diff < len(got) else "（少了這一節）"
+            verse_detail += f"；第一處不同在第 {diff + 1} 節：應為 {should}、實際是 {actual}"
+    check(f"devotional{label}：渲染出的經文節數與內容完全等於四福音 JSON 該範圍（{entry['ranges'][0]['book']} {len(want)} 節，逐節比對）",
+          bool(want) and got == want, verse_detail)
+    h3 = [n["text"] for n in nodes if n["tag"] == "h3"]
+    body = [n["text"] for n in nodes if n["tag"] == "p"]
+    check(f"devotional{label}：「默想」「反思」「禱告」三段標題與對應內容都渲染出來",
+          all(t in h3 for t in ("默想", "反思", "禱告")) and all(entry[k] in body for k in ("summary", "reflection", "prayer")),
+          json.dumps({"h3": h3}, ensure_ascii=False)[:200])
+    check(f"devotional{label}：內容渲染成功時 #reading-status 是空字串", a.get("status") == "", repr(a.get("status"))[:120])
+    check(f"devotional{label}：#reading-date 的預設值與 max 都是台灣時間今天 {today}",
+          a.get("dateValue") == today and a.get("dateMax") == today, json.dumps({"value": a.get("dateValue"), "max": a.get("dateMax")}))
+
+    want2, got2 = devotional_expected(yentry, books), devotional_scripture(b)
+    check(f"devotional{label}：把日期換到另一個有資料的日期（{yday}）會重新渲染該日內容與標題",
+          got2 == want2 and yentry["title"] in (b.get("headings") or []) and b.get("status") == "",
+          f"預期 {len(want2)} 節、實際 {len(got2)} 節；小標：{b.get('headings')[:3]}")
+    merged = [v.split(" ")[0] for v in want2 if "–" in v.split(" ")[0]]
+    check(f"devotional{label}：合併節以「章:節–末節 文字」呈現，且測試範圍真的涵蓋合併節（{len(merged)} 處）",
+          bool(merged) and all(v in got2 for v in want2 if "–" in v.split(" ")[0]),
+          json.dumps({"預期合併節": merged, "渲染有": [v.split(' ')[0] for v in got2 if '–' in v.split(' ')[0]]}, ensure_ascii=False)[:260])
+    check(f"devotional{label}：換到沒有資料的日期會清空 #reading 並顯示「{DEVOTIONAL_MSG_NONE}」",
+          c.get("status") == DEVOTIONAL_MSG_NONE and not (c.get("nodes") or []),
+          json.dumps({"status": c.get("status"), "節點數": len(c.get("nodes") or [])}, ensure_ascii=False)[:200])
+    check(f"devotional{label}：導覽列有五項（首頁、目錄、禱讀、抽卡、搜尋）、恰一項標成目前頁且有回首頁連結",
+          [n["text"] for n in a.get("nav") or []] == [t for t, _ in NAV5]
+          and [n["href"] for n in a.get("nav") or []] == [h for _, h in NAV5]
+          and a.get("navActive") == 1 and a.get("home"),
+          json.dumps({"nav": a.get("nav"), "active": a.get("navActive")}, ensure_ascii=False)[:260])
+    check(f"devotional{label}：頁面沒有載入外部資源", not a.get("ext"), "；".join(a.get("ext") or [])[:200])
+    check(f"devotional{label}：沒有未捕捉的 JavaScript 錯誤（含切換日期）", not errs, "；".join(errs[:3]))
+
+
+def devotional_static():
+    """源碼層的多個鐵則：頁面需要的元素、不寫死經文、提示訊息用繁體中文。"""
+    page = os.path.join(SITE, "devotional.html")
+    js = os.path.join(SITE, "devotional.js")
+    if not (os.path.exists(page) and os.path.exists(js)):
+        check("devotional：site/devotional.html 與 site/devotional.js 存在", False, "找不到檔案")
+        return
+    html_src = open(page, encoding="utf-8").read()
+    js_src = open(js, encoding="utf-8").read()
+    missing = [i for i in ('id="reading-date"', 'id="reading-status"', 'id="reading"', 'id="nav"') if i not in html_src]
+    check("devotional：devotional.html 有日期選擇、狀態區、內容區與導覽列，且回首頁連結指向 home.html",
+          not missing and 'href="home.html"' in html_src, "、".join(missing))
+    check("devotional：devotional.html 只載入站內的 app.js 與 devotional.js",
+          re.findall(r'src="([^"]+)"', html_src) == ["app.js", "devotional.js"], str(re.findall(r'src="([^"]+)"', html_src)))
+
+    verses, grams = {}, set()
+    for k, _ in BOOKS:
+        for ch in json.load(open(os.path.join(ROOT, "data", k + ".json"), encoding="utf-8"))["chapters"]:
+            for v in ch["verses"]:
+                verses[(k, ch["ch"], v["v"])] = v["text"]
+    for t in verses.values():
+        s = cjk(t)
+        grams.update(s[i:i + 8] for i in range(len(s) - 7))
+
+    def hits(name, src):
+        s = cjk(re.sub(r"<[^>]+>", " ", src))
+        return sorted({s[i:i + 8] for i in range(len(s) - 7) if s[i:i + 8] in grams})
+
+    check("devotional：devotional.html 與 devotional.js 都沒有寫死經文（沒有任何連續 8 字與和合本經文相同）",
+          not hits("h", html_src) and not hits("j", js_src),
+          "；".join((hits("h", html_src) + hits("j", js_src))[:3]))
+    mine = re.search(r"# ---------- devotional：.*?(?=\ndef rendering|\Z)", open(__file__, encoding="utf-8").read(), re.S)
+    check("devotional：site_checks.py 的禱讀檢查本身也沒有寫死經文（鐵則自我要求）",
+          mine and not hits("self", mine.group(0)), "；".join(hits("self", mine.group(0))[:3]) if mine else "找不到該段落")
+    need = [DEVOTIONAL_MSG_NONE, DEVOTIONAL_MSG_DATA, DEVOTIONAL_MSG_VERSE]
+    check("devotional：三種狀態提示都寫在 devotional.js 且為繁體中文",
+          all(m in js_src for m in need) and not [w for w in SIMPLIFIED if w in js_src],
+          "、".join(m for m in need if m not in js_src) or "".join(w for w in SIMPLIFIED if w in js_src))
+    check("devotional：devotional.js 的日期預設取台灣時間（Asia/Taipei）並用 date.max 限制在今天",
+          "Asia/Taipei" in js_src and re.search(r"date\.max\s*=", js_src) is not None and "'change', display" in js_src.replace('"', "'"))
+    path = os.path.join(ROOT, "data", "devotional.json")
+    if os.path.exists(path):
+        try:
+            d = json.load(open(path, encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            d = None
+            check("devotional：data/devotional.json 是合法 JSON 陣列", False, str(e))
+        if d is not None:
+            books = {k: json.load(open(os.path.join(ROOT, "data", k + ".json"), encoding="utf-8"))["chapters"] for k, _ in BOOKS}
+            bad, nofound, dates = [], [], []
+            if isinstance(d, list):
+                for ent in d:
+                    if not isinstance(ent, dict):
+                        bad.append("非物件項目")
+                        continue
+                    date = ent.get("devotional_date")
+                    try:
+                        valid_date = isinstance(date, str) and datetime.date.fromisoformat(date).isoformat() == date
+                    except ValueError:
+                        valid_date = False
+                    if not (ent.get("id") is not None and valid_date and ent.get("title")
+                            and ent.get("scripture_reference") and isinstance(ent.get("ranges"), list) and ent["ranges"]):
+                        bad.append(ent.get("id"))
+                    dates.append(date)
+                    if not devotional_expected(ent, books):
+                        nofound.append(ent.get("id"))
+            else:
+                bad.append("不是陣列")
+            check("devotional：data/devotional.json 是合法 JSON 陣列", isinstance(d, list), "不是陣列" if not isinstance(d, list) else "")
+            check("devotional：每筆資料有 id、日期、標題、出處與 ranges，書卷只限四福音且日期不重複",
+                  isinstance(d, list) and not bad and len(dates) == len(set(dates)), "、".join(str(x) for x in bad[:6]))
+            check("devotional：每筆 ranges 都能在四福音資料裡找到經文", isinstance(d, list) and not nofound,
+                  "、".join(str(x) for x in nofound[:6]))
+
+
+def devotional_variants():
+    """在 /tmp 的暫存副本上跑全部禱讀檢查：正常渲染、四種視窗寬度，以及空陣列／404／壞 JSON／壞範圍等情境。"""
+    import shutil
+    if not CHROME:
+        check("devotional：找不到 Chrome，無法渲染檢查", False)
+        return
+    http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
+    today, yday = devotional_today()
+    dfake = os.path.join(ROOT, "data", "devotional.json")
+    keep = open(dfake, encoding="utf-8").read() if os.path.exists(dfake) else None
+    with tempfile.TemporaryDirectory() as tmp:
+        shutil.copytree(os.path.join(ROOT, "site"), os.path.join(tmp, "site"))
+        os.makedirs(os.path.join(tmp, "data"))
+        for name in ("mat", "mrk", "luk", "jhn", "zone-music", "home", "blessing", "blessing-art"):
+            shutil.copy(os.path.join(ROOT, "data", name + ".json"), os.path.join(tmp, "data", name + ".json"))
+        os.makedirs(os.path.join(tmp, "tests"))
+        open(os.path.join(tmp, "tests", "devotional_probe.html"), "w", encoding="utf-8").write(DEVOTIONAL_PROBE)
+        page_path = os.path.join(tmp, "site", "devotional.html")
+        page_html = open(page_path, encoding="utf-8").read()
+        marker = '<script src="app.js"></script>'
+        instrument = '''<script>
+(() => {
+  const send = (type, message) => {
+    try { parent.postMessage({kind: "devotional-probe-error", type, message: String(message)}, location.origin); } catch (e) {}
+  };
+  addEventListener("error", e => send("pageerror", e.message || e.error || "window error"));
+  addEventListener("unhandledrejection", e => send("unhandledrejection", e.reason && e.reason.stack || e.reason));
+  const original = console.error.bind(console);
+  console.error = (...args) => { send("console.error", args.join(" ")); original(...args); };
+})();
+</script>\n'''
+        if page_html.count(marker) != 1:
+            check("devotional：能在頁面腳本執行前安裝錯誤探測器", False, "找不到唯一的 app.js 標記")
+            return
+        open(page_path, "w", encoding="utf-8").write(page_html.replace(marker, instrument + marker, 1))
+        zf = os.path.join(tmp, "data", "devotional.json")
+        json.dump(devotional_fake(today, yday), open(zf, "w", encoding="utf-8"), ensure_ascii=False)
+        handler = functools.partial(RangeHandler, directory=tmp)
+        with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
+            threading.Thread(target=srv.serve_forever, daemon=True).start()
+            port = srv.server_address[1]
+            devotional_render(port, tmp)
+            for w in (320, 375, 768, 1440):
+                probe = devotional_state(port, widths=[w])
+                case = ((probe.get("cases") or [{}])[0])
+                rendered = len(devotional_scripture(case)) > 0
+                check(f"devotional：{w}px 有渲染禱讀內容時不水平溢出（scrollWidth {case.get('scrollW')} ≤ clientWidth {case.get('clientW')}）",
+                      rendered and (case.get("scrollW") or 0) <= (case.get("clientW") or 0),
+                      json.dumps({"rendered": rendered, "over": case.get("over")}, ensure_ascii=False)[:200])
+                check(f"devotional：{w}px 渲染沒有 Console／pageerror JavaScript 錯誤",
+                      not probe.get("errors"), "；".join(probe.get("errors") or [])[:200])
+            # 各種異常情境：每次改寫暫存副本的 devotional.json 再渲染一次
+            for label, payload, want in (
+                    ("空陣列", "[]", DEVOTIONAL_MSG_NONE),
+                    ("檔案不存在（HTTP 404）", None, DEVOTIONAL_MSG_NONE),
+                    ("不是合法 JSON", "{這不是 JSON", DEVOTIONAL_MSG_DATA),
+                    ("是非陣列的物件", "{}", DEVOTIONAL_MSG_DATA)):
+                if payload is None:
+                    os.remove(zf)
+                else:
+                    open(zf, "w", encoding="utf-8").write(payload)
+                probe = devotional_state(port)
+                case = (probe.get("cases") or [{}])[0]
+                check(f"devotional：devotional.json {label}時顯示「{want}」，且內容區是空的",
+                      case.get("status") == want and not (case.get("nodes") or []),
+                      json.dumps({"status": case.get("status"), "節點數": len(case.get("nodes") or [])}, ensure_ascii=False)[:200])
+                check(f"devotional：devotional.json {label}時沒有 Console／pageerror JavaScript 錯誤",
+                      not probe.get("errors"), "；".join(probe.get("errors") or [])[:200])
+            bad = [{"id": 9, "devotional_date": today, "title": "測試不支援的書卷", "scripture_reference": "測試出處",
+                    "ranges": [{"book": "ACT", "start_chapter": 2, "start_verse": 1, "end_chapter": 2, "end_verse": 5}],
+                    "summary": "測試默想段落", "reflection": "測試反思問題", "prayer": "測試禱告內容"},
+                   {"id": 10, "devotional_date": yday, "title": "測試找不到經文的範圍", "scripture_reference": "測試出處",
+                    "ranges": [{"book": "MAT", "start_chapter": 99, "start_verse": 1, "end_chapter": 99, "end_verse": 2}],
+                    "summary": "測試默想段落", "reflection": "測試反思問題", "prayer": "測試禱告內容"}]
+            json.dump(bad, open(zf, "w", encoding="utf-8"), ensure_ascii=False)
+            probe = devotional_state(port)
+            case = (probe.get("cases") or [{}])[0]
+            check(f"devotional：範圍書卷不支援時顯示「{DEVOTIONAL_MSG_VERSE}」且內容區是空的",
+                  case.get("status") == DEVOTIONAL_MSG_VERSE and not (case.get("nodes") or []),
+                  json.dumps({"status": case.get("status")}, ensure_ascii=False))
+            check("devotional：範圍書卷不支援時沒有 Console／pageerror JavaScript 錯誤",
+                  not probe.get("errors"), "；".join(probe.get("errors") or [])[:200])
+            probe = devotional_state(port, acts=[{"setdate": yday}])
+            pair = probe.get("cases") or [{}, {}]
+            c2 = pair[1] if len(pair) > 1 else {}
+            check(f"devotional：範圍在四福音資料裡找不到經文時顯示「{DEVOTIONAL_MSG_VERSE}」",
+                  c2.get("status") == DEVOTIONAL_MSG_VERSE and not (c2.get("nodes") or []),
+                  json.dumps({"status": c2.get("status")}, ensure_ascii=False))
+            check("devotional：範圍在四福音資料裡找不到經文時沒有 Console／pageerror JavaScript 錯誤",
+                  not probe.get("errors"), "；".join(probe.get("errors") or [])[:200])
+            srv.shutdown()
+    check("devotional：正式 data/devotional.json 沒有被檢查改動（假資料只存在 /tmp 副本）",
+          keep == (open(dfake, encoding="utf-8").read() if os.path.exists(dfake) else None))
+
+
+# ---------- restyle：2026-11 改版（金色飛鷹、底部膠囊導覽列、主視覺分離、便當格入口、微互動）
+# 依據只有 design/sample-2026-11.html（不可改它）＋ logs/herdr-dispatch/brief-20261113-restyle.md。
+# 這一組是「先寫客觀檢查」：頁面還沒改之前會不通過是預期的，檢查本身只準一個事實——數值與結構要跟樣本一致。
+
+def jpeg_size(path):
+    """回傳 (寬, 高)。優先用 PIL；沒有就自己讀 JPEG 的 SOF 標記。"""
+    try:
+        from PIL import Image
+        with Image.open(path) as im:
+            return im.width, im.height
+    except Exception:
+        pass
+    with open(path, "rb") as f:
+        data = f.read()
+    i = 2
+    while i < len(data) - 9:
+        if data[i] != 0xFF:
+            i += 1
+            continue
+        marker = data[i + 1]
+        if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            return int.from_bytes(data[i + 7:i + 9], "big"), int.from_bytes(data[i + 5:i + 7], "big")
+        i += 2 + int.from_bytes(data[i + 2:i + 4], "big")
+    return 0, 0
+
+
+def restyle_assets():
+    """飛鷹正式圖：尺寸／檔案大小／授權登記，以及「路徑只由共用層提供」。"""
+    lic_path = os.path.join(ROOT, "ASSETS-LICENSE.md")
+    lic = open(lic_path, encoding="utf-8").read() if os.path.exists(lic_path) else ""
+    bad, rows = [], []
+    for name in ("eagle-A.jpg", "eagle-B.jpg"):
+        p = os.path.join(SITE, "assets", name)
+        if not os.path.exists(p):
+            bad.append(f"{name} 不存在")
+            continue
+        w, h = jpeg_size(p)
+        mb = os.path.getsize(p) / 1024 / 1024
+        shape_ok = (w, h) == (1792, 2400) or (max(w, h) >= 1700 and abs(w / h - 0.75) < 0.03)
+        if not shape_ok:
+            bad.append(f"{name} 尺寸 {w}×{h}（要 1792×2400 或長邊≥1700 且 3:4）")
+        if mb > 3:
+            bad.append(f"{name} {mb:.2f} MB > 3 MB")
+        row = [l for l in lic.splitlines() if name in l and l.strip().startswith("|")]
+        if not row:
+            bad.append(f"{name} 沒有登記在 ASSETS-LICENSE.md")
+        elif not re.search(r"AGY|Google Imagen 3", row[0]):
+            bad.append(f"{name} 的登記列沒寫生成來源（AGY／Google Imagen 3）")
+        rows.append({"name": name, "w": w, "h": h, "mb": round(mb, 2), "lic": bool(row)})
+    check("eagle-A.jpg 與 eagle-B.jpg 正式圖：存在、1792×2400（或長邊≥1700 且 3:4）、≤3MB，並在 ASSETS-LICENSE.md 登記生成來源",
+          not bad, "；".join(bad) or json.dumps(rows, ensure_ascii=False))
+
+    css = open(os.path.join(SITE, "style.css"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "style.css")) else ""
+    app = open(os.path.join(SITE, "app.js"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "app.js")) else ""
+    pages = {os.path.basename(p): open(p, encoding="utf-8").read() for p in site_files(".html")}
+    in_pages = sorted({f for s in pages.values() for f in re.findall(r"eagle-[AB]\.(?:jpg|jpeg|png|webp)", s, re.I)})
+    in_shared = sorted({f for f in re.findall(r"eagle-[AB]\.(?:jpg|jpeg|png|webp)", css + app, re.I)})
+    check("改版素材：飛鷹圖路徑只出現在共用層（style.css 或 app.js），前台頁面不重複寫死檔名",
+          len(in_shared) >= 1 and not in_pages,
+          f"共用層：{in_shared or '無'}；頁面裡寫死：{in_pages or '無'}")
+
+
+def restyle_shared():
+    """style.css／app.js 的源碼層：配色 token、光色、圓角、膠囊、底部導覽列五項、三種狀態的圖示與 reduced-motion。"""
+    css = open(os.path.join(SITE, "style.css"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "style.css")) else ""
+    app = open(os.path.join(SITE, "app.js"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "app.js")) else ""
+    check("style.css 有樣本的光色 token（--sunlight: #fdf2da），首頁經文用它當文字色",
+          re.search(r"--sunlight\s*:\s*#fdf2da", css, re.I) is not None, "找不到 --sunlight")
+    check("style.css 用樣本的大圓角（--r-lg 28px、--r-md 18px）與明體／黑體兩套系統字型變數",
+          re.search(r"--r-lg\s*:\s*28px", css) is not None and re.search(r"--r-md\s*:\s*18px", css) is not None
+          and "--display" in css and "--body" in css,
+          "、".join(x for x, ok in (("--r-lg", "--r-lg" in css), ("--r-md", "--r-md" in css), ("--display", "--display" in css), ("--body", "--body" in css)) if not ok))
+    nav = re.search(r"function nav\(active\)(.*?)\n  \}", app, re.S)
+    links = re.findall(r'\{\s*href:\s*"([^"]+)",\s*label:\s*"([^"]+)"', nav.group(1)) if nav else []
+    check("app.js 的共用導覽列是五項：首頁／目錄／禱讀／抽卡／搜尋，且 href 依序為 home／index／devotional／blessing／search",
+          [l for _, l in links] == [t for t, _ in NAV5] and [h for h, _ in links] == [x for _, x in NAV5],
+          json.dumps(links, ensure_ascii=False))
+    check("app.js 在 nav() 裡用 aria-current=\"page\" 標目前頁（不是只有 .active，螢幕閱讀器才聽得到）",
+          bool(nav) and "aria-current" in nav.group(1),
+          "nav() 內部沒有 aria-current" if nav else "找不到 nav() 函式")
+    check("style.css 有 @media (prefers-reduced-motion: reduce) 且把動畫關掉",
+          "prefers-reduced-motion: reduce" in css and re.search(r"animation\s*:\s*none", css) is not None,
+          "沒有 reduced-motion 區塊" if "prefers-reduced-motion: reduce" not in css else "區塊內找不到 animation: none")
+    glyph = {m.group(1): m.group(2) for m in re.finditer(r'\.status\[data-state="(\w+)"\]::before\s*\{([^}]*)\}', css)}
+    shapes = {"busy": bool(re.search(r"animation|border-right-color", glyph.get("busy", ""))) and "@keyframes" in css,
+              "ok": "✓" in glyph.get("ok", ""), "fix": "!" in glyph.get("fix", "")}
+    check("微互動：三種狀態在 style.css 各有不同圖示（處理中轉圈、已完成 ✓、待修正 !），不是只換顏色",
+          all(k in glyph for k in ("busy", "ok", "fix")) and all(shapes.values()),
+          json.dumps({"有定義": sorted(glyph), "圖示": shapes}, ensure_ascii=False))
+    check("微互動：待修正時欄位是粗虛線（.find input[aria-invalid=true] 或同等的 border-style: dashed）",
+          re.search(r"aria-invalid[^\n]*\{[^}]*dashed", css, re.S) is not None, "找不到 aria-invalid + dashed 的規則")
+    missing = []
+    for page in DOCK_PAGES:
+        name = page.split("?")[0]
+        src = open(os.path.join(SITE, name), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, name)) else ""
+        if not re.search(r'role="status"|aria-live', src):
+            missing.append(name)
+    check("每個前台頁面都有 role=status 或 aria-live 的回饋區（WCAG 2.2 4.1.3）", not missing, "、".join(missing))
+    busy_src = []
+    for name in ("index.html", "search.html", "home.html", "app.js", "search.js"):
+        p = os.path.join(SITE, name)
+        if os.path.exists(p) and re.search(r"aria-busy|data-state=\"busy\"|data-state = .busy.", open(p, encoding="utf-8").read()):
+            busy_src.append(name)
+    check("搜尋有「處理中」狀態（寫入 aria-busy 或 data-state=busy）", bool(busy_src), "各檔都找不到 busy 狀態的設定")
+
+
+def restyle_render(port):
+    """渲染層：底部導覽列（五項、觸控、不遮音樂鍵、不遮內容）、主視覺分離、便當格與扇形卡、搜尋三種狀態。"""
+    for page in DOCK_PAGES:
+        st = home_state(port, page=page)
+        d = st.get("dock") or {}
+        name = page.split("?")[0]
+        if not d:
+            check(f"restyle {name} 有底部導覽列可量測", False, "探測頁找不到 #nav／.dock")
+            continue
+        check(f"restyle {name}：導覽列恰好五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標為目前頁",
+              d.get("count") == 5 and d.get("active") == 1 and [i["text"] for i in d.get("items", [])] == [t for t, _ in NAV5],
+              json.dumps({"count": d.get("count"), "active": d.get("active"), "texts": [i["text"] for i in d.get("items", [])]}, ensure_ascii=False))
+        check(f"restyle {name}：導覽列是 position: fixed 的浮動膠囊，每項觸控區 ≥44×44",
+              d.get("fixed") and d.get("small", 1) == 0, json.dumps({"position": d.get("position"), "small": d.get("small"),
+              "items": [(i["w"], i["h"]) for i in d.get("items", [])]}, ensure_ascii=False)[:220])
+        check(f"restyle {name}：目前頁除了顏色還有粗體（font-weight ≥600）",
+              any(i.get("active") and i.get("weight", 0) >= 600 for i in d.get("items", [])),
+              json.dumps([i for i in d.get("items", []) if i.get("active")], ensure_ascii=False)[:200])
+        check(f"restyle {name}：背景音樂按鈕不被導覽列遮住（矩形不重疊）",
+              not d.get("musicOverlaps"), json.dumps({"musicBox": d.get("musicBox"), "navBox": d.get("box")}, ensure_ascii=False)[:240])
+        roomy = (d.get("bodyPadBottom") or 0) >= 100 or (d.get("mainPadBottom") or 0) >= 100 or \
+                (d.get("navTop") and d.get("lastBottom") is not None and d["lastBottom"] <= d["navTop"])
+        check(f"restyle {name}：頁面底部留白足夠，捲到底時導覽列不會壓住最後一段內容（padding ≥100px 或最後元素在導覽列上方）",
+              roomy, json.dumps({"bodyPadBottom": d.get("bodyPadBottom"), "mainPadBottom": d.get("mainPadBottom"),
+              "lastBottom": d.get("lastBottom"), "navTop": d.get("navTop")}, ensure_ascii=False)[:220])
+
+    st = home_state(port, page="home.html", wides=True)
+    by = st.get("byWidth") or {}
+    for w in (320, 375, 768, 1440):
+        h = (by.get(str(w)) or by.get(w) or {}).get("hero") or {}
+        check(f"restyle home.html {w}px：主視覺照片與今日經文矩形完全不重疊（人物不被蓋住），照片高 ≥200px",
+              bool(h) and h.get("picOverlap") is False and h.get("picH", 0) >= 200,
+              json.dumps({"pic": h.get("pic"), "verse": h.get("verse"), "picH": h.get("picH")}, ensure_ascii=False)[:260])
+    hero = st.get("hero") or {}
+    check("restyle home.html：今日經文與照片裡的光同色（#fdf2da）、有金色光暈 text-shadow、用明體",
+          hero.get("color") == SUNLIGHT_RGB and hero.get("shadow") not in (None, "", "none") and hero.get("serif"),
+          json.dumps({k: hero.get(k) for k in ("color", "shadow", "serif")}, ensure_ascii=False)[:260])
+    check("restyle home.html：經文區塊有一道從照片方向照過來的暖光（.hero-body 帶 radial-gradient 背景）",
+          bool(hero.get("bodyHasGradient")), str(hero.get("bodyBgImage"))[:200])
+    check("restyle home.html：經文與底對比 ≥4.5:1", (hero.get("contrast") or 0) >= 4.5, json.dumps({"contrast": hero.get("contrast")}))
+    t = st.get("tiles") or {}
+    check("restyle home.html：便當格入口有齊全——四卷色塊、每日禱讀（→devotional.html）、抽經文卡（→blessing.html）、搜尋表單",
+          t.get("bookCount") == 4 and t.get("dailyHref") == "devotional.html" and t.get("drawHref") == "blessing.html"
+          and t.get("find") and t.get("findInput"),
+          json.dumps({k: t.get(k) for k in ("bookCount", "dailyHref", "drawHref", "find", "findInput")}, ensure_ascii=False))
+    check("restyle home.html：抽經文卡入口的三張扇形紙卡依序是 B、A、B（最上層那張是 eagle-B，而且淺深色都有圖、不是空白色塊）",
+          t.get("fanCount") == 3 and [n.split("/")[-1] for n in t.get("fanNames", [])] == ["eagle-B.jpg", "eagle-A.jpg", "eagle-B.jpg"],
+          json.dumps(t.get("fanNames"), ensure_ascii=False))
+    for page, mode, want in (("home.html", "empty", "fix"), ("index.html", "empty", "fix"), ("search.html", "empty", "fix"),
+                             ("search.html", "hit", "ok"), ("search.html", "miss", "fix")):
+        st = home_state(port, page=page, do=mode)
+        s = ((st.get("states") or {}).get(mode) or {}).get("final") or {}
+        sreg, field = s.get("status") or {}, s.get("field") or {}
+        if want == "ok":
+            check(f"restyle {page} 搜尋有結果時：狀態 data-state=ok、圖示＋文字（找到 N 節）、不是只換顏色",
+                  sreg.get("state") == "ok" and bool(sreg.get("text")) and (s.get("results") or 0) > 0,
+                  json.dumps({"status": sreg, "results": s.get("results"), "info": s.get("info")}, ensure_ascii=False)[:260])
+        else:
+            cn = bool(re.search(r"[\u4e00-\u9fff]", sreg.get("text") or ""))
+            check(f"restyle {page} 搜尋「{'空白送出' if mode == 'empty' else '查無結果'}」時：欄位 aria-invalid=true、aria-describedby 指向 role=status 區、狀態 data-state=fix 且有中文「怎麼修」文字",
+                  sreg.get("state") == "fix" and field.get("invalid") == "true" and field.get("describedby")
+                  and field.get("targetRole") in ("status", "polite", "assertive") and cn,
+                  json.dumps({"status": sreg, "field": field}, ensure_ascii=False)[:300])
+        check(f"restyle {page} 的搜尋回饋區在 live 區內（role=status 或 aria-live），不用取得焦點也讀得到",
+              bool(sreg.get("role")) or bool(sreg.get("live")) or sreg.get("live") == "polite",
+              json.dumps(sreg, ensure_ascii=False)[:200])
+    cov = home_state(port, page="blessing.html").get("cover") or {}
+    check("restyle blessing.html：抽卡前顯示飛鷹卡背（eagle-A 由共用樣式提供），不是空白色塊",
+          bool(cov) and cov.get("hasA") and not cov.get("blankBlock"), json.dumps(cov, ensure_ascii=False)[:240])
+
+
 def rendering(groups):
     if not CHROME:
         check("頁面實際顯示（headless Chrome）", False, "找不到 Chrome")
@@ -928,6 +1553,10 @@ def rendering(groups):
             zone_variants()
         if "blessart" in groups:
             blessart_variants()
+        if "devotional" in groups:
+            devotional_variants()
+        if "restyle" in groups:
+            restyle_render(port)
         srv.shutdown()
 
 
@@ -941,7 +1570,7 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart"}
+    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart", "devotional", "restyle"}
     links()
     external()
     single_book_text()
@@ -957,6 +1586,11 @@ if __name__ == "__main__":
     if "zonemusic" in groups:
         zone_data()
         zone_static()
+    if "devotional" in groups:
+        devotional_static()
+    if "restyle" in groups:
+        restyle_assets()
+        restyle_shared()
     rendering(groups)
     if ONLY and not results:
         results.append(False)   # a typo in --grep must not pass silently

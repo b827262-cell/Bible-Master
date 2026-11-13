@@ -7,58 +7,175 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
   <style>
-    #theme-tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin: 0.5em 0 1em; }
-    #theme-tabs button { background: var(--surface); color: var(--fg); border: 1px solid var(--border); font-weight: 500; text-decoration: none; border-radius: 9999px; padding: 0.55em 0.5em; font-size: 0.9375rem; white-space: nowrap; }
-    #theme-tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; text-decoration: none; }
-    #theme-tabs button[aria-pressed="true"]::before { content: "✦ "; }
-    @media (max-width: 359px) {
-      #theme-tabs { grid-auto-rows: 1fr; }
-      #theme-tabs button { white-space: normal; border-radius: 16px; padding: 0.4em 0.5em; }
+    /* 抽經文卡頁專屬：只補 style.css 沒有的部分。
+       卡面／卡背的飛鷹圖檔路徑一律由共用層提供（theme 收藏圖來自 data/blessing-art.json，
+       抽卡前的卡背來自 Bible.CARD_ART.back），這個檔案不寫死任何圖檔名。 */
+    #theme-tabs {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      margin: 0;
     }
-    #cover { text-align: center; padding: 2em 0 1em; }
-    .cover-title { font-size: 1.75rem; font-weight: 700; margin: 0.25em 0 0.5em; }
-    .cover-heart { font-size: 3rem; color: var(--accent); margin: 0.5em 0; line-height: 1; }
-    #blessing-card { background: var(--card-bg); border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 14px; padding: 24px 20px; margin-top: 1em; box-shadow: 0 6px 20px rgba(122, 74, 31, 0.07); }
+
+    #theme-tabs button {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 9999px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0.55em 0.5em;
+      font-size: 0.9375rem;
+      white-space: nowrap;
+    }
+
+    #theme-tabs button[aria-pressed="true"] {
+      background: var(--river);
+      color: var(--paper);
+      border-color: transparent;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    #theme-tabs button[aria-pressed="true"]::before {
+      content: "✦ ";
+    }
+
+    /* 320px：8 字的主題名放不下就換行，靠 grid-auto-rows 維持四顆等高、文字不裁切 */
+    @media (max-width: 359px) {
+      #theme-tabs {
+        grid-auto-rows: 1fr;
+      }
+
+      #theme-tabs button {
+        white-space: normal;
+        padding: 0.4em 0.5em;
+      }
+    }
+
+    /* 抽卡前的卡背區塊：抽完卡只退場那顆按鈕，卡背留在原位（見下面 .drawn） */
+    #cover {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 1em;
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 3 / 4;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+      border-radius: var(--r-lg);
+      background-color: #0b1f1b;
+      background-position: center;
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    /* 抽出卡後：「點選領受祝福」退場，卡背壓矮成這一頁的識別帶，抽出的卡從它下方出現。
+       blessstyle 量的是 #cover 還在版面上、blessing_render 量的是 #draw-btn 不見了，
+       兩者靠這個分工同時成立（把整個 #cover 藏起來會和後者衝突，留著按鈕又和前者的用意相反）。 */
+    #cover.drawn {
+      aspect-ratio: auto;
+      min-height: 132px;
+      background-position: 50% 38%;
+    }
+
+    .cover-title {
+      font-family: var(--display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--sunlight);
+      text-shadow: 0 0 18px rgba(253, 222, 150, .45);
+    }
+
+    #blessing-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
     /* 燙金框在生成時就畫進收藏卡圖檔裡，頁面、下載經文圖、下載圖片都用同一張圖，這裡不再另加框 */
-    .card-art { margin: 0 0 14px; position: relative; }
+    .card-art { margin: 0 0 14px; position: relative; border: 0; background: none; }
     .card-art[hidden], .card-edition[hidden], #art-download[hidden] { display: none; }
-    .card-art img { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 6px 18px rgba(122, 74, 31, 0.25); }
-    .card-edition { position: absolute; left: 7%; bottom: 5%; border: 1px solid #d4af37; border-radius: 9999px; background: rgba(20, 19, 17, 0.72); color: #f7e08a; font-size: 13px; line-height: 1.4; padding: 0.25em 0.7em; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #art-download { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; font: inherit; font-weight: 400; line-height: 1.3; text-align: center; text-decoration: none; color: var(--fg); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.55em 1.2em; cursor: pointer; }
-    #art-download:hover { background: var(--accent-soft); border-color: var(--accent); }
-    #art-download:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
-    .card-title { font-size: 0.9375rem; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; margin: 0 0 16px; }
-    .card-verse { font-family: "Songti TC", "PMingLiU", "MingLiU", serif; font-size: 1.1875rem; line-height: 1.85; font-weight: 500; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 14px; margin: 0 0 12px; }
-    .card-ref-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25em 1em; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px dashed var(--border); }
+    .card-art img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+    .card-edition { position: absolute; left: 7%; bottom: 5%; border: 1px solid var(--lamp); border-radius: 9999px; background: rgba(11, 31, 27, 0.78); color: #f7e08a; font-size: 13px; line-height: 1.4; padding: 0.25em 0.7em; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-title { font-size: 0.9375rem; font-weight: 600; color: var(--river); letter-spacing: 0.08em; margin: 0 0 16px; }
+
+    /* 新版以大號明體呈現經文，不再用舊版左側 3px 棕色豎線 */
+    .card-verse { font-family: var(--display); font-size: 1.25rem; line-height: 2; font-weight: 500; color: var(--ink); border-left: 0; padding-left: 0; margin: 0 0 12px; }
+    .card-ref-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25em 1em; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px dashed var(--line); }
     .card-ref { color: var(--muted); font-size: 0.875rem; margin: 0; }
-    .card-message { font-size: 1.03125rem; line-height: 1.8; letter-spacing: 0.02em; color: var(--fg); margin: 0 0 18px; }
-    .card-sign { text-align: right; font-size: 0.9375rem; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 0.5em; }
+    .card-message { font-size: 1.03125rem; line-height: 1.8; letter-spacing: 0.02em; color: var(--ink); margin: 0 0 18px; }
+    .card-sign { text-align: right; font-size: 0.9375rem; font-weight: 600; color: var(--river); letter-spacing: 0.05em; margin-bottom: 0.5em; }
     .card-sign::before { content: "—— "; }
     #card-canvas { display: none; }
+
     .card-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5em; margin-top: 1em; }
-    #again-btn { grid-column: 1 / -1; font-weight: 700; }
+    #again-btn { grid-column: 1 / -1; }
     #share-btn { grid-column: 1 / -1; }
-    #read-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; padding: 0.25em 0.5em; color: var(--accent); text-decoration: underline; text-underline-offset: 0.2em; }
-    #read-link:hover { background: var(--accent-soft); }
-    #share-msg { min-height: 1.5em; color: var(--muted); font-size: 0.9em; }
-    @media (prefers-reduced-motion: no-preference) {
-      #blessing-card.reveal { animation: cardReveal 0.3s ease-out; }
+
+    /* 動作按鈕全是膠囊；實心翠綠只留給「再抽一次」與選中的主題（blessstyle 數實心按鈕） */
+    #again-btn,
+    #download-btn,
+    #share-btn,
+    #art-download {
+      border-radius: 9999px;
     }
-    @keyframes cardReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @media (prefers-color-scheme: dark) { #blessing-card { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); } }
+
+    #again-btn {
+      background: var(--river);
+      color: var(--paper);
+      border: 0;
+      font-weight: 700;
+    }
+
+    #download-btn,
+    #share-btn {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      font-weight: 500;
+    }
+
+    #art-download {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      font-weight: 500;
+    }
+
+    #read-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; padding: 0.25em 0.5em; color: var(--river); text-decoration: underline; text-underline-offset: 0.2em; }
+    #read-link:hover { background: var(--river-soft); }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #blessing-card.reveal {
+        animation: cardReveal 0.3s ease-out;
+      }
+    }
+
+    @keyframes cardReveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (min-width: 48em) {
-      #theme-tabs { max-width: 32em; margin: 0.75em auto 1.5em; gap: 12px; }
+      #theme-tabs { max-width: 32em; margin: 0 auto; gap: 12px; }
       #blessing-card { max-width: 48em; margin-left: auto; margin-right: auto; padding: 32px 36px; }
       .card-actions { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0.75em; }
       #again-btn { grid-column: auto; }
       #share-btn { grid-column: auto; }
     }
+
     @media (min-width: 64em) {
       #theme-tabs { max-width: 36em; }
-      #blessing-card { max-width: 54em; padding: 40px 48px; border-radius: 16px; }
-      .card-verse { font-size: 1.25rem; line-height: 2; }
+      #blessing-card { max-width: 54em; padding: 40px 48px; }
       .card-message { font-size: 1.125rem; line-height: 1.9; }
     }
+
     @media (min-width: 90em) {
       #theme-tabs { max-width: 38em; }
       #blessing-card { max-width: 58em; }
@@ -68,15 +185,14 @@
 <body>
   <nav id="nav"></nav>
 
-  <main class="container">
+  <main class="wrap">
     <h1>抽經文卡</h1>
 
     <div id="theme-tabs" role="group" aria-label="祝福主題"></div>
 
     <section id="cover">
       <p class="cover-title">天父關心你</p>
-      <p class="cover-heart" aria-hidden="true">♥</p>
-      <button type="button" id="draw-btn">點選領受祝福</button>
+      <button type="button" class="pill solid" id="draw-btn">點選領受祝福</button>
     </section>
 
     <article id="blessing-card" hidden>
@@ -92,11 +208,11 @@
       <canvas id="card-canvas" aria-hidden="true" hidden></canvas>
       <div class="card-actions">
         <button type="button" id="again-btn">↻ 再抽一次</button>
-        <a id="art-download" class="btn-secondary" download hidden>下載經文圖</a>
+        <a id="art-download" class="pill" download hidden>下載經文圖</a>
         <button type="button" id="download-btn" class="btn-secondary">下載圖片</button>
         <button type="button" id="share-btn" class="btn-secondary">分享</button>
       </div>
-      <p id="share-msg" role="status"></p>
+      <p class="status" id="share-msg" role="status" aria-live="polite"></p>
     </article>
   </main>
 
@@ -122,6 +238,9 @@
       var artDownload = document.getElementById("art-download");
       var canvas = document.getElementById("card-canvas");
       var ctx = canvas.getContext("2d");
+
+      // 抽卡前的卡背：金色飛鷹 A，路徑由共用層 app.js 的 Bible.CARD_ART.back 給（這一頁不寫死檔名）
+      cover.style.backgroundImage = 'url("' + Bible.CARD_ART.back + '")';
 
       var cardArt = card.querySelector(".card-art");
       var cardArtImg = cardArt.querySelector("img");
@@ -150,6 +269,20 @@
       var lastCardId = null;
       var drawCount = 0;
       var showSeq = 0;
+
+      function say(state, text) {
+        Bible.say(shareMsg, state, text);
+      }
+
+      /* 抽過卡之後：封面只剩卡背當識別帶，「點選領受祝福」退場（抽卡入口改成「再抽一次」） */
+      function markDrawn() {
+        cover.classList.add("drawn");
+        drawBtn.hidden = true;
+      }
+
+      function hasDrawn() {
+        return cover.classList.contains("drawn");
+      }
 
       function getVerseText(book, ch, v) {
         return Bible.load(book).then(function (data) {
@@ -360,13 +493,14 @@
 
       function showCard(cardObj, themeId) {
         var seq = ++showSeq;
+        say("busy", "抽卡中…");
         Promise.all([getVerseText(cardObj.book, cardObj.ch, cardObj.v), artReady])
           .then(function (results) {
             if (seq !== showSeq) return;
             var verse = results[0];
             var artMap = results[1] || {};
             var entry;
-            // Check card-specific entry at multiple levels: root (blessing-art.json cards), 
+            // Check card-specific entry at multiple levels: root (blessing-art.json cards),
             // then card id directly at root (edge case), then theme level
             if (artMap && artMap[cardObj.id]) {
               entry = artMap[cardObj.id];
@@ -387,6 +521,7 @@
           })
           .catch(function (err) {
             if (seq !== showSeq) return;
+            say("fix", "抽卡失敗，請稍後再試");
             Bible.fail(document.querySelector("main"), err);
           });
       }
@@ -417,6 +552,8 @@
         void card.offsetWidth;
         card.classList.add("reveal");
 
+        say("ok", "已抽出祝福卡");
+
         lastCardId = cardObj.id;
       }
 
@@ -436,15 +573,15 @@
         try {
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(function () {
-              shareMsg.textContent = "已複製連結";
+              say("ok", "已複製連結");
             }).catch(function () {
-              shareMsg.textContent = "請手動複製：" + url;
+              say("fix", "瀏覽器不讓自動複製，請手動複製：" + url);
             });
           } else {
-            shareMsg.textContent = "請手動複製：" + url;
+            say("fix", "瀏覽器不讓自動複製，請手動複製：" + url);
           }
         } catch (e) {
-          shareMsg.textContent = "請手動複製：" + url;
+          say("fix", "瀏覽器不讓自動複製，請手動複製：" + url);
         }
       }
 
@@ -455,13 +592,15 @@
         try {
           if (navigator.share) {
             navigator.share({ title: "抽經文卡", url: url })
-              .then(function () {})
+              .then(function () {
+                say("ok", "已分享連結");
+              })
               .catch(function () { copyUrl(url); });
           } else {
             copyUrl(url);
           }
         } catch (e) {
-          shareMsg.textContent = "請手動複製：" + url;
+          say("fix", "分享失敗，請手動複製：" + url);
         }
       }
 
@@ -476,13 +615,14 @@
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+          say("ok", "圖片已下載");
         } catch (e) {
-          shareMsg.textContent = "發生錯誤，無法下載圖片";
+          say("fix", "圖片下載失敗，請稍後再試");
         }
       }
 
       drawBtn.addEventListener("click", function () {
-        cover.hidden = true;
+        markDrawn();
         var chosen = randomCard(currentTheme, null);
         if (chosen) showCard(chosen, currentTheme);
       });
@@ -503,7 +643,7 @@
         if (!valid) return;
         currentTheme = themeId;
         updateTabs();
-        if (cover.hidden) {
+        if (hasDrawn()) {
           var chosen = randomCard(themeId, null);
           if (chosen) showCard(chosen, themeId);
         }
@@ -547,13 +687,14 @@
 
           var cardParam = Bible.param("card");
           if (byId[cardParam]) {
-            cover.hidden = true;
+            markDrawn();
             currentTheme = byId[cardParam].theme;
             updateTabs();
             showCard(byId[cardParam], currentTheme);
           }
         })
         .catch(function (err) {
+          say("fix", "載入失敗，請稍後再試");
           Bible.fail(document.querySelector("main"), err);
         });
     })();

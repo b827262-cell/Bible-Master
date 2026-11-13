@@ -6,17 +6,59 @@
   <title>每日禱讀 · 四福音</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
+  <style>
+    /* 禱讀頁專屬：只補 style.css 沒有的日期控件樣式。
+       內容版面（.dev 的標題、段落、禱告綠塊）全部在 style.css 的樣本三區塊。 */
+    .dev-date {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dev-date label {
+      font-size: .8rem;
+      letter-spacing: .14em;
+      color: var(--muted);
+    }
+
+    /* .panel 是 surface 白底，控件改用霧白才看得出邊界（和其他內頁一樣） */
+    #reading-date {
+      min-height: 44px;
+      padding: 0.4em 0.9em;
+      border: 1px solid var(--line);
+      border-radius: 9999px;
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+    }
+
+    #reading-date:focus {
+      outline: 3px solid var(--lamp);
+      outline-offset: 2px;
+    }
+  </style>
 </head>
 <body>
   <nav id="nav"></nav>
-  <main class="container">
-    <p><a href="home.html">← 回首頁</a></p>
+
+  <main class="wrap">
+    <p><a class="pill" href="home.html">← 回首頁</a></p>
+
     <h1>每日禱讀</h1>
-    <label for="reading-date">選擇日期</label>
-    <input id="reading-date" type="date">
-    <p id="reading-status" role="status" aria-live="polite">正在載入禱讀資料…</p>
-    <article id="reading"></article>
+
+    <section class="panel">
+      <div class="dev-date">
+        <label for="reading-date">選擇日期</label>
+        <input id="reading-date" type="date">
+      </div>
+
+      <p class="status" id="reading-status" role="status" aria-live="polite">正在載入禱讀資料…</p>
+
+      <article id="reading" class="dev"></article>
+    </section>
   </main>
+
   <footer>四福音 · 和合本</footer>
   <script src="app.js"></script>
   <script src="devotional.js"></script>

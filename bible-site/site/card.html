@@ -7,42 +7,85 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
   <style>
-    .card-controls { display: flex; gap: 1em; margin: 1.5em 0; flex-wrap: wrap; }
-    .card-controls label { display: flex; flex-direction: column; gap: 0.25em; font-size: 0.9em; color: var(--muted); }
-    .card-controls select { padding: 0.4em 0.6em; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font-size: 1em; }
-    #card-canvas { max-width: 100%; height: auto; display: block; margin: 1em 0; border: 1px solid var(--border); border-radius: 8px; }
-    @media (min-width: 48em) {
-      .card-controls { justify-content: center; gap: 1.5em; }
-      #card-canvas { margin-left: auto; margin-right: auto; max-width: 560px; }
-      #download-btn { display: block; margin-left: auto; margin-right: auto; min-width: 180px; }
+    /* 經文卡片頁專屬：只補 style.css 沒有的部分。卡面飛鷹圖由 Bible.CARD_ART.face（app.js）
+       提供路徑，這裡不寫死檔名；畫布自帶高對比文字底板，頁面只負責排版。 */
+    .card-controls {
+      display: flex;
+      gap: 1em;
+      margin: 0 0 1em;
+      flex-wrap: wrap;
     }
-    @media (min-width: 64em) {
-      .card-controls { margin: 2em 0; gap: 2em; }
-      #card-canvas { max-width: 600px; }
+
+    .card-controls label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25em;
+      font-size: 0.9em;
+      color: var(--muted);
+    }
+
+    .card-controls select {
+      padding: 0.4em 0.6em;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 1em;
+    }
+
+    #card-status {
+      margin: 0 0 1em;
+    }
+
+    #card-canvas {
+      width: 100%;
+      max-width: 560px;
+      height: auto;
+      display: block;
+      margin: 0 auto 1em;
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow);
+    }
+
+    #download-btn {
+      display: block;
+      margin: 0 auto;
+      min-width: 180px;
+    }
+
+    @media (min-width: 48em) {
+      .card-controls {
+        justify-content: center;
+        gap: 1.5em;
+      }
     }
   </style>
 </head>
 <body>
   <nav id="nav"></nav>
 
-  <main class="container">
+  <main class="wrap">
     <h1>經文卡片</h1>
 
-    <div class="card-controls">
-      <label>書卷
-        <select id="book-select"></select>
-      </label>
-      <label>章
-        <select id="ch-select"></select>
-      </label>
-      <label>節
-        <select id="v-select"></select>
-      </label>
-    </div>
+    <section class="panel">
+      <div class="card-controls">
+        <label>書卷
+          <select id="book-select"></select>
+        </label>
+        <label>章
+          <select id="ch-select"></select>
+        </label>
+        <label>節
+          <select id="v-select"></select>
+        </label>
+      </div>
 
-    <canvas id="card-canvas"></canvas>
+      <p class="status" id="card-status" role="status" aria-live="polite"></p>
 
-    <button id="download-btn">下載圖片</button>
+      <canvas id="card-canvas"></canvas>
+
+      <button type="button" class="pill solid" id="download-btn">下載圖片</button>
+    </section>
   </main>
 
   <footer>四福音 · 和合本</footer>
@@ -59,6 +102,12 @@
       const canvas = document.getElementById("card-canvas");
       const ctx = canvas.getContext("2d");
       const downloadBtn = document.getElementById("download-btn");
+      const statusEl = document.getElementById("card-status");
+
+      const VERSE_FONT = '30px "Noto Serif TC", "Songti TC", "PMingLiU", serif';
+      const REF_FONT = '19px system-ui, "PingFang TC", "Noto Sans TC", sans-serif';
+      const INK = "#10231f";
+      const RIVER = "#0e6b5b";
 
       let data = null;
       let book = "mat";
@@ -132,62 +181,103 @@
         return lines;
       }
 
+      function say(state, text) {
+        if (state) {
+          statusEl.setAttribute("data-state", state);
+        } else {
+          statusEl.removeAttribute("data-state");
+        }
+        statusEl.textContent = text;
+      }
+
+      /* 卡面：飛鷹 B 铺滿整張卡（等比裁切，不壓扁），下方壓一塊高對比白底板放經文與出處。
+         圖還沒載入（或載入失敗）時照樣畫底色與文字：data-ref 一律先設好，不等圖片。 */
       function drawCard() {
         const chapter = findChapter(ch);
-        let verse = null;
-        if (chapter) {
-          verse = findVerse(chapter.verses, v);
-        }
+        const verse = chapter ? findVerse(chapter.verses, v) : null;
         if (!verse) return;
 
         const text = verse.text;
         const refText = Bible.ref(book, ch, verse) + "（和合本）";
+        canvas.setAttribute("data-ref", refText);
 
         const W = 600;
-        const pad = 40;
-        const maxWidth = W - pad * 2;
+        const side = 40;
+        const plateInner = 28;
+        const topArt = 170;
+        const bottom = 44;
+        const gap = 12;
+        const verseLine = 46;
+        const refLine = 26;
+        const innerWidth = W - side * 2 - plateInner * 2;
 
-        ctx.font = "28px sans-serif";
-        const textLines = wrapText(text, maxWidth);
-        const lineHeight = 38;
-
-        ctx.font = "20px sans-serif";
-        const refLines = wrapText(refText, maxWidth);
-        const refLineHeight = 28;
-
-        const H = pad * 2 + refLines.length * refLineHeight + 16 + textLines.length * lineHeight;
+        ctx.font = VERSE_FONT;
+        const textLines = wrapText(text, innerWidth);
+        ctx.font = REF_FONT;
+        const refLines = wrapText(refText, innerWidth);
+        const plateH = plateInner * 2 + textLines.length * verseLine + gap + refLines.length * refLine;
+        const H = topArt + plateH + bottom;
 
         canvas.width = W;
         canvas.height = H;
-
         ctx.textBaseline = "top";
-        ctx.fillStyle = "#ffffff";
+
+        ctx.fillStyle = "#f3f6f2";
         ctx.fillRect(0, 0, W, H);
 
-        ctx.fillStyle = "#999999";
-        ctx.font = "20px sans-serif";
-        for (let i = 0; i < refLines.length; i++) {
-          ctx.fillText(refLines[i], pad, pad + i * refLineHeight);
+        if (faceArt && faceArt.complete && faceArt.naturalWidth > 0) {
+          const scale = Math.max(W / faceArt.naturalWidth, H / faceArt.naturalHeight);
+          const dw = faceArt.naturalWidth * scale;
+          const dh = faceArt.naturalHeight * scale;
+          ctx.drawImage(faceArt, (W - dw) / 2, (H - dh) / 2, dw, dh);
         }
 
-        ctx.fillStyle = "#1a1a1a";
-        ctx.font = "28px sans-serif";
-        const textStartY = pad + refLines.length * refLineHeight + 16;
+        ctx.fillStyle = "rgba(255, 255, 255, .93)";
+        ctx.strokeStyle = "rgba(201, 138, 27, .9)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(side, topArt, W - side * 2, plateH, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = INK;
+        ctx.font = VERSE_FONT;
         for (let i = 0; i < textLines.length; i++) {
-          ctx.fillText(textLines[i], pad, textStartY + i * lineHeight);
+          ctx.fillText(textLines[i], side + plateInner, topArt + plateInner + i * verseLine);
         }
 
-        canvas.setAttribute("data-ref", refText);
+        ctx.fillStyle = RIVER;
+        ctx.font = REF_FONT;
+        const refTop = topArt + plateInner + textLines.length * verseLine + gap;
+        for (let i = 0; i < refLines.length; i++) {
+          ctx.fillText(refLines[i], side + plateInner, refTop + i * refLine);
+        }
+
+        say("ok", "已產生：" + Bible.ref(book, ch, verse));
       }
 
+      const faceArt = new Image();
+      faceArt.onload = function () {
+        drawCard();
+      };
+      faceArt.onerror = function () {
+        /* 卡面圖載入失敗：經文卡照樣以底色產生，不打斷預覽與下載 */
+      };
+      faceArt.src = Bible.CARD_ART.face;
+
       function downloadImage() {
-        const url = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = book + "-" + ch + "-" + v + ".png";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+          const url = canvas.toDataURL("image/png");
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = book + "-" + ch + "-" + v + ".png";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          say("ok", "圖片已下載");
+        } catch (err) {
+          say("fix", "載入失敗，請稍後再試");
+        }
       }
 
       function applySelection() {
@@ -203,6 +293,7 @@
         if (Number.isFinite(val) && val >= 1) {
           ch = val;
           v = 1;
+          say("busy", "正在產生經文卡片…");
           applySelection();
         }
       });
@@ -211,12 +302,14 @@
         const val = parseInt(vSelect.value, 10);
         if (Number.isFinite(val)) {
           v = val;
+          say("busy", "正在產生經文卡片…");
           drawCard();
         }
       });
 
       bookSelect.addEventListener("change", function () {
         const selectedBookKey = bookSelect.value;
+        say("busy", "正在產生經文卡片…");
         Bible.load(selectedBookKey).then(function (loaded) {
           data = loaded;
           book = selectedBookKey;
@@ -225,6 +318,7 @@
           fillChapterSelect();
           applySelection();
         }).catch(function (err) {
+          say("fix", "載入失敗，請稍後再試");
           Bible.fail(document.querySelector("main"), err);
         });
       });
@@ -238,6 +332,7 @@
       const rawV = Bible.param("v");
       book = Bible.bookKey(rawBook);
 
+      say("busy", "正在產生經文卡片…");
       Bible.load(book).then(function (loaded) {
         data = loaded;
 
@@ -257,6 +352,7 @@
         fillChapterSelect();
         applySelection();
       }).catch(function (err) {
+        say("fix", "載入失敗，請稍後再試");
         Bible.fail(document.querySelector("main"), err);
       });
     })();

@@ -597,3 +597,198 @@ The issue was in `bible-site/site/blessing.
   - 檢查 `python3 bible-site/tests/service_checks.py zoneadmin blessartadmin homeadmin admin` → 通過
   - 檢查 `python3 bible-site/tests/deploy_checks.py` → 通過
   - 檢查 `grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*' bible-site/REVIEW-zone-art.md` → 通過
+
+## 2026-11-13 00:23:55　112-herdr-team-roster　失敗（herdr_team）
+
+- pane：w2:p3（opencode、e500、pm、backend｜主力全端／後端開發）；檔案：bible-site/tools/herdr_team.py
+- 第 1 次（w2:p3）：沒有改任何檔案；耗時 18 秒；pane 狀態 done；改動 無
+- 第 2 次（w2:p3）：沒有改任何檔案；耗時 66 秒；pane 狀態 done；改動 無
+
+## 2026-11-13 00:31:47　111-devotional-site-checks　pane 卡在審批（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/tests/site_checks.py
+- 第 1 次（w2:p5）：pane 卡在審批；耗時 557 秒；pane 狀態 blocked；改動 bible-site/tests/site_checks.py
+  - 錯誤：等待過程中變成 blocked，需要人工處理。畫面尾端：
+ 次越界後放著不動仍抓得到。
+     2. 完成偵測：herdr 的 agent wait
+        逾時時離開碼仍是 0，只有 JSON 裡的
+        error.code；且 pane 從 idle 直接回到 idle
+        時，用狀態字串無法分辨「真的做完了」與「根
+        本沒開始」。改成比對 state_change_seq（派工
+        前記錄、之後必須前進才視為有動靜），30
+        秒內完全無變化的回報 quiet
+        並仍靠檔案變化＋checks 定讞，不會假
+        successes。
+
+    已知邊界
+
+     - 真 agent 的 end-to-end（真人開的 pane
+       實際改檔並跑
+       checks）我沒有執行，避免干擾其他
+       agent；那條路徑只有假 herdr 覆蓋。
+     - blocked pane
+       一律不送、只回報，需要人工處理——不會自動按
+       Enter 或代為批准。
+     - 這台機器上同一棵樹常有多個 agent 同時在動，
+       非本腳本派出的改動會被算成越界；--ignore
+       <路徑片段> 就是這個用途（內建
+
+## 2026-11-13 00:40:46　112-herdr-team-roster　失敗（herdr_team）
+
+- pane：w2:p2（pi、a16｜地端快速單檔開發）；檔案：bible-site/tools/herdr_team.py
+- 第 1 次（w2:p2）：沒有改任何檔案；耗時 70 秒；pane 狀態 done；改動 無
+- 第 2 次（w2:p2）：改到範圍外的檔案；耗時 246 秒；pane 狀態 done；改動 bible-site/design/sample-2026-11.html, bible-site/tests/site_checks.py, bible-site/tools/herdr_team.py
+  - **超出範圍的改動**：bible-site/design/sample-2026-11.html
+
+## 2026-11-13 00:49:34　111-devotional-site-checks　失敗（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/tests/site_checks.py
+- 第 1 次（w2:p1）：改到範圍外的檔案；耗時 580 秒；pane 狀態 done；改動 bible-site/design/sample-2026-11.html, bible-site/tests/site_checks.py, bible-site/tools/herdr_team.py
+  - **超出範圍的改動**：bible-site/design/sample-2026-11.html, bible-site/tools/herdr_team.py
+- 第 2 次（w2:p1）：改到範圍外的檔案；耗時 264 秒；pane 狀態 done；改動 bible-site/design/eagle-A.jpg, bible-site/design/eagle-B.jpg, bible-site/design/sample-2026-11.html
+  - **超出範圍的改動**：bible-site/design/eagle-A.jpg, bible-site/design/eagle-B.jpg, bible-site/design/sample-2026-11.html, bible-site/tools/herdr_team.py
+
+## 2026-11-13 01:13:17　112-herdr-team-roster　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/tools/herdr_team.py
+- 第 1 次（w2:p5）：通過；耗時 599 秒；pane 狀態 idle；改動 bible-site/tools/herdr_team.py
+  - 檢查 `python3 -m py_compile bible-site/tools/herdr_team.py` → 通過
+  - 檢查 `python3 bible-site/tools/herdr_team.py status` → 通過
+  - 檢查 `python3 bible-site/tools/herdr_team.py status | grep -q "w2:p6.*agy"` → 通過
+
+## 2026-11-13 01:21:22　113-devotional-review　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/REVIEW-devotional.md
+- 第 1 次（w2:p5）：通過；耗時 444 秒；pane 狀態 idle；改動 bible-site/REVIEW-devotional.md
+  - 檢查 `test -s bible-site/REVIEW-devotional.md` → 通過
+  - 檢查 `sed -n '3p' bible-site/REVIEW-devotional.md | grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*$'` → 通過
+  - 檢查 `grep -q "^\*\*狀態：PASS\*\*$" bible-site/REVIEW-devotional.md` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py devotional` → 通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+
+## 2026-11-13 01:55:32　114-restyle-checks　等待逾時（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/ASSETS-LICENSE.md, bible-site/tests/site_checks.py, bible-site/tests/visual_checks.py, bible-site/tests/visual_probe.html, bible-site/tests/home_probe.html, bible-site/tests/zone_probe.html, bible-site/tests/blessing_probe.html
+- 第 1 次（w2:p5）：等待逾時；耗時 1800 秒；pane 狀態 timeout；改動 bible-site/ASSETS-LICENSE.md, bible-site/tests/blessing_probe.html, bible-site/tests/home_probe.html, bible-site/tests/site_checks.py, bible-site/tests/visual_checks.py, bible-site/tests/visual_probe.html, bible-site/tests/zone_probe.html
+  - 錯誤：30 分鐘內沒等到 idle/done（目前 working）
+
+## 2026-11-13 02:26:23　115-restyle-core-css-js　pane 卡在審批（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/style.css, bible-site/site/app.js
+- 第 1 次（w2:p5）：檢查不通過；耗時 1121 秒；pane 狀態 idle；改動 bible-site/site/app.js, bible-site/site/style.css
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "eagle-A\.jpg|改版素材|style\.css|app\.js"` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle .*：(導覽列|目前頁|背景音樂按鈕|頁面底部留白)"` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py zonemusic blessnav` → 不通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 --grep "style\.css 每條規則|底部導覽列|導覽列每項觸控區|導覽列目前頁|導覽列不遮住|捲到底時導覽列"` → 通過
+- 第 2 次（w2:p5）：pane 卡在審批；耗時 254 秒；pane 狀態 blocked；改動 無
+  - 錯誤：等待過程中變成 blocked，需要人工處理。畫面尾端：
+ks.py            │
+        只多動這一個檔案、把 blessnav                │
+        那條改成斷言「渲染後導覽列的 href 含         │
+        blessing.html 且文字含抽」（沿用既有         │
+        navinfo/probe 機制），其餘檔案範圍與規則不   │
+        變，改完重跑四項 checks。                    │
+     3. 在 app.js 塞隱藏文字湊過檢查                 │
+        由 Bible.nav()                               │
+        額外插入一個不含可見內容的文字節點，讓       │
+        dump() 裡出現 blessing.html。檢查會綠，但那  │
+        是為過測試而加的垃圾，且對螢幕閱讀器有干擾—  │
+        —我不建議，需要你明確同意才做。              │
+     4. Type something...                            │
+                            
+
+## 2026-11-13 02:55:35　116-restyle-home　失敗（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/home.html
+- 第 1 次（w2:p5）：改到範圍外的檔案；耗時 1208 秒；pane 狀態 idle；改動 bible-site/site/home.html, bible-site/tasks/123-restyle-review.md
+  - **超出範圍的改動**：bible-site/tasks/123-restyle-review.md
+- 第 2 次（w2:p5）：改到範圍外的檔案；耗時 162 秒；pane 狀態 idle；改動 無
+  - **超出範圍的改動**：bible-site/tasks/123-restyle-review.md
+
+## 2026-11-13 03:02:48　117-restyle-index　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/index.html
+- 第 1 次（w2:p5）：通過；耗時 317 秒；pane 狀態 idle；改動 bible-site/site/index.html
+  - 檢查 `python3 bible-site/tests/site_checks.py index blessindex` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle index\.html"` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "index\.html"` → 通過
+
+## 2026-11-13 03:07:45　118-restyle-chapter　pane 卡在審批（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/chapter.html
+- 第 1 次（w2:p5）：pane 卡在審批；耗時 277 秒；pane 狀態 blocked；改動 bible-site/site/chapter.html
+  - 錯誤：等待過程中變成 blocked，需要人工處理。畫面尾端：
+  print(name,                                 │
+     os.path.exists(f"/tmp/chap/{name}.png"))        │
+     srv.shutdown()                                  │
+     PY                                              │
+     cd /home/b827262/project/AI/Bible-Master &&     │
+     diff --numstat bible-site/site/chapter.html     │
+     git status --short bible-site/site/             │
+                                                     │
+   Allow execution of: 'mkdir, python3, import, …    │
+                                                     │
+   › 1. Yes, allow once     
+
+## 2026-11-13 03:13:11　119-restyle-search　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/search.html
+- 第 1 次（w2:p5）：通過；耗時 224 秒；pane 狀態 idle；改動 bible-site/site/search.html
+  - 檢查 `python3 bible-site/tests/site_checks.py search` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle search\.html"` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "search\.html"` → 通過
+
+## 2026-11-13 03:17:50　120-restyle-card　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/card.html
+- 第 1 次（w2:p5）：通過；耗時 250 秒；pane 狀態 idle；改動 bible-site/site/card.html
+  - 檢查 `python3 bible-site/tests/site_checks.py card` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle card\.html|改版素材"` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "card\.html"` → 通過
+
+## 2026-11-13 03:43:43　121-restyle-blessing　失敗（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/blessing.html
+- 第 1 次（w2:p5）：檢查不通過；耗時 916 秒；pane 狀態 idle；改動 bible-site/site/blessing.html
+  - 檢查 `python3 bible-site/tests/site_checks.py blessing blessstyle blessart` → 不通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle blessing\.html|改版素材"` → 不通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "blessing\.html"` → 通過
+- 第 2 次（w2:p5）：檢查不通過；耗時 566 秒；pane 狀態 idle；改動 bible-site/site/blessing.html
+  - 檢查 `python3 bible-site/tests/site_checks.py blessing blessstyle blessart` → 通過
+  - 檢查 `python3 bible-site/tests/site_checks.py restyle --grep "restyle blessing\.html|改版素材"` → 不通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "blessing\.html"` → 通過
+
+## 2026-11-13 04:04:37　122-restyle-devotional　等待逾時（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/devotional.html, bible-site/site/devotional.js
+- 第 1 次（w2:p5）：等待逾時；耗時 1200 秒；pane 狀態 timeout；改動 bible-site/site/devotional.html, bible-site/site/devotional.js
+  - 錯誤：20 分鐘內沒等到 idle/done（目前 working）
+
+## 2026-11-13 04:21:18　123-restyle-review　失敗（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/REVIEW-restyle.md
+- 第 1 次（w2:p1）：檢查不通過；耗時 600 秒；pane 狀態 done；改動 bible-site/REVIEW-restyle.md
+  - 檢查 `test -s bible-site/REVIEW-restyle.md` → 通過
+  - 檢查 `sed -n '3p' bible-site/REVIEW-restyle.md | grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*$'` → 通過
+  - 檢查 `grep -q "^\*\*狀態：PASS\*\*$" bible-site/REVIEW-restyle.md` → 不通過
+  - 檢查 `test -d bible-site/screenshots-restyle` → 不通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
+- 第 2 次（w2:p1）：檢查不通過；耗時 245 秒；pane 狀態 done；改動 bible-site/REVIEW-restyle.md
+  - 檢查 `test -s bible-site/REVIEW-restyle.md` → 通過
+  - 檢查 `sed -n '3p' bible-site/REVIEW-restyle.md | grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*$'` → 通過
+  - 檢查 `grep -q "^\*\*狀態：PASS\*\*$" bible-site/REVIEW-restyle.md` → 不通過
+  - 檢查 `test -d bible-site/screenshots-restyle` → 不通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
+
+## 2026-11-13 04:30:19　123-restyle-review　通過（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/REVIEW-restyle.md, bible-site/screenshots-restyle/home-375-light.png, bible-site/screenshots-restyle/home-375-dark.png, bible-site/screenshots-restyle/home-1440-light.png, bible-site/screenshots-restyle/home-1440-dark.png, bible-site/screenshots-restyle/index-375-light.png, bible-site/screenshots-restyle/index-375-dark.png, bible-site/screenshots-restyle/index-1440-light.png, bible-site/screenshots-restyle/index-1440-dark.png, bible-site/screenshots-restyle/chapter-375-light.png, bible-site/screenshots-restyle/chapter-375-dark.png, bible-site/screenshots-restyle/chapter-1440-light.png, bible-site/screenshots-restyle/chapter-1440-dark.png, bible-site/screenshots-restyle/search-375-light.png, bible-site/screenshots-restyle/search-375-dark.png, bible-site/screenshots-restyle/search-1440-light.png, bible-site/screenshots-restyle/search-1440-dark.png, bible-site/screenshots-restyle/card-375-light.png, bible-site/screenshots-restyle/card-375-dark.png, bible-site/screenshots-restyle/card-1440-light.png, bible-site/screenshots-restyle/card-1440-dark.png, bible-site/screenshots-restyle/blessing-375-light.png, bible-site/screenshots-restyle/blessing-375-dark.png, bible-site/screenshots-restyle/blessing-1440-light.png, bible-site/screenshots-restyle/blessing-1440-dark.png, bible-site/screenshots-restyle/devotional-375-light.png, bible-site/screenshots-restyle/devotional-375-dark.png, bible-site/screenshots-restyle/devotional-1440-light.png, bible-site/screenshots-restyle/devotional-1440-dark.png
+- 第 1 次（w2:p1）：通過；耗時 459 秒；pane 狀態 done；改動 bible-site/REVIEW-restyle.md
+  - 檢查 `test -s bible-site/REVIEW-restyle.md` → 通過
+  - 檢查 `sed -n '3p' bible-site/REVIEW-restyle.md | grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*$'` → 通過
+  - 檢查 `grep -q "^\*\*狀態：PASS\*\*$" bible-site/REVIEW-restyle.md` → 通過
+  - 檢查 `test -d bible-site/screenshots-restyle` → 通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過

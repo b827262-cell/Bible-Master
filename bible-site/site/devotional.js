@@ -15,22 +15,32 @@
   let entries = [];
   let generation = 0;
 
-  function add(parent, tag, text) {
+  function add(parent, tag, text, className) {
     const node = document.createElement(tag);
     node.textContent = text;
+    if (className) node.className = className;
     parent.appendChild(node);
     return node;
   }
+
+  /* 狀態列三態：busy 的文字一律以「正在」兩個字開頭，探測頁就是靠這個線索判斷渲染結束了沒有；
+     渲染成功時 data-state 與文字一起清掉；沒有資料或出錯才用 fix，文字要講清楚下一步該怎麼做。 */
+  function setStatus(state, text) {
+    if (state) status.dataset.state = state;
+    else delete status.dataset.state;
+    status.textContent = text;
+  }
+  setStatus('busy', '正在載入禱讀資料…');
 
   async function display() {
     const request = ++generation;
     container.replaceChildren();
     const match = entries.find((entry) => entry.devotional_date === date.value);
     if (!match) {
-      status.textContent = '此日期尚無已審核的禱讀內容。';
+      setStatus('fix', '此日期尚無已審核的禱讀內容。');
       return;
     }
-    status.textContent = '正在載入經文…';
+    setStatus('busy', '正在載入經文…');
     try {
       const passages = await Promise.all(match.ranges.map(async (range) => {
         const key = books[range.book];
@@ -50,16 +60,20 @@
       }));
       if (request !== generation) return;
       if (!passages.length || passages.some((p) => !p.length)) throw new Error('找不到經文');
-      status.textContent = '';
       add(container, 'h2', match.title || match.scripture_reference);
-      if (match.title) add(container, 'p', match.scripture_reference);
+      if (match.title) add(container, 'p', match.scripture_reference, 'eyebrow');
       add(container, 'h3', '經文');
       passages.flat().forEach((verse) => add(container, 'p', verse));
       [['默想', 'summary'], ['反思', 'reflection'], ['禱告', 'prayer']].forEach(([title, key]) => {
-        if (match[key]) { add(container, 'h3', title); add(container, 'p', match[key]); }
+        if (match[key]) {
+          add(container, 'h3', title);
+          // 禱告那一段套樣本三的淺綠底塊（.dev .pray 在 style.css）
+          add(container, 'p', match[key], key === 'prayer' ? 'pray' : '');
+        }
       });
+      setStatus('', '');
     } catch (error) {
-      if (request === generation) status.textContent = '經文載入失敗，請稍後再試。';
+      if (request === generation) setStatus('fix', '經文載入失敗，請稍後再試。');
     }
   }
 
@@ -72,5 +86,5 @@
     if (!Array.isArray(data)) throw new Error('資料格式錯誤');
     entries = data;
     display();
-  }).catch(() => { status.textContent = '禱讀資料載入失敗，請稍後再試。'; });
+  }).catch(() => { setStatus('fix', '禱讀資料載入失敗，請稍後再試。'); });
 }());

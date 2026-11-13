@@ -1,11 +1,24 @@
 <!doctype html>
 <meta charset="utf-8">
 <!-- Loaded by tests/site_checks.py through its local server (Chrome runs with autoplay allowed). Opens ?u=<page> in an iframe
-     (?w=<px> sets its width, default 375), clicks #music-btn once when ?click=1, then writes one JSON line into <pre id="out">:
+     (?w=<px> sets its width, default 375), clicks #music-btn once when ?click=1, runs a search flow when ?do=empty|hit|miss,
+     then writes one JSON line into <pre id="out">:
      PROBE {"verse","ref","h1","img":{src,naturalWidth,alt,complete},"audio":{src,loop,preload,paused},
-            "music":{text,pressed,paused},"links":[{text,href}],"navActive":n,"navCount":n,"errors":[...]}
+            "music":{text,pressed,paused},"links":[{text,href}],"navActive":n,"navCount":n,"errors":[...],
+            "dock":{position,fixed,count,items[{text,href,w,h,active,weight,bg}],active,box,musicBox,musicOverlaps,
+                    bodyPadBottom,mainPadBottom,lastBottom,vh,scrollH},
+            "hero":{pic,body,verse,picOverlap,verseInPic,picH,color,shadow,serif,bodyBgImage,bodyHasGradient,contrast},
+            "tiles":{bookCount,dailyHref,drawHref,find,findInput,fan:["url(...)"],fanNames:["eagle-B.jpg"]},
+            "cover":{bg,imgNames},
+            "states":{"empty":{busy,final},"hit":{...},"miss":{...}}  (only with ?do=...)
+            "statusRegion":{role,live,text}}
      Contract of the home page: .home-verse and .home-ref (filled by Bible.load), .home-hero img, audio#home-music,
-     button#music-btn[aria-pressed] (pressed="true" exactly when the audio is playing), links 進入四福音 / 抽一張經文卡 / 閱讀本章. -->
+     button#music-btn[aria-pressed] (pressed="true" exactly when the audio is playing), links 進入四福音 / 抽一張經文卡 / 閱讀本章.
+     2026-11 restyle contract: bottom floating dock (#nav or .dock, position:fixed) with five links
+     首頁／目錄／禱讀／抽卡／搜尋 and exactly one aria-current="page" or .active; the hero picture and the verse block are
+     separate rectangles that must not overlap; verse colour equals the sunlight token; the bento entrance carries
+     .book x4, .daily, .draw (three fan cards .fan i painted B, A, B) and .find; every status message sits in a
+     role=status / aria-live region with data-state="busy|ok|fix". -->
 <pre id="out">running</pre>
 <script>
 const qs = new URLSearchParams(location.search);
@@ -16,13 +29,151 @@ f.src = qs.get("u");
 f.addEventListener("load", () => { try { f.contentWindow.addEventListener("error", e => errors.push(String(e.message))); f.contentWindow.addEventListener("unhandledrejection", e => errors.push("promise: " + String(e.reason))); } catch (e) {} });
 document.body.appendChild(f);
 const sleep = t => new Promise(r => setTimeout(r, t));
+const d0 = () => f.contentDocument;
+const cs = (e, p) => e ? f.contentWindow.getComputedStyle(e, p || null) : null;
 const text = (d, s) => { const e = d.querySelector(s); return e ? e.textContent.trim() : ""; };
+const box = e => { if (!e) return null; const r = e.getBoundingClientRect();
+  return {x: Math.round(r.x), y: Math.round(r.y), top: Math.round(r.top), left: Math.round(r.left),
+          right: Math.round(r.right), bottom: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height)}; };
+const hits = (a, b) => !!a && !!b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+const rgba = s => { const m = (s || "").match(/rgba?\(([^)]+)\)/); if (!m) return [0, 0, 0, 0];
+  const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+const lum = c => { const t = v => (v /= 255) <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  return 0.2126 * t(c[0]) + 0.7152 * t(c[1]) + 0.0722 * t(c[2]); };
+const blend = (top, under) => { const a = top[3]; return [0, 1, 2].map(i => top[i] * a + under[i] * (1 - a)).concat(1); };
+// 漸層／圖檔當背景時 backgroundColor 是透明的：改用宣告底色或 fallback，別把透明當成白底算出假對比
+function back(w, el) {
+  let c = [243, 246, 242, 1];   // --paper 的 fallback（淺色霧白）
+  for (let e = el; e && e.nodeType === 1; e = e.parentElement) {
+    const s = cs(e), col = rgba(s.backgroundColor);
+    if (col[3] > 0) { c = blend(col, c); }
+    else if (/gradient|url\(/.test(s.backgroundImage)) {
+      const hex = (s.backgroundImage.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}/g) || []).map(h => rgba(h.length === 4 ? h : h)).filter(x => x[3] > 0);
+      if (hex.length) { c = blend(hex[hex.length - 1], c); break; }
+      const dark = /dark/.test(w.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "");
+      c = blend(dark ? [10, 20, 18, 1] : [10, 20, 18, 1], c); break;   // 樣本：經文／色塊都落在深底上
+    }
+  }
+  return c;
+}
+const contrastOf = el => { const bg = back(f.contentWindow, el), fg = blend(rgba(cs(el).color), bg);
+  const a = lum(fg), b = lum(bg); return Math.round(((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)) * 100) / 100; };
+const visible = e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+const hrefOf = e => e ? (e.tagName === "A" ? e.getAttribute("href") : (e.querySelector("a") || {}).href ? e.querySelector("a").getAttribute("href") : null) : null;
+const fileOf = u => { const m = /url\(["']?[^"'()]*?([\w.-]+\.(?:jpg|jpeg|png|webp|gif))["']?\)/i.exec(u || ""); return m ? m[1] : ""; };
+
 function music(d) {
   const b = d.getElementById("music-btn"), a = d.getElementById("home-music");
   return b ? {text: b.textContent.trim(), pressed: b.getAttribute("aria-pressed"), paused: a ? a.paused : null} : null;
 }
+// 底部浮動膠囊導覽列（五項、恰一目前頁、觸控區、不遮音樂鍵、底部留白）
+function dock(d) {
+  const nav = d.getElementById("nav") || d.querySelector(".dock");
+  if (!nav) return null;
+  const links = [...nav.querySelectorAll("a")];
+  const items = links.map(a => { const r = a.getBoundingClientRect(), s = cs(a);
+    return {text: a.textContent.trim(), href: a.getAttribute("href"), w: Math.round(r.width), h: Math.round(r.height),
+            active: a.getAttribute("aria-current") === "page" || a.classList.contains("active"),
+            weight: parseInt(s.fontWeight) || 0, bg: s.backgroundColor}; });
+  const nb = box(nav), mb = box(d.getElementById("zone-music-btn") || d.getElementById("music-btn"));
+  const main = d.querySelector("main") || d.body, last = main.lastElementChild;
+  const scrollable = d.scrollingElement || d.documentElement;
+  return {position: cs(nav).position, fixed: cs(nav).position === "fixed",
+          count: items.length, items, active: items.filter(i => i.active).length,
+          small: items.filter(i => i.w < 44 || i.h < 44).length, box: nb, musicBox: mb, musicOverlaps: hits(nb, mb),
+          bodyPadBottom: parseFloat(cs(d.body).paddingBottom) || 0, mainPadBottom: parseFloat(cs(main).paddingBottom) || 0,
+          lastBottom: last ? Math.round(last.getBoundingClientRect().bottom) : null,
+          vh: f.contentWindow.innerHeight, navTop: nb ? nb.top : null, scrollH: scrollable.scrollHeight};
+}
+// 主視覺：照片與經文分離、經文與光同色
+function hero(d) {
+  const pic = d.querySelector(".hero-pic img") || d.querySelector(".home-hero img") || d.querySelector(".hero img");
+  const body = d.querySelector(".hero-body") || d.querySelector(".home-card") || d.querySelector(".hero");
+  const v = d.querySelector(".hero blockquote") || d.querySelector(".home-verse");
+  if (!pic || !v) return null;
+  const pb = box(pic), vb = box(v), bb = box(body);
+  const s = cs(v), bs = cs(body || v);
+  return {pic: pb, body: bb, verse: vb, picH: Math.round(pic.getBoundingClientRect().height),
+          picNatural: pic.naturalWidth, picSrc: fileOf(pic.getAttribute("src")) || (pic.getAttribute("src") || ""),
+          picOverlap: hits(pb, vb), verseInPic: !!vb && !!pb && vb.left >= pb.left && vb.right <= pb.right && vb.top >= pb.top && vb.bottom <= pb.bottom,
+          color: s.color, shadow: s.textShadow, serif: /serif|Songti|PMingLiU|MingLiU/i.test(s.fontFamily),
+          bodyBgImage: (bs.backgroundImage || "").slice(0, 200), bodyHasGradient: /radial-gradient/.test(bs.backgroundImage || ""),
+          contrast: contrastOf(v)};
+}
+// 便當格入口與扇形紙卡 B、A、B
+function tiles(d) {
+  const fan = [...d.querySelectorAll(".fan i")].map(e => cs(e).backgroundImage);
+  const draw = d.querySelector(".draw"), daily = d.querySelector(".daily");
+  return {bookCount: d.querySelectorAll(".book").length, bookInk: [...d.querySelectorAll(".book")].map(b => contrastOf(b.querySelector("h3") || b)),
+          dailyHref: hrefOf(daily), drawHref: hrefOf(draw),
+          find: !!d.querySelector(".find"), findInput: !!(d.querySelector(".find") && d.querySelector(".find input")),
+          fan: fan.map(x => (x || "").slice(0, 120)), fanNames: fan.map(fileOf), fanCount: fan.length};
+}
+// 抽卡頁抽卡前的卡背（eagle-A）
+function cover(d) {
+  const el = d.getElementById("cover") || d.querySelector(".cover");
+  if (!el) return null;
+  const sub = el.querySelector(".card-back-art, .cover-art, .cover-card");
+  const img = el.querySelector("img");
+  const bg = cs(el).backgroundImage, sb = sub ? cs(sub).backgroundImage : "", ib = img ? cs(img).backgroundImage : "";
+  const names = [fileOf(bg), fileOf(sb), fileOf(img ? img.getAttribute("src") : ""), fileOf(ib)].filter(Boolean);
+  return {shown: visible(el), bg: (bg !== "none" ? bg : sb || "").slice(0, 160), imgSrc: img ? (img.getAttribute("src") || "") : "",
+          imgBg: (ib || "").slice(0, 160), names, hasA: names.includes("eagle-A.jpg"), blankBlock: names.length === 0,
+          drawHidden: (() => { const b = d.getElementById("draw-btn"); return b ? visible(b) : null; })()};
+}
+function statusRegion(d) {
+  const s = d.querySelector(".status") || d.querySelector("[role=status]") || d.querySelector("[aria-live]");
+  if (!s) return null;
+  return {role: s.getAttribute("role") || "", live: s.getAttribute("aria-live") || "", text: s.textContent.trim(),
+          state: s.getAttribute("data-state"), glyph: (cs(s, "::before").content || "").slice(0, 40)};
+}
+function fieldState(d) {
+  const i = d.querySelector("input[type=search]") || d.querySelector(".find input") || d.querySelector("main input[type=text]");
+  if (!i) return null;
+  const s = cs(i), id = i.getAttribute("aria-describedby");
+  const target = id ? d.getElementById(id) : null;
+  return {invalid: i.getAttribute("aria-invalid"), describedby: id || "",
+          targetRole: target ? (target.getAttribute("role") || target.getAttribute("aria-live") || "無 role／aria-live") : (id ? "找不到元素" : ""),
+          border: s.borderTopStyle + " " + s.borderTopWidth, focusedColor: s.color};
+}
+async function waitDoc() {   // 送出表單可能會轉頁（method=get），轉頁後要等新文件就緒再讀狀態
+  const before = f.contentDocument;
+  for (let i = 0; i < 40; i++) {
+    await sleep(150);
+    const d = f.contentDocument;
+    if (d && d !== before && d.readyState === "complete") { await sleep(600); return d; }
+    if (d && d.readyState === "complete" && (d.querySelector(".status, [role=status]") || {}).textContent !== undefined) {
+      const s = d.querySelector(".status, [role=status], [aria-live]");
+      if (s && (s.textContent || "").trim()) return d;
+    }
+  }
+  return f.contentDocument;
+}
+async function searchFlow(mode) {
+  const d = f.contentDocument;
+  const form = d.querySelector(".find form") || d.querySelector("form");
+  const i = (form && form.querySelector("input")) || d.querySelector("input[type=search]");
+  if (!i) return null;
+  i.value = mode === "empty" ? "" : mode === "miss" ? "zzz一定找不到測試字串" : "耶穌";
+  i.focus();
+  const btn = form ? (form.querySelector("button[type=submit], input[type=submit], button") || null) : d.querySelector("button[type=submit]");
+  const before = d;
+  if (btn) btn.click();                                       // 最接近真人操作的路徑
+  else if (form) form.dispatchEvent(new SubmitEvent("submit", {bubbles: true, cancelable: true}));
+  else i.dispatchEvent(new KeyboardEvent("keydown", {key: "Enter", bubbles: true}));
+  await sleep(120);
+  const busy = {status: statusRegion(f.contentDocument), field: fieldState(f.contentDocument), navigated: f.contentDocument !== before};
+  for (let k = 0; k < 20; k++) {
+    await sleep(150);
+    const s = statusRegion(f.contentDocument);
+    if (s && s.state && s.state !== "busy" && s.text) break;
+  }
+  const dd = await waitDoc();
+  return {busy, final: {status: statusRegion(dd), field: fieldState(dd),
+          results: dd.querySelectorAll("#results li").length, info: text(dd, "#result-info").slice(0, 120)}};
+}
 function read() {
-  const d = f.contentDocument, o = {errors};
+  const d = d0(), o = {errors};
   o.verse = text(d, ".home-verse");
   o.ref = text(d, ".home-ref");
   o.h1 = text(d, "h1");
@@ -32,22 +183,47 @@ function read() {
   o.audio = a ? {src: a.getAttribute("src") || (a.querySelector("source") || {}).src || "", loop: a.loop, preload: a.preload, paused: a.paused} : null;
   o.music = music(d);
   o.links = [...d.querySelectorAll("main a")].map(x => ({text: x.textContent.trim(), href: x.getAttribute("href")}));
-  o.navCount = d.querySelectorAll("#nav a").length;
-  o.navActive = d.querySelectorAll("#nav a.active").length;
+  o.navCount = d.querySelectorAll("#nav a, .dock a").length;
+  o.navActive = d.querySelectorAll("#nav a.active, #nav a[aria-current=page], .dock a.active, .dock a[aria-current=page]").length;
+  o.dock = dock(d);
+  o.hero = hero(d);
+  o.tiles = tiles(d);
+  o.cover = cover(d);
+  o.statusRegion = statusRegion(d);
+  o.musicStatus = (() => { const b = d.getElementById("music-btn") || d.getElementById("zone-music-btn");
+    if (!b) return null; const sib = b.parentElement ? [...b.parentElement.querySelectorAll("[role=status],[aria-live],.status")] : [];
+    return {hasBtn: true, region: sib.length ? {role: sib[0].getAttribute("role") || "", live: sib[0].getAttribute("aria-live") || ""} : null}; })();
   return o;
 }
 (async () => {
-  for (let i = 0; i < 40; i++) { await sleep(150); const d = f.contentDocument; if (d && (text(d, ".home-verse") || d.querySelector(".error"))) break; }
+  for (let i = 0; i < 40; i++) { await sleep(150); const d = d0(); if (d && (text(d, ".home-verse") || d.querySelector(".chapter-card, #results li, #blessing-card, #reading, .error"))) break; }
   await sleep(600);
   const o = read();
   o.initialMusic = o.music;
   if (qs.get("click") === "1") {
-    const b = f.contentDocument.getElementById("music-btn");
+    const b = d0().getElementById("music-btn");
     if (b) { b.click(); await sleep(900); }
-    o.afterClick = music(f.contentDocument);
-    const b2 = f.contentDocument.getElementById("music-btn");
+    o.afterClick = music(d0());
+    const b2 = d0().getElementById("music-btn");
     if (b2) { b2.click(); await sleep(600); }
-    o.afterSecond = music(f.contentDocument);
+    o.afterSecond = music(d0());
+  }
+  if (qs.get("wides")) {   // 同一輪內依序量四種寬度（主視覺不重疊要用）
+    o.byWidth = {};
+    for (const wid of [320, 375, 768, 1440]) {
+      f.style.width = wid + "px";
+      await sleep(500);
+      const dd = d0();
+      o.byWidth[wid] = {hero: hero(dd), dock: dock(dd), scrollWidth: dd.documentElement.scrollWidth, clientWidth: dd.documentElement.clientWidth};
+    }
+  }
+  const doMode = qs.get("do");
+  if (doMode) {
+    o.states = {};
+    for (const m of (doMode === "all" ? ["empty", "hit", "miss"] : [doMode])) {
+      o.states[m] = await searchFlow(m);
+      await sleep(300);
+    }
   }
   document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
 })();

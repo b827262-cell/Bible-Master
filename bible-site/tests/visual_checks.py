@@ -3,9 +3,16 @@
 Opens each page in tests/visual_probe.html (headless Chrome, light and dark colour scheme, several widths) and checks:
   p0  style.css: every rule survives the browser's parser; every link/button/input/select draws a solid >=2px focus
       outline; text contrast >=4.5:1 in light and dark; every input/select has an accessible name
-  p1  touch targets (nav, book tabs, search controls >=44px; chapter cards, chapter links >=48px); current page/book
-      marked by more than colour; h1 1.375rem on phones / 1.625rem on desktop; verse text aligned in one column
-  p2  card page controls >=44px and canvas scaled to its container; no horizontal overflow at 320/375/768/1440px
+  p1  touch targets (nav/dock, book tabs, search controls >=44px; chapter cards, chapter links >=48px); current page/book
+      marked by more than colour; 2026-11 restyle: the bottom floating dock is position:fixed with exactly five links
+      (首頁／目錄／禱讀／抽卡／搜尋), one marked current (aria-current or .active, bold, different background), it never
+      covers the music button and the page leaves enough bottom room so it does not cover the last block; h1 is a serif
+      display face at >=20px (the old fixed 22/26px rule is gone); verse text aligned in one column
+  p2  card page controls >=44px and canvas scaled to its container; no horizontal overflow at 320/375/768/1440px;
+      home.html keeps the hero picture and today's verse in two separate rectangles that never overlap at all four
+      widths (photo >=200px tall, verse colour = the sunlight token #fdf2da with a warm glow), and style.css kills all
+      animation under prefers-reduced-motion. Pages measured: index, chapter, search (hit and empty), card, blessing,
+      home and devotional, light and dark.
 Usage: python3 bible-site/tests/visual_checks.py [p0] [p1] [p2] [--grep REGEX]   (no group: all three)"""
 import functools, html, http.server, json, os, re, socketserver, sys, tempfile, threading, urllib.parse, subprocess
 
@@ -13,7 +20,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHROME = next((c for c in ("/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/snap/bin/chromium") if os.path.exists(c)), None)
 WIDTHS = [320, 375, 768, 1440]
 PAGES = ["index.html?book=luk", "chapter.html?book=luk&ch=2", "search.html?q=" + urllib.parse.quote("彼得"),
-         "search.html?q=zzzz", "card.html?book=luk&ch=1&v=1", "blessing.html?card=work-01", "home.html"]
+         "search.html?q=zzzz", "card.html?book=luk&ch=1&v=1", "blessing.html?card=work-01", "home.html", "devotional.html"]
 results = []
 ONLY = None  # --grep REGEX: only checks whose name matches count (one task's share of the plan)
 
@@ -95,14 +102,29 @@ def main(groups):
             check(f"375px {p} 導覽、書卷、章節、搜尋控制項的觸控區域夠大", not small, "；".join(small))
             plain = [k for k, ok in m["current"].items() if not ok]
             check(f"{p} 目前頁面／書卷除了顏色還有粗體或底線", not plain, "、".join(plain))
+            dk = m.get("dock") or {}
+            if dk:   # 2026-11 改版：底部浮動膠囊導覽列（五項、恰一目前頁、觸控區、不遮音樂鍵、底部留白）
+                check(f"375px {p} 底部導覽列是 position: fixed、恰好五項、恰有一項標為目前頁",
+                      dk.get("position") == "fixed" and dk.get("count") == 5 and dk.get("active") == 1,
+                      json.dumps({k: dk.get(k) for k in ("position", "count", "active")}))
+                check(f"375px {p} 導覽列每項觸控區 ≥44×44", dk.get("small", 1) == 0, json.dumps({"small": dk.get("small")}))
+                check(f"{p} 導覽列目前頁除了顏色還有粗體（≥600），且底色與一般項不同",
+                      dk.get("activeWeight", 0) >= 600 and len(set(dk.get("activeBg") or [])) == 2,
+                      json.dumps({k: dk.get(k) for k in ("activeWeight", "activeBg")}, ensure_ascii=False))
+                check(f"{p} 導覽列不遮住背景音樂按鈕", not dk.get("musicOverlap"), json.dumps({"musicOverlap": dk.get("musicOverlap")}))
+                roomy = (dk.get("bodyPadBottom") or 0) >= 100 or (dk.get("mainPadBottom") or 0) >= 100 or \
+                        (dk.get("navTop") and dk.get("lastBottom") is not None and dk["lastBottom"] <= dk["navTop"])
+                check(f"{p} 捲到底時導覽列不會壓住最後一段內容（底部留白 ≥100px 或最後元素在導覽列上方）", roomy,
+                      json.dumps({k: dk.get(k) for k in ("bodyPadBottom", "mainPadBottom", "lastBottom", "navTop")}))
             na = m.get("navActive")
-            if na is not None:   # chapter.html has no current nav entry
+            if na is not None and not dk:   # 舊版頂部導覽列（改版後不會再走到這條）
                 check(f"{p} 導覽列目前頁不是實心色塊：背景透明、粗體、底部 ≥2px 指示線",
                       na.get("bg") in ("rgba(0, 0, 0, 0)", "transparent") and na.get("weight", 0) >= 600 and na.get("bottom", 0) >= 2,
                       json.dumps(na))
-            want = {375: 22, 1440: 26}
-            bad = [f"{w}px 時 h1 {light[p][w]['h1']}px（要 {px}px）" for w, px in want.items() if abs(light[p][w]["h1"] - px) > 0.5]
-            check(f"{p} 主標題字級：手機 1.375rem、桌面 1.625rem", not bad, "；".join(bad))
+            small_h1 = [f"{w}px 時 h1 只有 {light[p][w]['h1']}px（要 ≥20px）" for w in (375, 1440) if light[p][w]["h1"] < 20]
+            serif_h1 = all("erif" in (light[p][w].get("h1Font") or "") for w in (375, 1440))
+            check(f"{p} 主標題用明體（--display 那組）且字級 ≥20px（改版不再限定 22／26px 的死板字級）",
+                  not small_h1 and serif_h1, "；".join(small_h1) or (light[p][1440].get("h1Font") or ""))
         for w in (375, 1440):
             lefts = light[PAGES[1]][w]["verseLefts"]
             check(f"{w}px {PAGES[1]} 經文左緣對齊成一欄（含合併節 34-35）", len(lefts) == 1, f"左緣位置 {lefts}")
@@ -124,17 +146,19 @@ def main(groups):
         small = [f"{k} {v['h']}×{v['w']}px（至少 {v['min']}）" for k, v in m["targets"].items()
                  if k == "button" and (v["h"] < v["min"] - 0.5 or v["w"] < v["min"] - 0.5)]
         check("375px blessing.html 的按鈕（抽卡、再抽、主題標籤、下載、分享）至少 44px", not small, "；".join(small))
-        for w in WIDTHS:
-            h = light[PAGES[6]][w].get("home") or {}
-            check(f"{w}px home.html 經文卡壓在英雄圖的底緣（卡片頂端比圖片底端高）、圖高 ≥ 240px", bool(h) and h["cardTop"] < h["imgBottom"] and h["heroH"] >= 240, json.dumps(h))
-        h = light[PAGES[6]][375].get("home") or {}
-        bg = h.get("musicBg") or [255, 255, 255, 1]
-        check("home.html 音樂按鈕在圖上、半透明深色底、字是淺色（對比 ≥ 4.5:1）", bool(h) and h.get("musicInHero") and 0 < bg[3] < 1 and sum(bg[:3]) < 200 and h.get("musicLum", 0) >= 0.7, json.dumps(h))
-        for w in WIDTHS:
-            h = light[PAGES[6]][w].get("home") or {}
-            check(f"{w}px home.html 音樂按鈕完整露出在圖上（沒有被經文卡蓋住）", bool(h) and h.get("musicBottom") is not None and h["musicBottom"] <= h["cardTop"], json.dumps(h))
-        check("home.html 圖上的小標是淺色字並有 text-shadow", bool(h) and h.get("kickerLum", 0) >= 0.7 and h.get("kickerShadow") not in (None, "none"), json.dumps(h))
-        check("home.html 經文用明體", bool(h) and h.get("serif") is True, json.dumps(h))
+        for w in WIDTHS:   # 2026-11 改版：照片與經文分開放（舊版「經文卡壓在圖上」的假設已淘汰）
+            hs = light[PAGES[6]][w].get("heroSplit") or {}
+            check(f"{w}px home.html 主視覺照片與今日經文矩形完全不重疊（人物不被文字或按鈕蓋住）、照片高 ≥200px",
+                  bool(hs) and hs.get("overlap") is False and hs.get("picH", 0) >= 200,
+                  json.dumps(hs, ensure_ascii=False)[:260])
+        hs = light[PAGES[6]][375].get("heroSplit") or {}
+        check("home.html 今日經文與照片裡灑在人物身上的光同色（#fdf2da）、有金色光暈 text-shadow、用明體，經文區另有從照片方向照過來的暖光漸層",
+              hs.get("color") == "rgb(253, 242, 218)" and hs.get("shadow") not in (None, "", "none")
+              and hs.get("serif") and hs.get("bodyGradient"),
+              json.dumps({k: hs.get(k) for k in ("color", "shadow", "serif", "bodyGradient")}, ensure_ascii=False)[:260])
+        rm = {p: light[p][375].get("reducedMotion") for p in PAGES}
+        check("style.css 在 prefers-reduced-motion: reduce 下關掉動畫／動態轉換（所有頁面共用同一份樣式）",
+              all(v is True for v in rm.values()), json.dumps(rm))
         for w in WIDTHS:
             c = light[PAGES[5]][w].get("canvas", {})
             good = c.get("attrW", 0) >= 600 and c.get("shownW", -1) == 0 and c.get("ref", "").startswith("馬太福音 25:21")

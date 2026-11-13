@@ -59,19 +59,36 @@ function read() {
   o.style = styleOf(d, c, cv);
   return o;
 }
-// computed look of the card page (blessstyle checks): which buttons are solid accent, theme tabs, card typography
+// computed look of the card page (blessstyle / restyle checks): which buttons are solid accent, theme tabs, card typography
 function styleOf(d, c, cv) {
   const w = f.contentWindow, cs = (e, p) => w.getComputedStyle(e, p || null);
   const probe = d.createElement("span");
-  probe.style.cssText = "background:var(--accent);color:var(--accent)";
+  probe.style.cssText = "background:var(--river);color:var(--river)";
   d.body.appendChild(probe);
-  const accent = cs(probe).backgroundColor;
+  let accent = cs(probe).backgroundColor;
+  if (accent === "rgba(0, 0, 0, 0)") { probe.style.cssText = "background:var(--accent)"; accent = cs(probe).backgroundColor; }
   probe.style.cssText = "background:var(--surface)";
   const surface = cs(probe).backgroundColor;
   probe.remove();
   const s = {accent, surface, canvasShown: visible(cv)};
   s.solid = [...d.querySelectorAll("button")].filter(visible).filter(b => cs(b).backgroundColor === accent)
     .map(b => b.id || ("theme:" + b.getAttribute("data-theme")));
+  const fileOf = u => { const m = /url\(["']?[^"'()]*?([\w.-]+\.(?:jpg|jpeg|png|webp|gif))["']?\)/i.exec(u || ""); return m ? m[1] : ""; };
+  // 膠囊按鈕：圓角至少要有高度的一半
+  const pills = [...d.querySelectorAll("#draw-btn,#again-btn,#download-btn,#share-btn,.pill")].filter(visible);
+  if (pills.length) {
+    const bad = pills.map(b => { const r = b.getBoundingClientRect(); return {id: b.id || b.className, r: parseFloat(cs(b).borderTopLeftRadius) || 0, h: Math.round(r.height)}; });
+    s.pills = {n: bad.length, radius: Math.min(...bad.map(x => x.r)), h: Math.max(...bad.map(x => x.h)), detail: bad};
+  }
+  // 抽卡前的卡背（2026-11 改版：顯示金色飛鷹 eagle-A，由共用樣式提供）
+  const own = d.getElementById("cover") || d.querySelector(".cover") || (d.getElementById("draw-btn") || {}).parentElement;
+  if (own) {
+    const bg = cs(own).backgroundImage, inner = [...own.querySelectorAll("*")].map(e => cs(e).backgroundImage).join(" ");
+    const img = own.querySelector("img");
+    const names = [fileOf(bg), fileOf(inner), fileOf(img ? img.getAttribute("src") : "")].filter(Boolean);
+    s.cover = {shown: visible(own), bg: (bg || "").slice(0, 120), names, hasA: /eagle-A/i.test(names.join(",")),
+               blankBlock: !/url\(/.test((bg || "") + inner) && !img};
+  }
   s.tabs = [...d.querySelectorAll("#theme-tabs button[data-theme]")].map(b => {
     const r = b.getBoundingClientRect(), st = cs(b);
     return {id: b.getAttribute("data-theme"), active: b.getAttribute("aria-pressed") === "true", bg: st.backgroundColor,
@@ -84,7 +101,8 @@ function styleOf(d, c, cv) {
     return b ? {id, bg: cs(b).backgroundColor, border: parseFloat(cs(b).borderTopWidth)} : {id};
   });
   const v = c && c.querySelector(".card-verse");
-  if (v) s.verse = {font: cs(v).fontFamily, left: parseFloat(cs(v).borderLeftWidth), leftColor: cs(v).borderLeftColor};
+  if (v) s.verse = {font: cs(v).fontFamily, left: parseFloat(cs(v).borderLeftWidth), leftColor: cs(v).borderLeftColor,
+                    px: parseFloat(cs(v).fontSize), weight: parseInt(cs(v).fontWeight) || 0};
   const sign = c && c.querySelector(".card-sign");
   if (sign) s.signBefore = cs(sign, "::before").content;
   const rl = d.getElementById("read-link"), ref = c && c.querySelector(".card-ref"), acts = c && c.querySelector(".card-actions");

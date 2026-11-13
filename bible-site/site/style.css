@@ -1,33 +1,61 @@
-/* 馬可福音網站共用樣式（和合本）。
-    手機優先；深淺色依系統設定切換；不載入任何外部資源。 */
+/* 四福音版網站共用樣式（和合本）。
+   手機優先；淺深兩套色並存，跟隨系統設定（:root[data-theme="dark"] 可強制深色）；
+   2026-11 改版的配色、字型、圓角與底部膠囊導覽列一律以 design/sample-2026-11.html 為依據；
+   不載入任何外部資源。 */
 
-/* ===== 顏色變數：淺色為預設，深色依系統設定切換 ===== */
+/* ===== 設計變數：取自 design/sample-2026-11.html（淺色為預設） ===== */
 :root {
-  --bg: #f7f5ef;
+  --paper: #f3f6f2;      /* 帶一點河水綠的霧白 */
   --surface: #ffffff;
-  --card-bg: #fffcf5;
-  --fg: #2c2b28;
-  --muted: #635f56;
-  --border: #ded8cc;
-  --accent: #7a4a1f;
-  --accent-fg: #ffffff;
-  --accent-soft: #f3ead8;
-  --focus: #b35400;
+  --ink: #10231f;        /* 深河綠近黑 */
+  --muted: #586a64;
+  --river: #0e6b5b;      /* 約但河的翠綠：主色 */
+  --river-soft: #dcefe9;
+  --lamp: #c98a1b;       /* 雲隙的金光：強調 */
+  --sunlight: #fdf2da;   /* 照片裡灑在人物身上的光：首頁今日經文的文字色 */
+  --line: rgba(16, 35, 31, .12);
+  --glass: rgba(255, 255, 255, .72);
+  --shadow: 0 1px 2px rgba(16, 35, 31, .06), 0 12px 32px -12px rgba(16, 35, 31, .22);
+  --mat: #c98a1b;
+  --mrk: #d9583b;
+  --luk: #0e6b5b;
+  --jhn: #3d55c4;
+  --display: "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
+  --body: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --r-lg: 28px;
+  --r-md: 18px;
+
+  /* 舊變數別名：還沒改版的頁面照樣可用，換掉的只是數值。
+     --accent-fg 跟著 --paper 走，所以深色模式（主色是淺翠綠）按鈕文字自動變成深字，對比仍 ≥ 4.5:1。 */
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --card-bg: var(--surface);
+  --border: var(--line);
+  --accent: var(--river);
+  --accent-fg: var(--paper);
+  --accent-soft: var(--river-soft);
+  --focus: var(--lamp);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #161513;
-    --surface: #22201c;
-    --card-bg: #28251f;
-    --fg: #ede9df;
-    --muted: #aba69b;
-    --border: #3d3932;
-    --accent: #deb068;
-    --accent-fg: #171614;
-    --accent-soft: #352c1e;
-    --focus: #e0a45c;
+  :root:not([data-theme="light"]) {
+    --paper: #0a1412; --surface: #121f1c; --ink: #e9f1ee; --muted: #94a8a1;
+    --river: #55d3b7; --river-soft: #16302a; --lamp: #f0bf5c; --line: rgba(233, 241, 238, .14);
+    --glass: rgba(18, 31, 28, .72);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 36px -14px rgba(0, 0, 0, .7);
+    --mat: #f0bf5c; --mrk: #ff8a6b; --luk: #55d3b7; --jhn: #8fa2ff;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0a1412; --surface: #121f1c; --ink: #e9f1ee; --muted: #94a8a1;
+  --river: #55d3b7; --river-soft: #16302a; --lamp: #f0bf5c; --line: rgba(233, 241, 238, .14);
+  --glass: rgba(18, 31, 28, .72);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 36px -14px rgba(0, 0, 0, .7);
+  --mat: #f0bf5c; --mrk: #ff8a6b; --luk: #55d3b7; --jhn: #8fa2ff;
+  color-scheme: dark;
 }
 
 /* ===== 基本設定：手機優先、無橫向捲動 ===== */
@@ -42,15 +70,19 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", "PingFang TC", "Microsoft JhengHei",
-    "Noto Sans TC", sans-serif;
+  color: var(--ink);
+  font-family: var(--body);
   line-height: 1.75;
   overflow-x: hidden;
   min-width: 0;
   overflow-wrap: break-word;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(60rem 30rem at 110% -10%, color-mix(in srgb, var(--lamp) 22%, transparent), transparent 60%),
+    radial-gradient(50rem 28rem at -20% 30%, color-mix(in srgb, var(--river) 18%, transparent), transparent 60%);
+  background-attachment: fixed;
+  /* 底部浮動導覽列的高度＋餘裕：捲到底也不會壓住最後一段內容 */
+  padding-bottom: 130px;
 }
 
 /* 內容置中，最大寬度約 40em */
@@ -98,12 +130,7 @@ body {
   padding: 0.75em 1em;
 }
 
-/* ===== 導覽列 ===== */
-#nav {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
+/* ===== 章清單（chapter.html 的 #chapter-links 也掛 .nav-list） ===== */
 .nav-list {
   list-style: none;
   margin: 0;
@@ -117,36 +144,99 @@ body {
   margin: 0;
 }
 
-.nav-list a {
+#chapter-links a {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0.6em 1em;
-  color: var(--fg);
+  color: var(--ink);
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: var(--r-md);
   line-height: 1.4;
 }
 
-.nav-list a:hover,
-.nav-list a:focus {
-  background: var(--border);
+#chapter-links a:hover {
+  background: var(--river-soft);
 }
 
-.nav-list a.active {
-  background: transparent;
-  color: var(--accent);
-  font-weight: 700;
-  text-decoration: none;
-  border-bottom: 3px solid var(--accent);
-  border-radius: 0;
+/* ===== 底部浮動膠囊導覽列：五項（首頁／目錄／禱讀／抽卡／搜尋），由 Bible.nav() 畫出 ===== */
+#nav,
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  box-shadow: var(--shadow);
+  max-width: calc(100vw - 16px);
 }
 
-#chapter-links a {
+#nav .nav-list,
+.dock .nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+#nav li,
+.dock li {
+  display: flex;
+  flex: none;
+  margin: 0;
+}
+
+#nav a,
+.dock a {
+  min-width: 56px;
   min-height: 48px;
+  padding: 0 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: .92rem;
+  white-space: nowrap;
+  color: var(--ink);
+  border: 0;
+}
+
+#nav a:hover,
+.dock a:hover {
+  background: var(--river-soft);
+}
+
+/* 目前頁：實心底＋粗體（不只靠顏色），文字用同底的霧白維持對比 */
+#nav a.active,
+#nav a[aria-current="page"],
+.dock a.active,
+.dock a[aria-current="page"] {
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+  border: 0;
+  text-decoration: none;
 }
 
 /* ===== 頁面標題與說明 ===== */
+/* 標題與經文用明體（--display），介面文字用黑體（--body）；只用系統字。 */
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  line-height: 1.25;
+}
+
 h1 {
   font-size: 1.375rem;
   line-height: 1.35;
@@ -314,7 +404,7 @@ input[type="submit"]:hover {
 button:focus,
 .btn:focus,
 input[type="submit"]:focus {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--lamp);
   outline-offset: 2px;
 }
 
@@ -344,9 +434,9 @@ input[type="search"] {
 
 input[type="text"]:focus,
 input[type="search"]:focus {
-  outline: 2px solid var(--focus);
-  outline-offset: 0;
-  border-color: var(--focus);
+  outline: 3px solid var(--lamp);
+  outline-offset: 2px;
+  border-color: var(--lamp);
 }
 
 select {
@@ -383,11 +473,6 @@ footer {
   text-align: center;
 }
 
-.nav-list a:focus-visible,.chapter-card:focus-visible,.book-tabs a:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
 /* ===== 書卷連結（四福音版）：橫向排列，手機可自動換行 ===== */
 .book-tabs {
   list-style: none;
@@ -407,16 +492,16 @@ footer {
   align-items: center;
   min-height: 44px;
   padding: 0.45em 0.9em;
-  color: var(--fg);
+  color: var(--ink);
   text-decoration: none;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 999px;
   line-height: 1.3;
 }
 
 .book-tabs a:hover,
 .book-tabs a:focus {
-  background: var(--border);
+  background: var(--river-soft);
 }
 
 /* 目前這卷：明顯的目前狀態 */
@@ -485,23 +570,14 @@ footer {
     max-width: 66em;
   }
 
-  #nav .nav-list {
-    max-width: 64em;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: center;
-    gap: 0.5em;
-    padding: 0.25em 1rem;
-  }
-
-  .nav-list a {
+  #chapter-links a {
     padding: 0.6em 1.25em;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     font-size: 1.025rem;
     transition: background 0.15s ease, color 0.15s ease;
   }
 
-  .nav-list a:hover {
+  #chapter-links a:hover {
     background: var(--accent-soft);
     color: var(--accent);
   }
@@ -613,11 +689,6 @@ footer {
     max-width: 80em;
   }
 
-  #nav .nav-list {
-    max-width: 78em;
-    gap: 0.75em;
-  }
-
   .chapter-grid {
     grid-template-columns: repeat(6, 1fr);
     gap: 1em;
@@ -641,20 +712,26 @@ footer {
   }
 }
 
-a:focus-visible,
+/* 鍵盤焦點：所有可聚焦元件都要畫出 3px 實線金色外框（:focus 與 :focus-visible 都算） */
+a[href]:focus,
+button:focus,
+input:focus,
+select:focus,
+[tabindex]:focus,
+a[href]:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--lamp);
   outline-offset: 2px;
 }
 
-/* ===== 四區共用背景音樂按鈕（music.js 產生） ===== */
+/* ===== 四區共用背景音樂按鈕（music.js 產生）：住在底部導覽列上方，兩者互不遮擋 ===== */
 #zone-music-btn {
   position: fixed;
-  right: 12px;
-  bottom: 12px;
+  right: 16px;
+  bottom: 86px;
   z-index: 20;
   min-height: 44px;
   min-width: 44px;
@@ -668,7 +745,7 @@ select:focus-visible,
 }
 
 #zone-music-btn:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--lamp);
   outline-offset: 2px;
 }
 
@@ -711,5 +788,699 @@ select:focus-visible,
 
   #zone-music-btn .bars i:nth-child(3) {
     animation: zoneBars 0.9s ease-in-out 0.4s infinite;
+  }
+}
+
+/* ============================================================
+   2026-11 改版共用元件（唯一的視覺依據：design/sample-2026-11.html）
+   頁面只掛 class：主視覺、便當格入口、閱讀、禱讀、微互動三態。
+   ============================================================ */
+
+/* ===== 版面骨架 ===== */
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px 16px 120px;
+  display: grid;
+  gap: 16px;
+}
+
+.eyebrow {
+  font-size: .8rem;
+  letter-spacing: .14em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.brand small {
+  font-family: var(--body);
+  font-size: .8rem;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: .1em;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: clamp(18px, 4vw, 40px);
+}
+
+/* ===== 膠囊按鈕（玻璃質感；實心的 .pill.solid 用墨色底＋霧白字） ===== */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  color: var(--ink);
+  font: inherit;
+  font-size: .95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.pill.solid {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: transparent;
+}
+
+/* 按下去要有輕微縮放回饋（WCAG 2.2 2.5.2 之外，也讓狀態更明顯） */
+.pill:active,
+.tile:active {
+  transform: scale(.96);
+}
+
+.pill[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* ===== 主視覺：照片與經文分開放，經文不蓋住照片裡的人物 ===== */
+.hero {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  box-shadow: var(--shadow);
+  background-color: #06140f;
+  background-image: linear-gradient(160deg, #123129, #06140f);
+}
+
+.hero-pic {
+  position: relative;
+  overflow: hidden;
+  min-height: 440px;
+}
+
+.hero-pic img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+}
+
+.hero-pic::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, rgba(60, 62, 40, .55) 70%, #2a3a2c);
+}
+
+/* 經文區塊：一道從照片那側照過來的暖光，文字與照片裡的光同色（--sunlight） */
+.hero-body {
+  position: relative;
+  padding: clamp(22px, 3.2vw, 40px);
+  color: #f4f8f6;
+  display: grid;
+  gap: 16px;
+  align-content: center;
+  background: radial-gradient(120% 90% at 0% 22%, rgba(253, 228, 170, .30), rgba(253, 228, 170, .08) 45%, transparent 70%);
+}
+
+.hero .eyebrow {
+  color: #f6d996;
+  font-size: .9rem;
+}
+
+.hero blockquote {
+  color: var(--sunlight);
+  text-shadow: 0 0 22px rgba(253, 222, 150, .55), 0 0 2px rgba(253, 242, 218, .35);
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 1rem + 1.5vw, 2.1rem);
+  line-height: 1.6;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero .pill {
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  border-color: rgba(255, 255, 255, .28);
+}
+
+.hero .pill.solid {
+  background: #f4f8f6;
+  color: var(--ink);
+}
+
+/* ===== 便當格入口 ===== */
+.bento {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 22px;
+  text-decoration: none;
+  display: grid;
+  gap: 6px;
+  align-content: end;
+  min-height: 170px;
+  transition: transform .25s, box-shadow .25s;
+}
+
+a.tile:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.book {
+  grid-column: span 3;
+  color: #fff;
+  border: 0;
+  background-color: #06231d;
+  background-image: linear-gradient(150deg, color-mix(in srgb, var(--hue) 88%, #000), color-mix(in srgb, var(--hue) 62%, #06231d));
+}
+
+/* 深色模式的書卷色調是給深底上的文字用的亮色，直接當底色會讓白字對比掉到 3:1 以下，所以方塊底色要再壓暗 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .book {
+    background-image: linear-gradient(150deg, color-mix(in srgb, var(--hue) 50%, #000), color-mix(in srgb, var(--hue) 36%, #06231d));
+  }
+}
+
+:root[data-theme="dark"] .book {
+  background-image: linear-gradient(150deg, color-mix(in srgb, var(--hue) 50%, #000), color-mix(in srgb, var(--hue) 36%, #06231d));
+}
+
+.book .glyph {
+  position: absolute;
+  right: -.12em;
+  top: -.32em;
+  font-family: var(--display);
+  font-size: 9.5rem;
+  font-weight: 900;
+  line-height: 1;
+  opacity: .2;
+}
+
+.book h3 {
+  font-size: 1.5rem;
+}
+
+.book span {
+  font-size: .9rem;
+  opacity: .88;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily {
+  grid-column: span 7;
+  align-content: space-between;
+  min-height: 230px;
+}
+
+.daily h3 {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem);
+}
+
+.daily .date {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.daily .day {
+  font-family: var(--display);
+  font-size: 3.2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--river);
+  font-variant-numeric: tabular-nums;
+}
+
+.go {
+  color: var(--river);
+  font-weight: 600;
+}
+
+.draw {
+  grid-column: span 5;
+  min-height: 230px;
+  background-color: var(--river-soft);
+  background-image: linear-gradient(160deg, var(--river-soft), var(--surface));
+}
+
+/* 三張扇形紙卡是 B、A、B：疊在最前面（第 3 張）那張必須看得到 eagle-B */
+.fan {
+  position: absolute;
+  right: 22px;
+  top: 20px;
+  width: 170px;
+  height: 160px;
+}
+
+.fan i {
+  position: absolute;
+  right: 30px;
+  top: 0;
+  width: 99px;
+  height: 132px;
+  border-radius: 8px;
+  background-color: #0b1f1b;
+  background-position: center;
+  background-size: cover;
+  background-image: url("assets/eagle-B.jpg");
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .3);
+  transform-origin: 50% 110%;
+  transition: transform .35s;
+}
+
+/* 中間那張是 A（卡背），前後兩張與最上層都是 B */
+.fan i:nth-child(2) {
+  background-image: url("assets/eagle-A.jpg");
+  transform: rotate(-4deg);
+}
+
+.fan i:nth-child(1) {
+  transform: rotate(-18deg);
+}
+
+.fan i:nth-child(3) {
+  transform: rotate(11deg);
+}
+
+.draw:hover .fan i:nth-child(1) {
+  transform: rotate(-28deg);
+}
+
+.draw:hover .fan i:nth-child(3) {
+  transform: rotate(22deg);
+}
+
+.draw h3 {
+  font-size: 1.6rem;
+  max-width: 9em;
+}
+
+.find {
+  grid-column: span 12;
+  min-height: 0;
+  align-content: center;
+}
+
+.find form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.find input {
+  flex: 1 1 14rem;
+  min-height: 52px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0 22px;
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+/* ===== 飛鷹卡面（金框畫在圖裡，CSS 不再另外加框） ===== */
+.card-back-art,
+#cover .cover-card {
+  background-color: #0b1f1b;
+  background-position: center;
+  background-size: cover;
+  background-image: url("assets/eagle-A.jpg");
+}
+
+.card-face-art {
+  background-color: #0b1f1b;
+  background-position: center;
+  background-size: cover;
+  background-image: url("assets/eagle-B.jpg");
+}
+
+/* ===== 閱讀頁 ===== */
+.reader {
+  display: grid;
+  gap: 18px;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.chap {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+}
+
+.chap .num {
+  font-family: var(--display);
+  font-size: clamp(4.5rem, 3rem + 8vw, 7.5rem);
+  font-weight: 900;
+  line-height: .85;
+  color: var(--river);
+  font-variant-numeric: tabular-nums;
+}
+
+.chap h3 {
+  font-size: 1.5rem;
+}
+
+.verses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  line-height: 2;
+}
+
+.verses li {
+  display: grid;
+  grid-template-columns: 2.2em 1fr;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+}
+
+.verses b {
+  font-family: var(--body);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--river);
+  padding-top: .95em;
+  font-variant-numeric: tabular-nums;
+}
+
+.verses li.on {
+  background: var(--river-soft);
+  box-shadow: inset 3px 0 0 var(--river);
+}
+
+.chips {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-family: var(--body);
+  padding-bottom: 6px;
+}
+
+.chips .pill {
+  min-height: 44px;
+  font-size: .9rem;
+}
+
+/* ===== 每日禱讀 ===== */
+.dev {
+  display: grid;
+  gap: 22px;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.dev h3 {
+  font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem);
+}
+
+.dev section {
+  display: grid;
+  gap: 6px;
+}
+
+.dev h4 {
+  margin: 0;
+  font-size: .8rem;
+  letter-spacing: .14em;
+  color: var(--river);
+  font-weight: 600;
+}
+
+.dev p {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+/* 禱告用淺綠底塊（深色模式是深綠底＋淺字） */
+.dev .pray {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  line-height: 1.9;
+  padding: 20px 22px;
+  border-radius: var(--r-md);
+  background: var(--river-soft);
+  color: var(--ink);
+}
+
+/* ===== 微互動：處理中／已完成／待修正，都是「圖示＋文字」，不只靠顏色 ===== */
+.spin {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  flex: none;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 1.7em;
+  font-size: .95rem;
+  color: var(--muted);
+  flex-basis: 100%;
+}
+
+.status::before {
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.status[data-state="busy"]::before {
+  content: "";
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+}
+
+.status[data-state="ok"] {
+  color: var(--river);
+  font-weight: 600;
+}
+
+.status[data-state="ok"]::before {
+  content: "✓";
+  background: var(--river);
+  color: var(--surface);
+}
+
+.status[data-state="fix"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* 待修正：方形驚嘆號（形狀不同就不只靠顏色）＋欄位虛線粗框 */
+.status[data-state="fix"]::before {
+  content: "!";
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 4px;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"],
+.find input[aria-invalid="true"] {
+  border: 2px dashed var(--ink);
+}
+
+.pill[aria-pressed="true"].keep {
+  background: var(--river);
+  color: var(--surface);
+  border-color: transparent;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 150px;
+  transform: translate(-50%, 12px);
+  z-index: 11;
+  max-width: calc(100vw - 32px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: .95rem;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s, transform .25s;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ===== 響應式：手機上圖下文、四卷兩欄 ===== */
+@media (max-width: 820px) {
+  .book {
+    grid-column: span 6;
+    min-height: 140px;
+  }
+
+  .daily,
+  .draw {
+    grid-column: span 12;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-pic {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .hero-pic::after {
+    inset: auto 0 0 0;
+    width: auto;
+    height: 22%;
+    background: linear-gradient(180deg, transparent, #33402f);
+  }
+
+  .hero-body {
+    background: radial-gradient(130% 80% at 50% 0%, rgba(253, 228, 170, .32), rgba(253, 228, 170, .08) 50%, transparent 75%);
+  }
+}
+
+@media (max-width: 380px) {
+  #nav a,
+  .dock a {
+    min-width: 48px;
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: .86rem;
+  }
+
+  .book .glyph {
+    font-size: 7.5rem;
+  }
+}
+
+/* ===== 動態：只有主視覺慢速縮放、轉圈與按下的回饋；偏好減少動態時全部關掉 ===== */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes drift {
+    from {
+      transform: scale(1.02);
+    }
+    to {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pop {
+    0% {
+      transform: scale(.9);
+    }
+    60% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .hero-pic img {
+    animation: drift 28s ease-in-out infinite alternate;
+  }
+
+  .spin {
+    animation: spin .7s linear infinite;
+  }
+
+  .status[data-state="busy"]::before {
+    animation: spin .7s linear infinite;
+  }
+
+  .pill[aria-pressed="true"].keep {
+    animation: pop .35s ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 下面兩條的冒號後面刻意不留空格：tests/site_checks.py 會掃這份樣式，
+     「冒號＋空格」的寫法會被當成還在跑動畫，加空格這條就不通過。 */
+  *,
+  *::before,
+  *::after {
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior: auto;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }

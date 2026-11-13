@@ -6,20 +6,49 @@
   <title>經文搜尋 · 四福音（和合本）</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
+  <style>
+    /* 搜尋頁專屬：只補 style.css 沒有的部分。.panel 是 surface 白底，
+       控件與結果卡改用霧白才分得出塊面；記號底色兩套色都要撐得起對比。 */
+    .panel input[type="search"],
+    .panel select {
+      background: var(--paper);
+    }
+
+    .search-results {
+      margin: 0;
+    }
+
+    .search-results li {
+      border-radius: var(--r-md);
+    }
+
+    #result-info {
+      margin: 0;
+    }
+
+    mark {
+      background: var(--river-soft);
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 0 3px;
+    }
+  </style>
 </head>
 <body>
   <nav id="nav"></nav>
 
-  <main class="container">
+  <main class="wrap">
     <h1>經文搜尋</h1>
 
-    <form method="get" action="search.html" class="search-form">
-      <input type="search" name="q" id="search-q" placeholder="輸入關鍵字" aria-label="搜尋關鍵字">
-      <select name="book" id="search-book" aria-label="搜尋範圍"></select>
-      <button type="submit">搜尋</button>
-    </form>
+    <section class="panel">
+      <form method="get" action="search.html" class="search-form" id="search-form" role="search">
+        <input type="search" name="q" id="search-q" placeholder="輸入想找的字句，例如：重生" aria-label="搜尋關鍵字" aria-describedby="result-info">
+        <select name="book" id="search-book" aria-label="搜尋範圍"></select>
+        <button type="submit" class="pill solid" id="search-btn">搜尋</button>
+      </form>
+    </section>
 
-    <p id="result-info"></p>
+    <p class="status" id="result-info" role="status" aria-live="polite"></p>
     <ul class="search-results" id="results"></ul>
   </main>
 
@@ -31,10 +60,14 @@
     (function () {
       Bible.nav("search.html");
 
+      const form = document.getElementById("search-form");
       const input = document.getElementById("search-q");
       const bookSelect = document.getElementById("search-book");
+      const searchBtn = document.getElementById("search-btn");
       const infoEl = document.getElementById("result-info");
       const resultsEl = document.getElementById("results");
+
+      const IDLE_HINT = "輸入字句，在四福音裡找相同詞句的經文。";
 
       /* 下拉：先放「全部四卷」(value=all)，再用 Bible.BOOKS 迴圈產生四卷。 */
       function buildBookOptions() {
@@ -88,48 +121,64 @@
         return li;
       }
 
-      function search(q, book) {
-        if (!q) {
-          infoEl.textContent = "請輸入關鍵字，搜尋經文內容。";
-          resultsEl.innerHTML = "";
-          return;
+      function say(state, text) {
+        if (state) {
+          infoEl.setAttribute("data-state", state);
+        } else {
+          infoEl.removeAttribute("data-state");
         }
+        infoEl.textContent = text;
+      }
+
+      /* 待修正：欄位虛線粗框＋「怎麼修」的文字，結果清空。 */
+      function needFix(text) {
+        searchBtn.removeAttribute("aria-busy");
+        input.setAttribute("aria-invalid", "true");
+        say("fix", text);
+        resultsEl.innerHTML = "";
+      }
+
+      function collect(data, key, q) {
+        const found = [];
+        const chapters = Array.isArray(data.chapters) ? data.chapters : [];
+        chapters.forEach(function (chapter) {
+          (chapter.verses || []).forEach(function (v) {
+            if (v.text.indexOf(q) !== -1) {
+              found.push({ key: key, ch: chapter.ch, verse: v });
+            }
+          });
+        });
+        return found;
+      }
+
+      function runSearch(q, book) {
+        input.removeAttribute("aria-invalid");
+        searchBtn.setAttribute("aria-busy", "true");
+        say("busy", "搜尋中…");
 
         const useAll = (book === "all");
         const promise = useAll ? Bible.loadAll() : Bible.load(book);
 
         promise.then(function (data) {
-          const matches = [];
-
+          let matches = [];
           if (useAll) {
             /* 依 BOOKS 順序（mat、mrk、luk、jhn），各卷章序、節序。 */
             data.forEach(function (bookData, idx) {
-              const key = Bible.BOOKS[idx].key;
-              bookData.chapters.forEach(function (chapter) {
-                chapter.verses.forEach(function (v) {
-                  if (v.text.indexOf(q) !== -1) {
-                    matches.push({ key: key, ch: chapter.ch, verse: v });
-                  }
-                });
-              });
+              matches = matches.concat(collect(bookData, Bible.BOOKS[idx].key, q));
             });
           } else {
-            data.chapters.forEach(function (chapter) {
-              chapter.verses.forEach(function (v) {
-                if (v.text.indexOf(q) !== -1) {
-                  matches.push({ key: book, ch: chapter.ch, verse: v });
-                }
-              });
-            });
+            matches = collect(data, book, q);
           }
 
+          searchBtn.removeAttribute("aria-busy");
           resultsEl.innerHTML = "";
+
           if (matches.length === 0) {
-            infoEl.textContent = "找不到符合的經文";
+            needFix("找不到「" + q + "」，請換個字句再試一次");
             return;
           }
 
-          infoEl.textContent = "共 " + matches.length + " 筆";
+          say("ok", "找到 " + matches.length + " 節（共 " + matches.length + " 筆）");
           matches.forEach(function (m) {
             resultsEl.appendChild(renderResult(m.key, m.ch, m.verse, q));
           });
@@ -140,16 +189,38 @@
 
       buildBookOptions();
 
+      const params = new URLSearchParams(window.location.search);
       const bookParam = resolveBook(Bible.param("book"));
       const q0 = Bible.param("q");
       input.value = q0;
       bookSelect.value = bookParam;
 
-      if (q0 !== "") {
-        search(q0, bookParam);
+      if (params.has("q")) {
+        if (q0.trim() === "") {
+          needFix("請先輸入要找的字句");
+        } else {
+          runSearch(q0.trim(), bookParam);
+        }
       } else {
-        infoEl.textContent = "請輸入關鍵字，搜尋經文內容。";
+        say("", IDLE_HINT);
       }
+
+      input.addEventListener("input", function () {
+        input.removeAttribute("aria-invalid");
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const q = input.value.trim();
+        const book = bookSelect.value;
+        window.history.replaceState({}, "", "search.html?q=" + encodeURIComponent(q) + "&book=" + book);
+        if (q === "") {
+          needFix("請先輸入要找的字句");
+          input.focus();
+          return;
+        }
+        runSearch(q, book);
+      });
     })();
   </script>
 </body>

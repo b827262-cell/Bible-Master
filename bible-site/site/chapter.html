@@ -6,28 +6,108 @@
   <title>和合本</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
+  <style>
+    /* 閱讀頁專屬：只補 style.css 沒有的部分（樣本二「閱讀頁」）。
+       超大章號、明體經文、行距 2、節號主色小字都在 style.css 的 .chap／.verses 裡。 */
+    .reader {
+      width: 100%;
+    }
+
+    .chap {
+      flex-wrap: wrap;
+    }
+
+    .chap h1 {
+      margin: 0;
+      font-size: 1.375rem;
+    }
+
+    /* .panel 是 surface 白底：參照區改用霧白才分得出塊面 */
+    .notes {
+      background: var(--paper);
+      border-radius: var(--r-md);
+    }
+
+    /* 節號欄：.verses 的 2.2em 是固定軌，舊的 3rem 寬會溢出壓到經文 */
+    #verses .verse-num {
+      width: auto;
+      flex: none;
+      margin-top: 0;
+      padding-top: .95em;
+      font-family: var(--body);
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--river);
+      text-align: left;
+    }
+
+    #verses .verse-text {
+      font-size: inherit;
+      line-height: 2;
+    }
+
+    /* 舊清單的底線不屬於新版面（樣本靠留白分節） */
+    #verses li {
+      border-bottom: 0;
+    }
+
+    #verses li:hover {
+      background: var(--river-soft);
+    }
+
+    .chap-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5em 1em;
+      border-top: 1px solid var(--line);
+      padding-top: 1em;
+    }
+
+    .chap-nav h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+
+    .chap-nav .nav-list {
+      gap: 6px;
+    }
+  </style>
 </head>
 <body>
   <nav id="nav"></nav>
 
-  <div class="reading-layout">
-    <main class="container reading-main">
-      <h1 id="title"></h1>
-      <div id="book-tabs"></div>
-      <ul id="verses" class="verse-list"></ul>
-      <section class="notes" id="notes-area" hidden>
-        <h3>參照</h3>
-        <ul id="notes-list"></ul>
-      </section>
-    </main>
+  <main class="wrap">
+    <article class="panel">
+      <div class="reader">
+        <header class="chap">
+          <span class="num" id="chap-num">–</span>
+          <div>
+            <p class="eyebrow">共 <span id="chap-count">–</span> 節</p>
+            <h1 id="title"></h1>
+          </div>
+        </header>
 
-    <aside class="chapter-sidebar">
-      <div class="chapter-sidebar-sticky">
-        <h3>章節導航</h3>
-        <ul class="nav-list" id="chapter-links"></ul>
+        <div id="book-tabs"></div>
+
+        <p class="status" id="reading-status" role="status" aria-live="polite"></p>
+
+        <ul id="verses" class="verse-list verses"></ul>
+
+        <section class="notes" id="notes-area" hidden>
+          <h3>參照</h3>
+          <ul id="notes-list"></ul>
+        </section>
+
+        <nav class="chap-nav" aria-label="章節導航">
+          <h2>章節導航</h2>
+          <ul class="nav-list" id="chapter-links"></ul>
+        </nav>
       </div>
-    </aside>
-  </div>
+    </article>
+  </main>
 
   <footer id="footer"></footer>
 
@@ -43,6 +123,10 @@
       Bible.nav("chapter.html");
       Bible.bookTabs("book-tabs", key, "chapter.html");
 
+      const list = document.getElementById("verses");
+      const status = document.getElementById("reading-status");
+      Bible.say(status, "busy", "正在載入經文…");
+
       function addLink(container, label, href) {
         const li = document.createElement("li");
         const a = document.createElement("a");
@@ -54,8 +138,7 @@
 
       Bible.load(key).then(function (data) {
         if (!data || !Array.isArray(data.chapters)) {
-          Bible.fail(document.querySelector("main"), "資料載入失敗");
-          return;
+          throw new Error("資料載入失敗");
         }
         const totalChapters = data.chapters.length;
         if (ch < 1 || ch > totalChapters) {
@@ -64,15 +147,15 @@
 
         const chapter = Bible.chapterOf(data, ch);
         if (!chapter || !chapter.verses) {
-          Bible.fail(document.querySelector("main"), "資料載入失敗");
-          return;
+          throw new Error("資料載入失敗");
         }
 
         document.getElementById("title").textContent = Bible.bookName(key) + " 第 " + ch + " 章";
         document.title = Bible.bookName(key) + " 第 " + ch + " 章";
+        document.getElementById("chap-num").textContent = ch;
+        document.getElementById("chap-count").textContent = chapter.verses.length;
         document.getElementById("footer").textContent = "和合本 · " + Bible.bookName(key);
 
-        const list = document.getElementById("verses");
         list.innerHTML = "";
         chapter.verses.forEach(function (v) {
           const li = document.createElement("li");
@@ -90,6 +173,7 @@
           li.appendChild(text);
 
           if (v.end != null) {
+            // 合併節的結尾錨點：留成有框格的元素，#vEnd 才捲得過去，也不擠歪經文左緣
             const anchor = document.createElement("span");
             anchor.id = "v" + v.end;
             li.appendChild(anchor);
@@ -119,6 +203,8 @@
           addLink(links, "下一章", "chapter.html?book=" + key + "&ch=" + (ch + 1));
         }
 
+        Bible.say(status, "ok", "經文已載入");
+
         const hash = location.hash;
         if (hash && hash.length > 1) {
           const targetId = hash.charAt(0) === "#" ? hash.slice(1) : hash;
@@ -128,7 +214,40 @@
           }
         }
       }).catch(function (err) {
+        Bible.say(status, "fix", "經文載入失敗，請稍後再試");
         Bible.fail(document.querySelector("main"), err);
+      });
+
+      /* 點一節經文：標成目前節，並給「做成經文卡片」快捷列（連到 card.html 帶書卷／章／節）。
+         收藏按鈕是新功能，依交辦單不在這裡加。 */
+      list.addEventListener("click", function (event) {
+        if (event.target.closest(".chips")) {
+          return;
+        }
+        const li = event.target.closest("#verses li");
+        if (!li || !li.id) {
+          return;
+        }
+        const picked = list.querySelector("li.on");
+        if (picked) {
+          picked.classList.remove("on");
+          const old = picked.querySelector(".chips");
+          if (old) {
+            old.remove();
+          }
+        }
+        if (picked === li) {
+          return;
+        }
+        li.classList.add("on");
+        const chips = document.createElement("div");
+        chips.className = "chips";
+        const a = document.createElement("a");
+        a.className = "pill";
+        a.href = "card.html?book=" + key + "&ch=" + ch + "&v=" + li.id.slice(1);
+        a.textContent = "做成經文卡片 →";
+        chips.appendChild(a);
+        li.appendChild(chips);
       });
     })();
   </script>

@@ -6,28 +6,75 @@
   <title>四福音（和合本）</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
+  <style>
+    /* 目錄頁專屬：只補 style.css 沒有的部分。配色、字體、導覽列、狀態三態都在 style.css。 */
+    .top {
+      flex-wrap: wrap;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 44rem;
+    }
+
+    .home-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+    }
+
+    /* .panel 是 surface 白底，表單控件改用霧白才看得出邊界 */
+    .panel input[type="search"],
+    .panel select {
+      background: var(--paper);
+    }
+
+    .book-heading {
+      margin: 0 0 0.5em;
+    }
+
+    .chapter-card {
+      border-radius: var(--r-md);
+    }
+  </style>
 </head>
 <body>
   <nav id="nav"></nav>
 
-  <main class="container">
-    <p><a href="home.html">← 回首頁</a></p>
-    <h1>四福音（和合本）</h1>
-    <p>四福音全文，共四卷。點選章節閱讀全文，或搜尋經文內容。</p>
-    <p><a href="blessing.html">抽一張經文卡，領受今天的祝福 →</a></p>
-    <p><a href="devotional.html">每日禱讀 →</a></p>
+  <main class="wrap">
+    <header class="top">
+      <h1>四福音（和合本）</h1>
+      <a class="pill" href="home.html">← 回首頁</a>
+    </header>
 
-    <div id="book-tabs"></div>
+    <p class="lede">四福音全文，共四卷。點選章節閱讀全文，或搜尋經文內容。</p>
 
-    <form method="get" action="search.html" class="search-form">
-      <input type="search" name="q" placeholder="搜尋經文內容" aria-label="搜尋關鍵字">
-      <select name="book" id="search-book" aria-label="搜尋範圍">
-        <option value="all">全部四卷</option>
-      </select>
-      <button type="submit">搜尋</button>
-    </form>
+    <div class="home-links">
+      <a class="pill" href="blessing.html">抽一張經文卡，領受今天的祝福 →</a>
+      <a class="pill" href="devotional.html">每日禱讀 →</a>
+    </div>
 
-    <div class="chapter-grid" id="chapters"></div>
+    <section class="panel" aria-labelledby="search-h">
+      <h2 id="search-h">搜尋四福音</h2>
+      <form method="get" action="search.html" class="search-form" id="search-form" role="search">
+        <input type="search" name="q" id="search-q" placeholder="搜尋經文內容" aria-label="搜尋關鍵字" aria-describedby="search-status">
+        <select name="book" id="search-book" aria-label="搜尋範圍">
+          <option value="all">全部四卷</option>
+        </select>
+        <button type="submit" class="pill solid" id="search-btn">搜尋</button>
+        <p class="status" id="search-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section aria-labelledby="books-h">
+      <h2 class="book-heading" id="books-h">書卷</h2>
+      <div id="book-tabs"></div>
+      <div class="chapter-grid" id="chapters"></div>
+    </section>
   </main>
 
   <footer>四福音 · 和合本</footer>
@@ -41,7 +88,7 @@
       const key = Bible.bookKey(Bible.param("book"));
       Bible.bookTabs("book-tabs", key, "index.html");
 
-      // Initialize the book select dropdown with all options
+      // 搜尋範圍下拉：全部四卷＋四卷，預設停在目前這卷
       const select = document.getElementById("search-book");
       select.innerHTML = "";
       select.add(new Option("全部四卷", "all"));
@@ -71,6 +118,39 @@
         });
       }).catch(function (err) {
         Bible.fail(document.querySelector("main"), err);
+      });
+
+      /* 微互動：空白＝待修正（虛線框＋怎麼修），有字＝處理中再進結果頁。 */
+      const form = document.getElementById("search-form");
+      const searchQ = document.getElementById("search-q");
+      const searchBtn = document.getElementById("search-btn");
+      const searchStatus = document.getElementById("search-status");
+
+      searchQ.addEventListener("input", function () {
+        if (searchQ.getAttribute("aria-invalid")) {
+          searchQ.removeAttribute("aria-invalid");
+          searchStatus.removeAttribute("data-state");
+          searchStatus.textContent = "";
+        }
+      });
+
+      form.addEventListener("submit", function (event) {
+        const word = searchQ.value.trim();
+        if (!word) {
+          event.preventDefault();
+          searchQ.setAttribute("aria-invalid", "true");
+          searchStatus.setAttribute("data-state", "fix");
+          searchStatus.textContent = "請先輸入要找的字句";
+          searchQ.focus();
+          return;
+        }
+        event.preventDefault();
+        searchQ.removeAttribute("aria-invalid");
+        searchBtn.setAttribute("aria-busy", "true");
+        searchBtn.disabled = true;
+        searchStatus.setAttribute("data-state", "busy");
+        searchStatus.textContent = "搜尋中…";
+        window.location.href = "search.html?q=" + encodeURIComponent(word) + "&book=" + encodeURIComponent(select.value);
       });
     })();
   </script>

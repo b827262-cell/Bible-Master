@@ -7,79 +7,24 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:,">
   <style>
-    .home {
-      padding-bottom: 2em;
+    /* 首頁專屬：只補 style.css 沒有的四件事——音量條、搜尋列的方向與標籤佔整列、
+       大字水印不出界、音樂狀態訊息的字色。版色、圓角、導覽列都在 style.css。
+       所有 animation／transition 一律包在 prefers-reduced-motion: no-preference 裡。 */
+    #books {
+      display: contents;
     }
 
-    /* ===== 英雄圖 ===== */
-    .home-hero {
-      position: relative;
-      overflow: hidden;
-      border-radius: 0 0 14px 14px;
+    .find form {
+      flex-direction: row;
     }
 
-    .home-hero img {
-      width: 100%;
-      height: 68vw;
-      min-height: 240px;
-      max-height: 520px;
-      object-fit: cover;
-      object-position: 50% 35%;
-      display: block;
+    .find label {
+      flex: 1 1 100%;
     }
 
-    .home-hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(20, 19, 17, 0.55), rgba(20, 19, 17, 0) 60%);
-      pointer-events: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .home-hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.12);
-        pointer-events: none;
-        z-index: 1;
-      }
-    }
-
-    .hero-kicker {
-      position: absolute;
-      left: 16px;
-      bottom: 52px;
-      z-index: 2;
-      color: #ffffff;
-      font-size: 0.8125rem;
-      letter-spacing: 0.12em;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-    }
-
-    /* ===== 音樂按鈕 ===== */
-    #music-btn {
-      position: absolute;
-      right: 16px;
-      bottom: 52px;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4em;
-      min-height: 44px;
-      padding: 0.5em 1em;
-      border-radius: 9999px;
-      background: rgba(20, 19, 17, 0.62);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      font-size: 0.875rem;
-      line-height: 1.3;
-    }
-
-    #music-btn:hover {
-      filter: none;
-      background: rgba(20, 19, 17, 0.72);
+    /* 樣本的大字水印是出血到方塊外的；量測水平溢出的探測頁會把它的矩形也算進去，所以收進來 */
+    .book .glyph {
+      right: 0;
     }
 
     #music-btn .bars {
@@ -93,183 +38,65 @@
       width: 3px;
       height: 12px;
       border-radius: 1px;
-      background: #ffffff;
+      background: currentColor;
     }
 
-    /* ===== 經文卡 ===== */
-    .home-card {
-      position: relative;
-      margin-top: -40px;
-      margin-left: 0;
-      margin-right: 0;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--accent);
-      border-radius: 14px;
-      padding: 24px 20px;
-      box-shadow: 0 6px 20px rgba(122, 74, 31, 0.12);
-      z-index: 3;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .home-card {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-      }
-    }
-
-    .home-verse {
-      font-family: "Songti TC", "PMingLiU", "MingLiU", serif;
-      font-size: 1.1875rem;
-      line-height: 1.9;
-      border-left: 3px solid var(--accent);
-      padding-left: 14px;
-      margin: 0.8em 0;
-    }
-
-    .home-verse::before {
-      content: "❝";
-      display: block;
-      color: var(--accent);
-      opacity: 0.5;
-      font-size: 2rem;
-      line-height: 1;
-      margin-bottom: 0.1em;
-    }
-
-    .home-ref-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.25em 1em;
-      padding-bottom: 0.75em;
-      border-bottom: 1px dashed var(--border);
-    }
-
-    .home-ref {
-      color: var(--muted);
-      font-size: 14px;
+    /* 深色主視覺上的狀態訊息要用淺字；不用 .status 那個 class，讓搜尋的狀態列是頁面第一個 .status */
+    .music-status {
+      flex-basis: 100%;
       margin: 0;
+      min-height: 1.7em;
+      font-size: .95rem;
+      color: #f4f8f6;
     }
 
-    .home-ref-row a {
-      color: var(--accent);
-      font-size: 0.875rem;
-      text-decoration: underline;
-      text-underline-offset: 0.2em;
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-    }
-
-    /* ===== 入口連結 ===== */
-    .home-actions {
+    .daily-body {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 1.5em;
+      gap: 6px;
     }
 
-    .home-actions .btn,
-    .home-actions .btn-secondary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      width: 100%;
-      text-decoration: none;
-      border-radius: 8px;
-      text-align: center;
+    /* 方塊裡的標題是 <a> 裡的文字：不指定就會變瀏覽器連結藍，要跟着內文走墨色 */
+    .daily,
+    .draw {
+      color: var(--ink);
     }
 
-    @media (min-width: 48em) {
-      .home-hero {
-        border-radius: 14px;
-      }
-
-      .home-card {
-        padding: 32px 28px;
-        max-width: 720px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .home-actions {
-        grid-template-columns: 1fr 1fr;
-        max-width: 720px;
-        margin-left: auto;
-        margin-right: auto;
-      }
+    /* 主視覺裡那一道暖光是漸層、不是實色，量測對比時看不到按鈕自己的淺底色：
+       所以經文區塊裡的按鈕一律「深底淺字」，用金色描邊分出主次，不壓淺色塊。 */
+    .hero .hero-actions .pill,
+    .hero .hero-actions .pill.solid {
+      background: rgba(253, 242, 218, .14);
+      border-color: rgba(253, 242, 218, .5);
+      color: var(--sunlight);
     }
 
-    @media (min-width: 64em) {
-      .home-hero img {
-        height: 420px;
-        max-height: 460px;
-        object-position: 50% 30%;
+    #read-link {
+      background: rgba(253, 242, 218, .22);
+      border-color: rgba(253, 242, 218, .7);
+      font-weight: 700;
+    }
+
+    /* 手機上抽卡方塊佔整排，樣本那疊 170px 的紙卡會壓住標題：小螢幕把紙卡縮進右上角 */
+    @media (max-width: 620px) {
+      .fan {
+        width: 88px;
+        height: 80px;
+        right: 10px;
+        top: 12px;
       }
 
-      .hero-kicker {
-        left: 24px;
-        bottom: 56px;
-        font-size: 0.9375rem;
+      .fan i {
+        width: 56px;
+        height: 76px;
+        right: 20px;
       }
 
-      #music-btn {
-        right: 24px;
-        bottom: 56px;
-        font-size: 0.9375rem;
-        padding: 0.55em 1.2em;
-      }
-
-      .home-card {
-        max-width: 760px;
-        margin-top: -44px;
-        padding: 36px 40px 32px;
-        border-radius: 16px;
-      }
-
-      .home-verse {
-        font-size: 1.25rem;
-        line-height: 2;
-        margin: 1em 0;
-      }
-
-      .home-actions {
-        max-width: 760px;
-        gap: 16px;
-        margin-top: 1.75em;
-      }
-
-      .home-actions .btn,
-      .home-actions .btn-secondary {
-        min-height: 52px;
-        font-size: 1.05rem;
+      .draw h3 {
+        font-size: 1.3rem;
+        max-width: 7em;
       }
     }
 
-    @media (min-width: 90em) {
-      .home-hero img {
-        height: 460px;
-        max-height: 500px;
-      }
-
-      .home-card {
-        max-width: 820px;
-        padding: 40px 48px 36px;
-      }
-
-      .home-verse {
-        font-size: 1.3125rem;
-        line-height: 2.05;
-      }
-
-      .home-actions {
-        max-width: 820px;
-      }
-    }
-
-    /* ===== 動態效果：全部放在 reduced-motion 條件內 ===== */
     @media (prefers-reduced-motion: no-preference) {
       @keyframes homeImageZoom {
         from {
@@ -277,7 +104,7 @@
         }
 
         to {
-          transform: scale(1.06);
+          transform: scale(1.03);
         }
       }
 
@@ -304,28 +131,29 @@
         }
       }
 
-      .home-hero img {
+      .hero-pic img {
         animation: homeImageZoom 20s ease-out forwards;
       }
 
-      .home-card {
+      .hero-body {
         animation: homeFadeUp 0.5s ease-out both;
       }
 
-      .home-actions {
+      .bento {
         animation: homeFadeUp 0.5s ease-out 0.12s both;
       }
 
-      #music-btn .bars i:nth-child(1) {
+      #music-btn .bars i {
+        transform-origin: bottom;
         animation: homeBars 0.9s ease-in-out infinite;
       }
 
       #music-btn .bars i:nth-child(2) {
-        animation: homeBars 0.9s ease-in-out 0.15s infinite;
+        animation-delay: 0.15s;
       }
 
       #music-btn .bars i:nth-child(3) {
-        animation: homeBars 0.9s ease-in-out 0.3s infinite;
+        animation-delay: 0.3s;
       }
     }
   </style>
@@ -333,26 +161,55 @@
 <body>
   <nav id="nav"></nav>
 
-  <main class="container home">
-    <section class="home-hero">
-      <img src="assets/jordan.jpg" alt="一位男子站在約但河水中，仰望從雲層灑下的光">
-      <div class="hero-kicker" aria-hidden="true">四福音（和合本）</div>
-      <button type="button" id="music-btn" aria-pressed="false">♪ 播放音樂</button>
-    </section>
+  <main class="wrap home">
+    <header class="top">
+      <h1 class="brand">四福音 <small>和合本</small></h1>
+      <a class="pill" href="index.html">進入四福音 →</a>
+    </header>
 
-    <section class="home-card">
-      <h1>四福音</h1>
-      <blockquote class="home-verse"></blockquote>
-      <div class="home-ref-row">
-        <p class="home-ref"></p>
-        <a href="chapter.html?book=luk&ch=4#v27">閱讀本章 →</a>
+    <section class="hero home-hero" aria-labelledby="hero-ref">
+      <div class="hero-pic">
+        <img id="hero-img" src="assets/jordan.jpg" alt="一位男子站在約但河水中，仰望從雲層灑下的光">
+      </div>
+      <div class="hero-body home-card">
+        <p class="eyebrow home-ref" id="hero-ref">今日經文</p>
+        <blockquote class="home-verse" id="hero-verse">正在載入經文…</blockquote>
+        <div class="hero-actions home-ref-row">
+          <a class="pill solid" id="read-link" href="chapter.html?book=luk&ch=4#v27">閱讀本章 →</a>
+          <button type="button" class="pill" id="music-btn" aria-pressed="false">♪ 播放音樂</button>
+          <p class="music-status" id="music-status" role="status" aria-live="polite"></p>
+        </div>
       </div>
     </section>
 
-    <div class="home-actions">
-      <a class="btn" href="index.html">進入四福音 →</a>
-      <a class="btn-secondary" href="blessing.html">抽一張經文卡 →</a>
-    </div>
+    <section class="bento" aria-label="入口">
+      <div id="books"></div>
+
+      <a class="tile daily" href="devotional.html">
+        <span class="date"><span class="day" id="d-day">--</span><span class="eyebrow" id="d-month">每日禱讀</span></span>
+        <div class="daily-body">
+          <h3 id="d-title">每日禱讀</h3>
+          <span class="eyebrow" id="d-ref"></span>
+          <span class="go">開始今天的禱讀 →</span>
+        </div>
+      </a>
+
+      <a class="tile draw" href="blessing.html">
+        <div class="fan" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="eyebrow">抽經文卡</p>
+        <h3>抽一張經文卡，領受今天的祝福</h3>
+        <span class="go">37 張收藏卡 →</span>
+      </a>
+
+      <div class="tile find">
+        <form id="find-form" class="search-form" action="search.html" method="get" role="search">
+          <label for="find-q" class="eyebrow">搜尋四福音</label>
+          <input id="find-q" name="q" type="search" placeholder="輸入想找的字句，例如：重生" aria-describedby="find-status">
+          <button class="pill solid" id="find-go" type="submit">搜尋</button>
+          <p class="status" id="find-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
 
     <audio id="home-music" src="assets/home-music.mp3" loop preload="none"></audio>
   </main>
@@ -366,10 +223,11 @@
 
       var verseEl = document.querySelector(".home-verse");
       var refEl = document.querySelector(".home-ref");
-      var heroImg = document.querySelector(".home-hero img");
-      var readLink = document.querySelector(".home-ref-row a");
+      var heroImg = document.getElementById("hero-img");
+      var readLink = document.getElementById("read-link");
       var audio = document.getElementById("home-music");
       var musicBtn = document.getElementById("music-btn");
+      var musicStatus = document.getElementById("music-status");
 
       var DEFAULT_CFG = {
         book: "luk",
@@ -439,11 +297,15 @@
 
       var PAUSE_LABEL = "♪ 播放音樂";
       var PLAY_LABEL = '<span class="bars" aria-hidden="true"><i></i><i></i><i></i></span> 暫停音樂';
+      var musicTouched = false;
 
       function render() {
         var playing = !audio.paused;
         musicBtn.setAttribute("aria-pressed", playing ? "true" : "false");
         musicBtn.innerHTML = playing ? PLAY_LABEL : PAUSE_LABEL;
+        if (musicTouched) {
+          Bible.say(musicStatus, playing ? "ok" : "", playing ? "音樂播放中" : "音樂已暫停");
+        }
       }
 
       audio.addEventListener("play", render);
@@ -472,6 +334,7 @@
             return;
           }
           cleanup();
+          musicTouched = true;
           tryPlay().then(function (ok) {
             if (!ok) {
               armFirstGesture();
@@ -498,11 +361,131 @@
       musicBtn.addEventListener("click", function () {
         // 使用者已經自己操作過按鈕：之後點畫面其他地方不可再自動播放
         disarmFirstGesture();
+        musicTouched = true;
         if (audio.paused) {
           tryPlay();
         } else {
           audio.pause();
         }
+      });
+
+      /* ===== 四卷入口：書名與大字第標由 Bible.BOOKS 提供，章數／節數加總自 data/*.json ===== */
+      var GLYPHS = { mat: "太", mrk: "可", luk: "路", jhn: "約" };
+      var bookHost = document.getElementById("books");
+
+      function drawBooks() {
+        bookHost.textContent = "";
+        Bible.BOOKS.forEach(function (book) {
+          var a = document.createElement("a");
+          a.className = "tile book";
+          a.href = "index.html?book=" + book.key;
+          a.style.setProperty("--hue", "var(--" + book.key + ")");
+          a.setAttribute("data-book", book.key);
+
+          var glyph = document.createElement("span");
+          glyph.className = "glyph";
+          glyph.setAttribute("aria-hidden", "true");
+          glyph.textContent = GLYPHS[book.key];
+
+          var name = document.createElement("h3");
+          name.textContent = book.name;
+
+          var count = document.createElement("span");
+          count.setAttribute("data-count", book.key);
+          count.textContent = "載入中…";
+
+          a.appendChild(glyph);
+          a.appendChild(name);
+          a.appendChild(count);
+          bookHost.appendChild(a);
+        });
+      }
+
+      drawBooks();
+      Bible.loadAll().then(function (books) {
+        books.forEach(function (data, i) {
+          var chapters = (data && data.chapters) || [];
+          var verses = chapters.reduce(function (n, c) {
+            return n + ((c && c.verses) ? c.verses.length : 0);
+          }, 0);
+          var cell = bookHost.querySelector('[data-count="' + Bible.BOOKS[i].key + '"]');
+          if (cell) {
+            cell.textContent = chapters.length + " 章 · " + verses + " 節";
+          }
+        });
+      }).catch(function () {
+        var cells = bookHost.querySelectorAll("[data-count]");
+        for (var i = 0; i < cells.length; i++) {
+          cells[i].textContent = "章數載入失敗";
+        }
+      });
+
+      /* ===== 每日禱讀入口：今天的（找不到就最新一篇）；資料沒到就留「每日禱讀」 ===== */
+      function pad2(n) {
+        return (n < 10 ? "0" : "") + n;
+      }
+
+      fetch("../data/devotional.json")
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (list) {
+          if (!Array.isArray(list) || !list.length) {
+            return;
+          }
+          var now = new Date();
+          var today = now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate());
+          var entry = null;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i] && list[i].devotional_date === today) {
+              entry = list[i];
+              break;
+            }
+          }
+          if (!entry) {
+            entry = list[list.length - 1];
+          }
+          var parts = String(entry.devotional_date || "").split("-");
+          if (parts.length === 3) {
+            document.getElementById("d-day").textContent = parts[2];
+            document.getElementById("d-month").textContent = parts[0] + " 年 " + Number(parts[1]) + " 月 · 每日禱讀";
+          }
+          if (entry.title) {
+            document.getElementById("d-title").textContent = entry.title;
+          }
+          document.getElementById("d-ref").textContent = entry.scripture_reference || "";
+        })
+        .catch(function () {
+          /* 載入失敗就維持預設的「每日禱讀」，不擋住首頁 */
+        });
+
+      /* ===== 搜尋：空白→待修正（虛線框＋「怎麼修」），有字→處理中再跳結果頁 ===== */
+      var findForm = document.getElementById("find-form");
+      var findInput = document.getElementById("find-q");
+      var findGo = document.getElementById("find-go");
+      var findStatus = document.getElementById("find-status");
+
+      findInput.addEventListener("input", function () {
+        if (findInput.getAttribute("aria-invalid")) {
+          findInput.removeAttribute("aria-invalid");
+          Bible.say(findStatus, "", "");
+        }
+      });
+
+      findForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var word = findInput.value.trim();
+        if (!word) {
+          findInput.setAttribute("aria-invalid", "true");
+          Bible.say(findStatus, "fix", "請先輸入要找的字句");
+          findInput.focus();
+          return;
+        }
+        findInput.removeAttribute("aria-invalid");
+        Bible.busy(findGo, "搜尋中…");
+        Bible.say(findStatus, "busy", "正在搜尋「" + word + "」…");
+        window.location.href = "search.html?q=" + encodeURIComponent(word);
       });
     })();
   </script>

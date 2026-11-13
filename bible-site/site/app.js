@@ -110,18 +110,130 @@
     return null;
   }
 
-  /* 在 <nav id="nav"> 內產生導覽列；active 為目前頁面對應的連結。 */
+  /* 經文卡的飛鷹圖檔：頁面一律讀這兩個路徑，不要各自寫死檔名。
+     back＝抽經文卡抽卡前的卡背；face＝經文卡片的卡面。 */
+  var CARD_ART = { back: "assets/eagle-A.jpg", face: "assets/eagle-B.jpg" };
+
+  /* 底部膠囊導覽列只有五項，閱讀與卡片頁要對到它們所屬的入口，
+     這樣每個前台頁面都恰好有一項被標成目前頁。 */
+  var NAV_KEYS = {
+    "": "home.html",
+    "home.html": "home.html",
+    "index.html": "index.html",
+    "chapter.html": "index.html",
+    "devotional.html": "devotional.html",
+    "blessing.html": "blessing.html",
+    "card.html": "blessing.html",
+    "search.html": "search.html"
+  };
+
+  /* 元素或 id 都可傳的共用取法。 */
+  function pick(node) {
+    if (node instanceof Element) {
+      return node;
+    }
+    return typeof node === "string" ? document.getElementById(node) : null;
+  }
+
+  /* 處理中：轉圈圖示＋「…中」文字，aria-busy 並鎖住按鈕免於重複送出。 */
+  function busy(btn, label) {
+    var node = pick(btn);
+    if (!node) {
+      return null;
+    }
+    if (!node.getAttribute("data-label")) {
+      node.setAttribute("data-label", node.textContent.trim());
+    }
+    node.setAttribute("aria-busy", "true");
+    if ("disabled" in node) {
+      node.disabled = true;
+    } else {
+      node.setAttribute("aria-disabled", "true");
+    }
+    node.textContent = "";
+    var spin = document.createElement("span");
+    spin.className = "spin";
+    spin.setAttribute("aria-hidden", "true");
+    node.appendChild(spin);
+    node.appendChild(document.createTextNode(" " + (label || "處理中…")));
+    return node;
+  }
+
+  /* 結束處理中：還原成可按的按鈕；文字沒給就用原本那句話。 */
+  function settle(btn, label) {
+    var node = pick(btn);
+    if (!node) {
+      return null;
+    }
+    node.removeAttribute("aria-busy");
+    node.removeAttribute("aria-disabled");
+    if ("disabled" in node) {
+      node.disabled = false;
+    }
+    node.textContent = label || node.getAttribute("data-label") || "";
+    return node;
+  }
+
+  /* 把結果寫進狀態列：state 是 busy／ok／fix，圖示由 style.css 的 data-state 畫，
+     這裡只保證它是 live 區（WCAG 2.2 4.1.3：不必取得焦點也讀得到）。 */
+  function say(statusEl, state, text) {
+    var node = pick(statusEl);
+    if (!node) {
+      return null;
+    }
+    if (state) {
+      node.setAttribute("data-state", state);
+    } else {
+      node.removeAttribute("data-state");
+    }
+    if (!node.getAttribute("role")) {
+      node.setAttribute("role", "status");
+    }
+    if (!node.getAttribute("aria-live")) {
+      node.setAttribute("aria-live", "polite");
+    }
+    node.textContent = text || "";
+    return node;
+  }
+
+  /* 全網站共用的短訊息膠囊；2.6 秒後淡出。內容同時寫進 live 區。 */
+  var _toastTimer = null;
+  function toast(text) {
+    var node = document.querySelector(".toast");
+    if (!node) {
+      node = document.createElement("div");
+      node.className = "toast";
+      node.setAttribute("role", "status");
+      node.setAttribute("aria-live", "polite");
+      document.body.appendChild(node);
+    }
+    node.textContent = text || "";
+    node.classList.add("show");
+    if (_toastTimer) {
+      clearTimeout(_toastTimer);
+    }
+    _toastTimer = setTimeout(function () {
+      node.classList.remove("show");
+    }, 2600);
+    return node;
+  }
+
+  /* 在 <nav id="nav"> 內畫五項底部浮動膠囊導覽列；active 是呼叫端頁面的檔名。 */
   function nav(active) {
     var links = [
+      { href: "home.html", label: "首頁" },
       { href: "index.html", label: "目錄" },
-      { href: "search.html", label: "搜尋" },
-      { href: "card.html", label: "經文卡片" },
-      { href: "blessing.html", label: "抽經文卡" }
+      { href: "devotional.html", label: "禱讀" },
+      { href: "blessing.html", label: "抽卡" },
+      { href: "search.html", label: "搜尋" }
     ];
+    var current = NAV_KEYS[active || ""] || "home.html";
     var navEl = document.getElementById("nav");
     if (!navEl) {
       return;
     }
+    navEl.classList.add("dock");
+    navEl.setAttribute("aria-label", "主要導覽");
     navEl.innerHTML = "";
     var ul = document.createElement("ul");
     ul.className = "nav-list";
@@ -129,10 +241,12 @@
       var li = document.createElement("li");
       var a = document.createElement("a");
       a.href = links[i].href;
-      if (links[i].href === active) {
-        a.className = "active";
-      }
       a.textContent = links[i].label;
+      if (links[i].href === current) {
+        /* 目前頁：aria-current 讓螢幕閱讀器聽得到，粗體＋實心底色讓它不只靠顏色分辨。 */
+        a.className = "active";
+        a.setAttribute("aria-current", "page");
+      }
       li.appendChild(a);
       ul.appendChild(li);
     }
@@ -165,18 +279,22 @@
     host.appendChild(ul);
   }
 
-  /* 把錯誤訊息顯示到 host（可傳 DOM 元素或 id）上，並加上 .error 樣式。 */
+  /* 把錯誤訊息顯示到 host（可傳 DOM 元素或 id）上，並當成「待修正」的狀態列。 */
   function fail(host, err) {
-    var el = host instanceof Element ? host : document.getElementById(host);
+    var el = pick(host);
     if (!el) {
       return;
     }
     el.textContent = "發生錯誤，無法載入資料：" + String(err || "未知錯誤");
     el.classList.add("error");
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
+    el.setAttribute("data-state", "fix");
   }
 
   window.Bible = {
     BOOKS: BOOKS,
+    CARD_ART: CARD_ART,
     load: load,
     loadAll: loadAll,
     bookKey: bookKey,
@@ -188,6 +306,10 @@
     chapterOf: chapterOf,
     nav: nav,
     bookTabs: bookTabs,
+    busy: busy,
+    settle: settle,
+    say: say,
+    toast: toast,
     fail: fail
   };
 })();

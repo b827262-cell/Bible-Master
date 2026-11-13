@@ -19,14 +19,24 @@ f.addEventListener("load", hook);
 document.body.appendChild(f);
 function go(u) { return new Promise(res => { f.addEventListener("load", () => res(), {once: true}); f.src = u; }); }
 function ss(k) { try { return f.contentWindow.sessionStorage.getItem(k); } catch (e) { return "ERR"; } }
+function navinfo(d) {
+  const items = [...d.querySelectorAll("#nav a, .dock a")];
+  return {count: items.length, active: items.filter(a => a.getAttribute("aria-current") === "page" || a.classList.contains("active")).length,
+          texts: items.map(a => a.textContent.trim()), hrefs: items.map(a => a.getAttribute("href")),
+          fixed: (() => { const n = d.getElementById("nav") || d.querySelector(".dock"); return n ? f.contentWindow.getComputedStyle(n).position : ""; })()};
+}
 function state() {
   const d = f.contentDocument, b = d.getElementById("zone-music-btn"), a = d.getElementById("zone-music");
-  if (!b) return {btn: false, navCount: d.querySelectorAll("#nav a").length, navActive: d.querySelectorAll("#nav a.active").length};
+  if (!b) return {btn: false, ...navinfo(d)};
   const r = b.getBoundingClientRect();
+  const nb = (d.getElementById("nav") || d.querySelector(".dock") || {}).getBoundingClientRect?.();
+  const overlap = nb && r.right > nb.left && r.left < nb.right && r.bottom > nb.top && r.top < nb.bottom;
   return {btn: true, text: b.textContent.trim(), pressed: b.getAttribute("aria-pressed"), paused: a ? a.paused : null,
           src: a ? (a.getAttribute("src") || "") : "", rs: a ? a.readyState : null, ns: a ? a.networkState : null, err: a && a.error ? a.error.code : null, dur: a ? a.duration : null, loop: a ? a.loop : null, preload: a ? a.preload : "", t: a ? a.currentTime : null,
           on: ss("bm.zone.on"), saved: ss("bm.zone.t"), savedSrc: ss("bm.zone.src"),
-          navCount: d.querySelectorAll("#nav a").length, navActive: d.querySelectorAll("#nav a.active").length,
+          status: (() => { const s = d.querySelector("#zone-music-status") || d.querySelector("[role=status]") || d.querySelector("[aria-live]");
+            return s ? {role: s.getAttribute("role") || "", live: s.getAttribute("aria-live") || "", state: s.getAttribute("data-state") || "", text: (s.textContent || "").trim().slice(0, 60)} : null; })(),
+          ...navinfo(d), dockOverlapsMusic: !!overlap,
           w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right), bottom: Math.round(r.bottom), vw: f.contentWindow.innerWidth, vh: f.contentWindow.innerHeight,
           scrollW: d.documentElement.scrollWidth};
 }

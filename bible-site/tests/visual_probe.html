@@ -26,9 +26,25 @@ function blend(top, under) {
 }
 function background(w, el) {
   const chain = [];
-  for (let e = el; e && e.nodeType === 1; e = e.parentElement) chain.push(rgba(w.getComputedStyle(e).backgroundColor));
+  for (let e = el; e && e.nodeType === 1; e = e.parentElement) {
+    const s = w.getComputedStyle(e);
+    chain.push({col: rgba(s.backgroundColor), grad: /gradient|url\(/.test(s.backgroundImage || ""), img: s.backgroundImage || ""});
+  }
   let c = [255, 255, 255, 1];
-  for (let i = chain.length - 1; i >= 0; i--) if (chain[i][3] > 0) c = blend(chain[i], c);
+  for (let i = chain.length - 1; i >= 0; i--) {
+    if (chain[i].col[3] > 0) { c = blend(chain[i].col, c); continue; }
+    if (chain[i].grad) {   // 漸層／圖檔當底：backgroundColor 是透明的，別把透明當成白底算出假對比
+      const hexes = (chain[i].img.match(/#[0-9a-f]{3,8}|rgba?\([^)]+\)/gi) || []).map(rgba).filter(x => x[3] > 0);
+      if (hexes.length) {
+        // 取最暗的那個色當底（文字壓在漸層上時最壞情況就是暗端），深色底用暗端、淺色底用亮端
+        const dark = lum(hexes[hexes.length - 1]) < 0.45;
+        c = blend(dark ? hexes.reduce((a, b) => lum(a) < lum(b) ? a : b) : hexes.reduce((a, b) => lum(a) > lum(b) ? a : b), c);
+        break;
+      }
+      c = blend(w.matchMedia("(prefers-color-scheme: dark)").matches ? [10, 20, 18, 1] : [243, 246, 242, 1], c);
+      break;
+    }
+  }
   return c;
 }
 function contrast(w, el) {
@@ -39,12 +55,16 @@ function contrast(w, el) {
 const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
 
 // interactive elements that must be easy to tap on a phone (min px)
-const TARGETS = [["#nav a", 44], [".book-tabs a", 44], [".chapter-card", 48], ["#chapter-links a", 48],
-                 ["button", 44], ["input[type=search]", 44], ["input[type=text]", 44], ["select", 44]];
-// text that must reach 4.5:1 against what is actually behind it
+const TARGETS = [["#nav a", 44], [".dock a", 44], [".book-tabs a", 44], [".chapter-card", 48], ["#chapter-links a", 48],
+                 ["button", 44], ["input[type=search]", 44], ["input[type=text]", 44], ["select", 44],
+                 [".pill", 44], [".tile", 44]];
+// text that must reach 4.5:1 against what is actually behind it（2026-11 改版元件也要算進去）
 const TEXTS = ["main p", ".verse-text", ".verse-num", ".ch-title", ".ch-count", "footer", "#nav a", "#nav a.active",
-               ".book-tabs a", ".book-tabs a.active", "button", ".search-ref", "#results li", "mark", "#result-info",
-               ".notes li", ".card-controls label", "select", "input", "h1", "#chapter-links a"];
+               ".dock a", ".dock a[aria-current]", ".book-tabs a", ".book-tabs a.active", "button", ".search-ref", "#results li", "mark", "#result-info",
+               ".notes li", ".card-controls label", "select", "input", "h1", "#chapter-links a",
+               ".hero blockquote", ".hero .eyebrow", ".tile", ".tile h3", ".book", ".book h3", ".daily", ".daily h3", ".draw", ".draw h3",
+               ".find label", ".status", ".status[data-state=ok]", ".status[data-state=fix]", ".dev p", ".dev h4", ".dev .pray",
+               ".verses li", ".verse", ".home-verse", ".home-ref", ".hero-body", ".chip", ".pill"];
 
 function measure(f, width) {
   const w = f.contentWindow, d = f.contentDocument, o = {};
@@ -90,6 +110,32 @@ function measure(f, width) {
   }
   const h1 = d.querySelector("h1");
   o.h1 = h1 ? parseFloat(w.getComputedStyle(h1).fontSize) : 0;
+  o.h1Font = h1 ? w.getComputedStyle(h1).fontFamily : "";
+  // 2026-11 改版：底部浮動膠囊導覽列（五項、恰一目前頁、觸控區、不遮音樂鍵、底部留白）
+  const nav = d.getElementById("nav") || d.querySelector(".dock");
+  if (nav) {
+    const ncs = w.getComputedStyle(nav), items = [...nav.querySelectorAll("a")];
+    const nb = nav.getBoundingClientRect();
+    const mb = d.getElementById("zone-music-btn") || d.getElementById("music-btn");
+    const mbr = mb ? mb.getBoundingClientRect() : null;
+    const main = d.querySelector("main") || d.body, last = main.lastElementChild;
+    o.dock = {position: ncs.position, count: items.length,
+              small: items.filter(a => { const r = a.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; }).length,
+              active: items.filter(a => a.getAttribute("aria-current") === "page" || a.classList.contains("active")).length,
+              activeWeight: (() => { const a = items.find(x => x.getAttribute("aria-current") === "page" || x.classList.contains("active"));
+                return a ? parseInt(w.getComputedStyle(a).fontWeight) || 0 : 0; })(),
+              activeBg: (() => { const a = items.find(x => x.getAttribute("aria-current") === "page" || x.classList.contains("active"));
+                const p = items.find(x => !(x.getAttribute("aria-current") === "page" || x.classList.contains("active")));
+                return a && p ? [w.getComputedStyle(a).backgroundColor, w.getComputedStyle(p).backgroundColor] : []; })(),
+              navTop: Math.round(nb.top), musicOverlap: !!(mbr && nb.right > mbr.left && nb.left < mbr.right && nb.bottom > mbr.top && nb.top < mbr.bottom),
+              bodyPadBottom: parseFloat(w.getComputedStyle(d.body).paddingBottom) || 0,
+              mainPadBottom: parseFloat(w.getComputedStyle(main).paddingBottom) || 0,
+              lastBottom: last ? Math.round(last.getBoundingClientRect().bottom) : null, vh: w.innerHeight};
+  }
+  // style.css 有沒有把動畫在 prefers-reduced-motion 下關掉
+  const sheetR = [...d.styleSheets].find(s => (s.href || "").endsWith("style.css"));
+  o.reducedMotion = sheetR ? [...sheetR.cssRules].some(r => (r.conditionText || r.media && r.media.mediaText || "").includes("prefers-reduced-motion: reduce")
+    && /animation|transition/.test(r.cssText) && /none/.test(r.cssText)) : false;
   const vt = d.querySelector(".verse-text");
   o.verseFont = vt ? parseFloat(w.getComputedStyle(vt).fontSize) : 0;
   // every line of every verse starts at the same left edge (number column and text column)
@@ -103,6 +149,18 @@ function measure(f, width) {
   const c = d.getElementById("card-canvas");
   if (c) o.canvas = {attrW: c.width, shownW: Math.round(c.getBoundingClientRect().width), ref: c.getAttribute("data-ref") || ""};
   const hero = d.querySelector(".home-hero"), hcard = d.querySelector(".home-card");
+  const hp = d.querySelector(".hero-pic img") || (hero && hero.querySelector("img"));
+  const hv = d.querySelector(".hero blockquote") || d.querySelector(".home-verse");
+  if (hp && hv) {   // 2026-11 改版：照片與經文分開放，兩者矩形不可重疊
+    const a = hp.getBoundingClientRect(), b = hv.getBoundingClientRect();
+    const vcs = w.getComputedStyle(hv), bcs = w.getComputedStyle(d.querySelector(".hero-body") || hv);
+    o.heroSplit = {pic: {l: Math.round(a.left), r: Math.round(a.right), t: Math.round(a.top), b: Math.round(a.bottom)},
+                   verse: {l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom)},
+                   overlap: a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom,
+                   picH: Math.round(a.height), color: vcs.color, shadow: vcs.textShadow,
+                   serif: /serif|Songti|PMingLiU|MingLiU/i.test(vcs.fontFamily),
+                   bodyGradient: /radial-gradient/.test(bcs.backgroundImage || "")};
+  }
   if (hero && hcard) {   // home page: the verse card floats over the bottom edge of the picture
     const hi = hero.querySelector("img"), mb = d.getElementById("music-btn"), kick = d.querySelector(".hero-kicker");
     const mcs = mb ? w.getComputedStyle(mb) : null, kcs = kick ? w.getComputedStyle(kick) : null;
@@ -124,7 +182,7 @@ function measure(f, width) {
     document.body.appendChild(f);
     return [width, f];
   });
-  const ready = d => d && d.readyState === "complete" && (d.querySelector(".chapter-card, .verse-text, #results li, .error, .home-verse") ||
+  const ready = d => d && d.readyState === "complete" && (d.querySelector(".chapter-card, .verse-text, #results li, .error, .home-verse, #reading h2, .dev .pray") ||
     (d.getElementById("card-canvas") && d.getElementById("card-canvas").getAttribute("data-ref")) ||
     (d.getElementById("result-info") && d.getElementById("result-info").textContent.trim()));
   for (let i = 0; i < 60 && !frames.every(([, f]) => ready(f.contentDocument)); i++) await sleep(150);
