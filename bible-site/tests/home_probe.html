@@ -396,6 +396,67 @@ async function bmFlow() {
   }
   return out;
 }
+/* ===== 第三輪：首頁一週封面（?wk=1）=====
+   同一個 Chrome session 依序走 ?day=1..7 與不帶 day 的首頁，每天量封面圖／alt／出處小標／
+   經文／閱讀本章連結／字色與對比，以及 320／375／768／1440 四種寬度的幾何。 */
+function imgOf(d) {
+  const e = d.querySelector(".home-hero img") || d.querySelector(".hero-pic img");
+  return e ? {src: e.getAttribute("src") || "", alt: e.getAttribute("alt") || "",
+              naturalWidth: e.naturalWidth || 0, complete: !!e.complete} : null;
+}
+/* 換頁但要不會卡死：目標位址跟目前頁面相同時瀏覽器不會觸發 load（?day 收回預設那一趟就是這種），
+   所以同一頁直接量現況；不同頁也加上上限，避免整個探測頁吊死成「沒有輸出」。 */
+function gotoSafe(url, ms) {
+  return new Promise(resolve => {
+    const a = document.createElement("a");
+    a.href = url;
+    const target = a.href;
+    let done = false;
+    const finish = () => {
+      if (done) {
+        return;
+      }
+      done = true;
+      resolve(d0());
+    };
+    const cur = f.contentDocument;
+    if (cur && cur.URL === target && cur.readyState === "complete") {
+      setTimeout(finish, 400);
+      return;
+    }
+    f.addEventListener("load", () => setTimeout(finish, 350), {once: true});
+    f.src = url;
+    setTimeout(finish, ms || 8000);
+  });
+}
+async function weekFlow() {
+  const out = [];
+  for (const q of ["?day=1", "?day=2", "?day=3", "?day=4", "?day=5", "?day=6", "?day=7", ""]) {
+    // 每趟先把進度寫出來：若某一輪卡住，--dump-dom 至少看得到卡在哪一天
+    document.getElementById("out").textContent = "PROGRESS " + JSON.stringify({query: q, done: out.length});
+    const before = errors.length;
+    const dd = await gotoSafe("../site/home.html" + q);
+    for (let i = 0; i < 40; i++) {
+      const t = (dd.querySelector(".home-verse") || {}).textContent || "";
+      if (t && t.indexOf("正在") !== 0) break;   // 首頁的載入中佔位文字一律以「正在」開頭
+      await sleep(150);
+    }
+    await sleep(300);
+    const sizes = {};
+    for (const wid of [320, 375, 768, 1440]) {
+      f.style.width = wid + "px";
+      await sleep(350);
+      const g = d0();
+      sizes[wid] = {scrollWidth: g.documentElement.scrollWidth, clientWidth: g.documentElement.clientWidth, hero: hero(g)};
+    }
+    f.style.width = (parseInt(qs.get("w")) || 375) + "px";
+    await sleep(250);
+    const g = d0(), rl = g.getElementById("read-link");
+    out.push({query: q, verse: text(g, ".home-verse"), ref: text(g, ".home-ref"), img: imgOf(g), hero: hero(g),
+              readHref: rl ? (rl.getAttribute("href") || "") : "", sizes: sizes, newErrors: errors.slice(before)});
+  }
+  return out;
+}
 function read() {
   const d = d0(), o = {errors};
   o.verse = text(d, ".home-verse");
@@ -452,6 +513,14 @@ function read() {
     }
   }
   if (qs.get("bm")) { o.bm = await bmFlow(); }
+  // 一週封面的流程若出錯，要把原因寫進輸出，否則檢查只看得到「探測頁沒有輸出」什麼都猜不到
+  if (qs.get("wk")) {
+    try {
+      o.week = await weekFlow();
+    } catch (e) {
+      o.weekError = String((e && (e.stack || e.message)) || e);
+    }
+  }
   document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
 })();
 </script>

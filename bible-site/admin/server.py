@@ -108,6 +108,15 @@ ZONE_TITLES = {
 # ---- 抽經文卡四個主題的收藏卡圖（寫入端點）----
 ART_FIELDS = ("image", "alt", "edition")
 ART_MAX_BODY = 65536
+# ---- 首頁一週封面（寫入端點）----
+# 設定檔只准存座標與圖路徑：經文文字一律由前台現讀 data/{book}.json，所以 text 欄位一律拒絕。
+WEEK_FIELDS = ("day", "theme", "book", "ch", "v", "image", "alt", "light")
+WEEK_OPTIONAL_FIELDS = ("focus",)
+WEEK_MAX_BODY = 65536
+WEEK_DAYS = (1, 2, 3, 4, 5, 6, 7)
+WEEK_LIGHT_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+WEEK_FOCUS_RE = re.compile(r"^[0-9]{1,3}% [0-9]{1,3}%$")
+WEEK_DEFAULTS = {"enabled": False, "days": []}
 UPLOAD_MAX = {"image": 5 * 1024 * 1024, "music": 8 * 1024 * 1024}
 LOCAL_HOSTNAMES = ("127.0.0.1", "localhost", "::1")
 # 允許呼叫 /api/token 與寫入端點的額外主機名（逗號分隔）
@@ -146,6 +155,111 @@ def zone_config_path():
 
 def art_config_path():
     return os.path.join(SITE_ROOT, "data", "blessing-art.json")
+
+
+def home_week_config_path():
+    return os.path.join(SITE_ROOT, "data", "home-week.json")
+
+
+def validate_home_week_config(obj):
+    """驗證一週封面設定；通過回 (clean, None)，失敗回 (None, 錯誤訊息)。
+    頂層只有 enabled 與 days；days 必須是星期一到星期日各一筆，每筆只存座標、圖路徑與光色。"""
+    if not isinstance(obj, dict):
+        return None, "內容必須是 JSON 物件"
+    if not set(obj.keys()) <= {"enabled", "days"}:
+        return None, "欄位只能是 enabled 與 days"
+    if not isinstance(obj.get("enabled"), bool):
+        return None, "enabled 必須是布林（true 或 false）"
+    days = obj.get("days")
+    if not isinstance(days, list) or len(days) != 7:
+        return None, "days 必須是剛好七筆的陣列"
+    clean_days = []
+    seen = set()
+    for idx, entry in enumerate(days):
+        label = "第 " + str(idx + 1) + " 筆"
+        if not isinstance(entry, dict):
+            return None, label + "必須是 JSON 物件"
+        keys = set(entry.keys())
+        if "text" in keys:
+            return None, label + "不得包含 text 欄位（經文文字不進設定檔）"
+        if not keys <= set(WEEK_FIELDS) | set(WEEK_OPTIONAL_FIELDS):
+            return None, label + "有多餘欄位"
+        missing = [f for f in WEEK_FIELDS if f not in keys]
+        if missing:
+            return None, label + "缺少欄位：" + "、".join(missing)
+        day = entry.get("day")
+        if isinstance(day, bool) or not isinstance(day, int) or day not in WEEK_DAYS:
+            return None, label + "的 day 必須是 1 到 7 的整數（星期一＝1 … 星期日＝7）"
+        if day in seen:
+            return None, "day 重複：" + str(day)
+        seen.add(day)
+        theme = entry.get("theme")
+        if not isinstance(theme, str) or not theme.strip() or len(theme.strip()) > 40:
+            return None, label + "的主題必須是 1 到 40 字"
+        book = entry.get("book")
+        if not isinstance(book, str) or book not in BOOK_KEYS:
+            return None, label + "的書卷代號不正確"
+        ch, v = entry.get("ch"), entry.get("v")
+        for name, val in (("章", ch), ("節", v)):
+            if isinstance(val, bool) or not isinstance(val, int):
+                return None, label + "的" + name + "必須是整數"
+        data = valid_book_data(book)
+        if data is None:
+            return None, label + "讀不到該書卷的經文資料"
+        chapter = None
+        for c in data.get("chapters") or []:
+            if isinstance(c, dict) and c.get("ch") == ch:
+                chapter = c
+                break
+        if chapter is None:
+            return None, label + "指定的章不存在"
+        if not any(isinstance(x, dict) and x.get("v") == v for x in chapter.get("verses") or []):
+            return None, label + "指定的節不存在"
+        image = entry.get("image")
+        if not isinstance(image, str) or not ASSET_RE.match(image) or ".." in image:
+            return None, label + "的圖片路徑不正確"
+        if not image.lower().endswith(IMAGE_EXTS):
+            return None, label + "的圖片副檔名不正確"
+        if not os.path.isfile(os.path.join(SITE_ROOT, "site", image)):
+            return None, label + "的圖片檔案不存在"
+        alt = entry.get("alt")
+        if not isinstance(alt, str) or not 1 <= len(alt.strip()) <= 120:
+            return None, label + "的圖片說明必須是 1 到 120 字"
+        light = entry.get("light")
+        if not isinstance(light, str) or not WEEK_LIGHT_RE.match(light):
+            return None, label + "的 light 必須是 #rrggbb 六位色碼"
+        clean = {
+            "day": day,
+            "theme": theme.strip(),
+            "book": book,
+            "ch": ch,
+            "v": v,
+            "image": image,
+            "alt": alt.strip(),
+            "light": light,
+        }
+        if "focus" in keys:
+            focus = entry.get("focus")
+            if not isinstance(focus, str) or not WEEK_FOCUS_RE.match(focus.strip()):
+                return None, label + "的 focus 必須是「數字% 數字%」"
+            clean["focus"] = focus.strip()
+        clean_days.append(clean)
+    if seen != set(WEEK_DAYS):
+        return None, "day 必須 1 到 7 各出現一次"
+    return {"enabled": obj["enabled"], "days": clean_days}, None
+
+
+def load_home_week_config():
+    """讀 home-week.json；不存在、壞掉或不合格時回預設值（一週封面是選配，不能讓後台打不開）。"""
+    try:
+        with open(home_week_config_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {"enabled": WEEK_DEFAULTS["enabled"], "days": []}
+    cfg, _err = validate_home_week_config(data)
+    if cfg is None:
+        return {"enabled": WEEK_DEFAULTS["enabled"], "days": []}
+    return cfg
 
 
 def load_home_config():
@@ -481,6 +595,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_zone_music_get()
         elif path == "/api/blessing-art":
             self.handle_api_blessing_art_get()
+        elif path == "/api/home-week":
+            self.handle_api_home_week_get()
         elif path.startswith("/api/book/"):
             self.handle_api_book(path[len("/api/book/"):])
         elif path.startswith("/site-assets/"):
@@ -565,7 +681,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # 寫入端點（主頁設定、前台音樂、收藏卡圖、上傳）需要額外的權杖與 Host 檢查
         if path in ("/api/home", "/api/home/reset", "/api/zone-music", "/api/zone-music/reset",
-                    "/api/blessing-art", "/api/blessing-art/reset", "/api/upload"):
+                    "/api/blessing-art", "/api/blessing-art/reset", "/api/home-week", "/api/upload"):
             if not self.check_write_auth():
                 return
             try:
@@ -581,6 +697,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.handle_api_blessing_art_post()
                 elif path == "/api/blessing-art/reset":
                     self.handle_api_blessing_art_reset()
+                elif path == "/api/home-week":
+                    self.handle_api_home_week_post()
                 else:
                     self.handle_api_upload(parsed)
             except Exception:
@@ -809,6 +927,38 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"error": "無法寫入前台音樂設定"}, code=500)
             return
         self.send_json({"ok": True, "config": cfg})
+
+    # ---------- 首頁一週封面 ----------
+    def handle_api_home_week_get(self):
+        cfg = load_home_week_config()
+        images, _ = list_assets()
+        self.send_json({
+            "enabled": cfg["enabled"],
+            "days": cfg["days"],
+            "default": {"enabled": WEEK_DEFAULTS["enabled"], "days": []},
+            "images": images,
+        })
+
+    def handle_api_home_week_post(self):
+        raw = self.read_body(WEEK_MAX_BODY)
+        if raw is None:
+            self.reject_too_large()
+            return
+        try:
+            obj = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            self.send_json({"error": "內容不是合法的 JSON"}, code=400)
+            return
+        cfg, err = validate_home_week_config(obj)
+        if err:
+            self.send_json({"error": err}, code=400)
+            return
+        try:
+            atomic_write_json(home_week_config_path(), cfg)
+        except Exception:
+            self.send_json({"error": "無法寫入一週封面設定"}, code=500)
+            return
+        self.send_json({"ok": True, "enabled": cfg["enabled"], "days": cfg["days"]})
 
     # ---------- 抽經文卡四個主題的收藏卡圖 ----------
     def handle_api_blessing_art_get(self):

@@ -7,7 +7,7 @@ import argparse, json, os, re, shutil, sys
 
 SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 REPO = os.path.abspath(os.path.join(SITE_ROOT, ".."))
-DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json", "devotional.json"]
+DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json", "devotional.json", "home-week.json"]
 ALWAYS_ASSETS = {"assets/jordan.jpg", "assets/home-music.mp3"}
 MAX_FILE = 25 * 1024 * 1024
 # Cloudflare joins the values of every matching rule for the same header, so each path may match at most ONE Cache-Control rule.
@@ -97,6 +97,21 @@ def referenced_assets():
             for card in cards.values():
                 if isinstance(card, dict) and "image" in card and isinstance(card["image"], str):
                     used.add(card["image"])
+
+    # 首頁一週封面：選配資料，檔案不存在或損壞時照常略過、建置不可失敗（home.html 會退回 home.json 的封面）。
+    home_week = os.path.join(SITE_ROOT, "data", "home-week.json")
+    if os.path.exists(home_week):
+        try:
+            week_cfg = json.load(open(home_week, encoding="utf-8"))
+        except json.JSONDecodeError:
+            week_cfg = {}
+        if not isinstance(week_cfg, dict):
+            week_cfg = {}
+        days = week_cfg.get("days")
+        if isinstance(days, list):
+            for day in days:
+                if isinstance(day, dict) and isinstance(day.get("image"), str) and day["image"].startswith("assets/"):
+                    used.add(day["image"])
     return used
 
 

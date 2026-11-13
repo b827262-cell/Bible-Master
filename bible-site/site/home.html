@@ -62,17 +62,18 @@
     }
 
     /* 主視覺裡那一道暖光是漸層、不是實色，量測對比時看不到按鈕自己的淺底色：
-       所以經文區塊裡的按鈕一律「深底淺字」，用金色描邊分出主次，不壓淺色塊。 */
+       所以經文區塊裡的按鈕一律「深底淺字」，用金色描邊分出主次，不壓淺色塊。
+       陰影與描邊都跟著 --sunlight-rgb 走，一週封面換天時會一起換色。 */
     .hero .hero-actions .pill,
     .hero .hero-actions .pill.solid {
-      background: rgba(253, 242, 218, .14);
-      border-color: rgba(253, 242, 218, .5);
+      background: rgba(var(--sunlight-rgb), .14);
+      border-color: rgba(var(--sunlight-rgb), .5);
       color: var(--sunlight);
     }
 
     #read-link {
-      background: rgba(253, 242, 218, .22);
-      border-color: rgba(253, 242, 218, .7);
+      background: rgba(var(--sunlight-rgb), .22);
+      border-color: rgba(var(--sunlight-rgb), .7);
       font-weight: 700;
     }
 
@@ -238,31 +239,38 @@
         music: "assets/home-music.mp3"
       };
 
-      function applyConfig(cfg) {
-        if (heroImg && cfg.image) {
-          heroImg.src = cfg.image;
-          if (cfg.alt) heroImg.alt = cfg.alt;
+      function findVerse(chapter, v) {
+        if (!chapter || !chapter.verses) {
+          return null;
         }
+        for (var i = 0; i < chapter.verses.length; i++) {
+          if (Number(chapter.verses[i].v) === Number(v)) {
+            return chapter.verses[i];
+          }
+        }
+        return null;
+      }
+
+      function applyMusic(cfg) {
         var curSrc = audio ? (audio.getAttribute("src") || "") : "";
         if (audio && cfg.music && curSrc !== cfg.music) {
           audio.src = cfg.music;
           tryPlay();
         }
+      }
+
+      /* home.json 的設定：這一條是預設，也是一週封面任何一步失敗時的退回點。 */
+      function applyConfig(cfg) {
+        if (heroImg && cfg.image) {
+          heroImg.src = cfg.image;
+          if (cfg.alt) heroImg.alt = cfg.alt;
+        }
+        applyMusic(cfg);
         if (readLink) {
           readLink.href = "chapter.html?book=" + cfg.book + "&ch=" + cfg.ch + "#v" + cfg.v;
         }
         return Bible.load(cfg.book).then(function (data) {
-          var chapter = Bible.chapterOf(data, cfg.ch);
-          if (!chapter) {
-            throw new Error("找不到章節");
-          }
-          var verse = null;
-          for (var i = 0; i < chapter.verses.length; i++) {
-            if (Number(chapter.verses[i].v) === Number(cfg.v)) {
-              verse = chapter.verses[i];
-              break;
-            }
-          }
+          var verse = findVerse(Bible.chapterOf(data, cfg.ch), cfg.v);
           if (!verse) {
             throw new Error("找不到經文");
           }
@@ -271,28 +279,142 @@
         });
       }
 
-      fetch("../data/home.json")
-        .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
-        .then(function (cfg) {
-          var merged = {
-            book: cfg.book || DEFAULT_CFG.book,
-            ch: cfg.ch != null ? cfg.ch : DEFAULT_CFG.ch,
-            v: cfg.v != null ? cfg.v : DEFAULT_CFG.v,
-            image: cfg.image || DEFAULT_CFG.image,
-            alt: cfg.alt || DEFAULT_CFG.alt,
-            music: cfg.music || DEFAULT_CFG.music
-          };
-          return applyConfig(merged);
-        })
-        .catch(function () {
-          return applyConfig(DEFAULT_CFG);
-        })
-        .catch(function (err) {
-          Bible.fail(document.querySelector("main"), err);
+      /* ===== 一週封面（data/home-week.json）=====
+         先決定這次要顯示哪一筆、全部條件都成立才套用：經文要真的存在、圖要載得起來，
+         任何一步不合法就安靜退回 home.json（不顯示錯誤訊息、不寫 console）。
+         經文一律現 fetch JSON，這個檔案裡沒有任何經文字句。 */
+      var WEEK_NAMES = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
+      var WEEK_BOOKS = ["mat", "mrk", "luk", "jhn"];
+
+      function weekFromUrl() {
+        var raw = new URLSearchParams(window.location.search).get("day");
+        return raw && /^[1-7]$/.test(raw) ? Number(raw) : null;   // 只收整數 1..7，非法值當做沒帶
+      }
+
+      function weekToday() {
+        var stamp = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+        }).format(new Date());
+        var dow = new Date(stamp + "T12:00:00").getDay();   // 取正午，避免時區邊界差一天
+        return dow === 0 ? 7 : dow;                          // 1＝星期一 … 7＝星期日
+      }
+
+      function weekEntry(week, day) {
+        if (!week || week.enabled !== true || !Array.isArray(week.days) || !day) {
+          return null;
+        }
+        for (var i = 0; i < week.days.length; i++) {
+          var e = week.days[i];
+          if (!e || e.day !== day) {
+            continue;
+          }
+          var ok = WEEK_BOOKS.indexOf(e.book) >= 0 && Number.isInteger(e.ch) && e.ch >= 1 &&
+            Number.isInteger(e.v) && e.v >= 1 &&
+            typeof e.image === "string" && /^assets\/[A-Za-z0-9._-]+$/.test(e.image) &&
+            typeof e.alt === "string" && e.alt.length > 0 && e.alt.length <= 120 &&
+            typeof e.theme === "string" && e.theme.length > 0 &&
+            typeof e.light === "string" && /^#[0-9a-fA-F]{6}$/.test(e.light);
+          return ok ? e : null;
+        }
+        return null;
+      }
+
+      function loadWeek() {
+        return fetch("../data/home-week.json")
+          .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          })
+          .catch(function () {
+            return null;   // 沒有檔案、404、壞 JSON：當做這組沒開
+          });
+      }
+
+      function hexToRgb(hex) {
+        var n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(", ");
+      }
+
+      function loadImage(src) {
+        return new Promise(function (resolve) {
+          var probe = new Image();
+          probe.onload = function () { resolve(true); };
+          probe.onerror = function () { resolve(false); };
+          probe.src = src;
         });
+      }
+
+      /* 套用成功回 true；任何條件不成立就回 false，讓外面退回 home.json。 */
+      function applyWeek(e, day) {
+        return Bible.load(e.book).then(function (data) {
+          var verse = findVerse(Bible.chapterOf(data, e.ch), e.v);
+          if (!verse) {
+            return false;
+          }
+          return loadImage(e.image).then(function (loaded) {
+            if (!loaded) {
+              return false;
+            }
+            heroImg.src = e.image;
+            heroImg.alt = e.alt;
+            heroImg.style.objectPosition = (typeof e.focus === "string" && e.focus) ? e.focus : "35% 50%";
+            document.documentElement.style.setProperty("--sunlight", e.light);
+            document.documentElement.style.setProperty("--sunlight-rgb", hexToRgb(e.light));
+            verseEl.textContent = verse.text;
+            refEl.textContent = WEEK_NAMES[day - 1] + " · " + e.theme + " · " +
+              Bible.ref(e.book, e.ch, verse) + "（和合本）";
+            if (readLink) {
+              readLink.href = "chapter.html?book=" + e.book + "&ch=" + e.ch + "#v" + e.v;
+            }
+            return true;
+          });
+        }).catch(function () {
+          return false;
+        });
+      }
+
+      function loadHome() {
+        return fetch("../data/home.json")
+          .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          })
+          .then(function (cfg) {
+            return {
+              book: cfg.book || DEFAULT_CFG.book,
+              ch: cfg.ch != null ? cfg.ch : DEFAULT_CFG.ch,
+              v: cfg.v != null ? cfg.v : DEFAULT_CFG.v,
+              image: cfg.image || DEFAULT_CFG.image,
+              alt: cfg.alt || DEFAULT_CFG.alt,
+              music: cfg.music || DEFAULT_CFG.music
+            };
+          })
+          .catch(function () {
+            return DEFAULT_CFG;
+          });
+      }
+
+      Promise.all([loadHome(), loadWeek()]).then(function (results) {
+        var cfg = results[0];
+        var week = results[1];
+        var day = weekFromUrl();
+        if (day === null && week && week.enabled === true) {
+          day = weekToday();
+        }
+        var entry = weekEntry(week, day);
+        if (!entry) {
+          return applyConfig(cfg);
+        }
+        return applyWeek(entry, day).then(function (applied) {
+          if (applied) {
+            applyMusic(cfg);   // 音樂仍用 home.json 的 music
+            return null;
+          }
+          return applyConfig(cfg);
+        });
+      }).catch(function (err) {
+        Bible.fail(document.querySelector("main"), err);
+      });
       audio.volume = 0.6;
 
       var PAUSE_LABEL = "♪ 播放音樂";

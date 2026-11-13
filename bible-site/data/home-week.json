@@ -1,0 +1,82 @@
+{
+  "enabled": true,
+  "days": [
+    {
+      "day": 1,
+      "theme": "清晨禱告",
+      "book": "mrk",
+      "ch": 1,
+      "v": 35,
+      "image": "assets/cover-1-mon.jpg",
+      "alt": "破曉時分的加利利曠野山丘，柔和晨光穿過古橄欖樹枝葉灑在安靜跪禱的身影上，右側延伸向幽靜的晨霧山谷。",
+      "light": "#fae1c5",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 2,
+      "theme": "先求神國",
+      "book": "mat",
+      "ch": 6,
+      "v": 33,
+      "image": "assets/cover-2-tue.jpg",
+      "alt": "溫暖晨光斜照在加利利山坡的白色野百合與金黃麥穗上，兩隻麻雀展翅飛過光束，右側遠眺平靜的湖面與遠山。",
+      "light": "#f9e2bc",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 3,
+      "theme": "風浪平靜",
+      "book": "mrk",
+      "ch": 4,
+      "v": 39,
+      "image": "assets/cover-3-wed.jpg",
+      "alt": "風暴止息後的加利利海，烏雲向右側散開，溫暖金白陽光從左上穿雲照亮古木船與平靜如鏡的金色水面。",
+      "light": "#fdebcb",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 4,
+      "theme": "活水泉源",
+      "book": "jhn",
+      "ch": 4,
+      "v": 14,
+      "image": "assets/cover-4-thu.jpg",
+      "alt": "暖陽照亮撒瑪利亞古石井、陶罐與清澈泉水，遠處橄欖山谷向右舒展。",
+      "light": "#ece1d2",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 5,
+      "theme": "祈求尋見",
+      "book": "luk",
+      "ch": 11,
+      "v": 9,
+      "image": "assets/cover-5-fri.jpg",
+      "alt": "猶太石砌庭院的木門半開，夕陽金光穿過門縫灑在石板地面與牆上。",
+      "light": "#f6dec8",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 6,
+      "theme": "上好福分",
+      "book": "luk",
+      "ch": 10,
+      "v": 42,
+      "image": "assets/cover-6-sat.jpg",
+      "alt": "伯大尼石屋窗畔的斜陽照著木几上的羊皮卷與陶土油燈，右側空間寧靜柔和。",
+      "light": "#eee0d1",
+      "focus": "35% 50%"
+    },
+    {
+      "day": 7,
+      "theme": "生命的光",
+      "book": "jhn",
+      "ch": 8,
+      "v": 12,
+      "image": "assets/cover-7-sun.jpg",
+      "alt": "橄欖山的晨光穿過雲層，照亮蜿蜒山徑與樹冠，右側山谷籠罩薄霧。",
+      "light": "#f1e0ce",
+      "focus": "35% 50%"
+    }
+  ]
+}

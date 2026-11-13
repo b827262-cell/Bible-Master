@@ -872,3 +872,33 @@ ht.p…
   - 檢查 `python3 bible-site/tools/check_all.py` → 通過
   - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
   - 檢查 `python3 bible-site/tests/deploy_checks.py` → 通過
+
+## 2026-11-13 12:25:24　131-weekly-wire-checks　等待逾時（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/tests/site_checks.py, bible-site/tests/home_probe.html, bible-site/tests/visual_checks.py, bible-site/tests/deploy_checks.py, bible-site/tests/service_checks.py
+- 第 1 次（w2:p5）：等待逾時；耗時 1200 秒；pane 狀態 timeout；改動 bible-site/tests/deploy_checks.py, bible-site/tests/home_probe.html, bible-site/tests/service_checks.py, bible-site/tests/site_checks.py, bible-site/tests/visual_checks.py
+  - 錯誤：20 分鐘內沒等到 idle/done（目前 working）
+
+## 2026-11-13 12:55:52　132-weekly-wire-data-home　等待逾時（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/ASSETS-LICENSE.md, bible-site/site/assets/cover-1-mon.jpg, bible-site/site/assets/cover-2-tue.jpg, bible-site/site/assets/cover-3-wed.jpg, bible-site/site/assets/cover-4-thu.jpg, bible-site/site/assets/cover-5-fri.jpg, bible-site/site/assets/cover-6-sat.jpg, bible-site/site/assets/cover-7-sun.jpg, bible-site/data/home-week.json, bible-site/site/home.html, bible-site/site/style.css
+- 第 1 次（w2:p5）：等待逾時；耗時 1200 秒；pane 狀態 timeout；改動 bible-site/ASSETS-LICENSE.md, bible-site/data/home-week.json, bible-site/site/assets/cover-1-mon.jpg, bible-site/site/assets/cover-2-tue.jpg, bible-site/site/assets/cover-3-wed.jpg, bible-site/site/assets/cover-4-thu.jpg, bible-site/site/assets/cover-5-fri.jpg, bible-site/site/assets/cover-6-sat.jpg, bible-site/site/assets/cover-7-sun.jpg, bible-site/site/home.html, bible-site/site/style.css
+  - 錯誤：20 分鐘內沒等到 idle/done（目前 working）
+
+## 2026-11-13 12:59:44　133-weekly-wire-build　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/tools/build_public.py
+- 第 1 次（w2:p5）：通過；耗時 83 秒；pane 狀態 done；改動 bible-site/tools/build_public.py
+  - 檢查 `python3 bible-site/tests/deploy_checks.py` → 通過
+
+## 2026-11-13 13:02:14　135-weekly-wire-review　通過（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/REVIEW-weekly-cover.md, bible-site/screenshots-weekly/mon-375.png, bible-site/screenshots-weekly/mon-1440.png, bible-site/screenshots-weekly/tue-375.png, bible-site/screenshots-weekly/tue-1440.png, bible-site/screenshots-weekly/wed-375.png, bible-site/screenshots-weekly/wed-1440.png, bible-site/screenshots-weekly/thu-375.png, bible-site/screenshots-weekly/thu-1440.png, bible-site/screenshots-weekly/fri-375.png, bible-site/screenshots-weekly/fri-1440.png, bible-site/screenshots-weekly/sat-375.png, bible-site/screenshots-weekly/sat-1440.png, bible-site/screenshots-weekly/sun-375.png, bible-site/screenshots-weekly/sun-1440.png
+- 第 1 次（w2:p1）：通過；耗時 121 秒；pane 狀態 done；改動 bible-site/REVIEW-weekly-cover.md
+  - 檢查 `python3 -c 'import os; r=open("bible-site/REVIEW-weekly-cover.md",encoding="utf-8").read().splitlines(); assert len(r)>=3 and r[2].strip() in ("**狀態：PASS**","**狀態：FAIL**"); d="bible-site/screenshots-weekly"; pngs=[f for f in os.listdir(d) if f.endswith(".png")]; assert len(pngs)==14'` → 通過
+
+## 2026-11-13 13:16:58　135-weekly-wire-review　通過（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/REVIEW-weekly-cover.md, bible-site/screenshots-weekly/mon-375.png, bible-site/screenshots-weekly/mon-1440.png, bible-site/screenshots-weekly/tue-375.png, bible-site/screenshots-weekly/tue-1440.png, bible-site/screenshots-weekly/wed-375.png, bible-site/screenshots-weekly/wed-1440.png, bible-site/screenshots-weekly/thu-375.png, bible-site/screenshots-weekly/thu-1440.png, bible-site/screenshots-weekly/fri-375.png, bible-site/screenshots-weekly/fri-1440.png, bible-site/screenshots-weekly/sat-375.png, bible-site/screenshots-weekly/sat-1440.png, bible-site/screenshots-weekly/sun-375.png, bible-site/screenshots-weekly/sun-1440.png
+- 第 1 次（w2:p1）：通過；耗時 104 秒；pane 狀態 done；改動 bible-site/REVIEW-weekly-cover.md
+  - 檢查 `python3 -c 'import os; r=open("bible-site/REVIEW-weekly-cover.md",encoding="utf-8").read().splitlines(); assert len(r)>=3 and r[2].strip() in ("**狀態：PASS**","**狀態：FAIL**"); d="bible-site/screenshots-weekly"; pngs=[f for f in os.listdir(d) if f.endswith(".png")]; assert len(pngs)==14'` → 通過

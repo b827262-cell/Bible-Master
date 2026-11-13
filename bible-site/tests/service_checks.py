@@ -283,6 +283,73 @@ def homeadmin():
         leftovers = [f for d in (os.path.join(tmp, "data"), assets) for f in os.listdir(d) if f.endswith((".tmp", ".part")) or f.startswith(".")]
         check("沒有留下暫存檔（原子寫入）", not leftovers, "、".join(leftovers))
         check("測試沒有動到真正的 data/home.json", md5(live_cfg) == live_before)
+
+        # ===== 第三輪：一週封面的後台端點（GET／POST /api/home-week）與「一週封面」區塊 =====
+        wkf = os.path.join(tmp, "data", "home-week.json")
+        wk_live = os.path.join(ROOT, "bible-site", "data", "home-week.json")
+        wk_live_before = md5(wk_live)
+        home_json_before = md5(cfgf)
+        page2 = open(os.path.join(ADMIN, "index.html"), encoding="utf-8").read()
+        has_block = 'id="home-week-settings"' in page2 and "一週封面" in page2
+        has_switch = bool(re.search(r'id="home-week-settings"[\s\S]{0,3000}?(type="checkbox"|role="switch")', page2))
+        check("homeadmin：後台 index.html 有「一週封面」區塊（#home-week-settings）與啟用開關",
+              has_block and has_switch,
+              "、".join([x for x, ok in (("找不到 id=\"home-week-settings\"", has_block), ("區塊內沒有啟用開關（checkbox／role=switch）", has_switch)) if not ok]) or "OK")
+        st, _, body = req2(base + "/api/home-week")
+        info = json.loads(body) if st == 200 else {}
+        days = info.get("days") or []
+        check("homeadmin：GET /api/home-week 回 200，含 enabled 布林與七天 days（day 1..7 齊全）",
+              st == 200 and isinstance(info.get("enabled"), bool) and len(days) == 7
+              and sorted([e.get("day") for e in days if isinstance(e, dict)]) == [1, 2, 3, 4, 5, 6, 7],
+              f"HTTP {st} " + str(body)[:160])
+        st, _, _ = post("/api/home-week", {"enabled": True, "days": days}, {"X-Bible-Token": ""})
+        check("homeadmin：POST /api/home-week 沒帶 token 回 403", st == 403, f"HTTP {st}")
+        st, _, _ = post("/api/home-week", {"enabled": True, "days": days}, {"X-Bible-Admin": ""})
+        check("homeadmin：POST /api/home-week 沒帶 X-Bible-Admin 回 403", st == 403, f"HTTP {st}")
+        toggles = []
+        if len(days) == 7:
+            for flag in (False, True):
+                st, _, body = post("/api/home-week", {"enabled": flag, "days": [dict(e) for e in days]})
+                saved = json.load(open(wkf, encoding="utf-8")) if os.path.exists(wkf) else {}
+                toggles.append({"enabled": flag, "http": st, "file": saved.get("enabled")})
+            check("homeadmin：POST /api/home-week 能切換 enabled（false 再 true），且真的原子寫回 data/home-week.json",
+                  len(toggles) == 2 and all(t["http"] == 200 and t["file"] == t["enabled"] for t in toggles), str(toggles))
+        else:
+            check("homeadmin：POST /api/home-week 能切換 enabled 並寫回資料檔", False, "GET /api/home-week 沒有可用的七天，無法驗證寫入")
+        wk_saved = md5(wkf)
+        wk_bad = {}
+        if len(days) == 7:
+            def mut(i, **fields):
+                rows = [dict(e) for e in days]
+                rows[i].update(fields)
+                return {"enabled": True, "days": rows}
+
+            def drop(i, key):
+                rows = [dict(e) for e in days]
+                rows[i].pop(key, None)
+                return {"enabled": True, "days": rows}
+            wk_bad = {"書卷不存在": mut(0, book="xyz"), "章不存在": mut(0, ch=99), "節不存在": mut(0, v=999),
+                      "圖檔不存在": mut(0, image="assets/cover-nope.jpg"), "圖檔跳出 assets/": mut(0, image="assets/../../data/luk.json"),
+                      "light 不是 #rrggbb": mut(0, light="#12"), "light 是顏色名字": mut(0, light="red"),
+                      "缺 theme": drop(0, "theme"), "缺 light": drop(0, "light"), "缺 alt": drop(0, "alt"),
+                      "多出 text 欄位": mut(0, text="測試用文字"), "多出別欄位": mut(0, extra="x"),
+                      "days 不是陣列": {"enabled": True, "days": {}}, "days 只有六筆": {"enabled": True, "days": [dict(e) for e in days[:6]]},
+                      "enabled 是字串": {"enabled": "true", "days": [dict(e) for e in days]}}
+        for label, obj in wk_bad.items():
+            st, _, _ = post("/api/home-week", obj)
+            check(f"homeadmin：POST /api/home-week 拒絕「{label}」回 400", st == 400, f"HTTP {st}")
+        if not wk_bad:
+            check("homeadmin：POST /api/home-week 拒絕各種非法座標／圖檔／light 回 400", False,
+                  "GET /api/home-week 沒有可用的七天 days，構造不出非法內容（端點或資料檔還不存在）")
+        st, _, _ = post("/api/home-week", None, raw=b"not json")
+        check("homeadmin：POST /api/home-week 拒絕不是 JSON 的內容回 400", st == 400, f"HTTP {st}")
+        check("homeadmin：所有被拒絕的一週封面請求都沒有改動資料檔（原子寫入）", md5(wkf) == wk_saved, f"{md5(wkf)} != {wk_saved}")
+        check("homeadmin：一週封面的寫入沒有動到 home.json 的六個欄位", md5(cfgf) == home_json_before,
+              f"{md5(cfgf)} != {home_json_before}")
+        left = [f for f in os.listdir(os.path.join(tmp, "data")) if f.endswith((".tmp", ".part")) or f.startswith(".")]
+        check("homeadmin：一週封面寫入後沒有留下暫存檔", not left, "、".join(left))
+        check("homeadmin：一週封面的測試沒有動到真正的 data/home-week.json", md5(wk_live) == wk_live_before,
+              f"{md5(wk_live)} != {wk_live_before}")
     finally:
         proc.terminate()
         try:

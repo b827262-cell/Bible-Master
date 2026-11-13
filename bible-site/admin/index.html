@@ -118,6 +118,52 @@
       width: 100%;
       max-width: 100%;
     }
+    #home-week-settings .week-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      margin-bottom: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #home-week-settings .week-switch input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--accent);
+    }
+    #home-week-settings .week-days {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    #home-week-settings .week-day {
+      display: grid;
+      grid-template-columns: 5.5em 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    #home-week-settings .week-day .dow {
+      font-weight: 700;
+    }
+    #home-week-settings .week-day .ref {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    #home-week-settings .week-day img {
+      display: block;
+      width: 96px;
+      height: 54px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--bg-primary);
+    }
+    #home-week-settings .week-empty {
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -311,6 +357,29 @@
       </div>
 
       <p class="home-status" id="home-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 主區塊：一週封面 -->
+    <section class="card" id="home-week-settings">
+      <div class="card-header">
+        <h2>📅 一週封面</h2>
+        <span style="font-size:0.8rem; color:var(--text-muted);">首頁依台灣時間的星期幾換封面圖與經文出處</span>
+      </div>
+
+      <p class="home-note">開啟後，入口首頁會用下面七筆中「今天星期幾」那一筆的封面圖、主題與經文座標；經文文字一律現讀 <code>data／*.json</code>，設定檔只存書卷、章、節。關閉時首頁退回上面『主頁設定』的封面。逐日編輯主題、經文與換圖這一輪尚未提供，改完記得執行發佈。</p>
+
+      <label class="week-switch" for="home-week-enabled">
+        <input type="checkbox" id="home-week-enabled">
+        <span>啟用整組輪換</span>
+      </label>
+
+      <div class="week-days" id="home-week-days"></div>
+
+      <div class="home-actions-row">
+        <button type="button" class="btn btn-outline" id="home-week-reload">重新載入</button>
+      </div>
+
+      <p class="home-status" id="home-week-status" role="status" aria-live="polite"></p>
     </section>
 
     <!-- 主區塊：前台音樂 -->

@@ -38,6 +38,17 @@ def bundle():
         check("dist 有 data/blessing.json 與 data/home.json", "data/blessing.json" in files and "data/home.json" in files)
         check("dist 有 data/zone-music.json 與 site/music.js（前台四區音樂）", "data/zone-music.json" in files and "site/music.js" in files)
         check("dist 有 data/blessing-art.json（抽經文卡主題收藏卡圖）", "data/blessing-art.json" in files)
+        # 第三輪：一週封面——資料與七張圖都要進 dist（缺資料檔的狀況在下面另測建置不失敗）
+        wkpath = os.path.join(out, "data", "home-week.json")
+        wkimgs = []
+        if os.path.exists(wkpath):
+            try:
+                wkimgs = [e.get("image", "") for e in json.load(open(wkpath, encoding="utf-8")).get("days", [])]
+            except ValueError:
+                wkimgs = []
+        check("dist 有 data/home-week.json（首頁一週封面）", "data/home-week.json" in files, wkpath)
+        check("data/home-week.json 列出的七張 cover-*.jpg 都在 dist/site/assets/",
+              len(wkimgs) == 7 and all(os.path.isfile(os.path.join(out, "site", p)) for p in wkimgs), str(wkimgs[:3]))
         bad = [f for f in files if re.match(r"(admin|tests|tools|tasks|prompts|logs|\.verify|\.git)/", f) or f.endswith((".md", ".py", ".sh", ".pid", ".log")) or os.path.basename(f).startswith(".") or "token" in f.lower()]
         check("dist 不含 admin／tests／tools／報告／腳本／token／隱藏檔", not bad, "、".join(bad[:6]))
         check("dist 只含 index.html、404.html、_headers、site/、data/ 五種頂層項目", {f.split("/")[0] for f in files} <= {"index.html", "404.html", "_headers", "site", "data"})
@@ -108,6 +119,18 @@ def bundle():
         check("沒被使用的上傳檔不會發佈，home.json 指定的上傳檔會發佈", "site/assets/upload-stray.png" not in f2 and "site/assets/upload-used.png" in f2)
         check("沒被使用的收藏卡圖不會發佈，cards 單卡指定的圖會發佈",
               "site/assets/upload-art-stray.png" not in f2 and "site/assets/upload-art-used.png" in f2)
+        # 一週封面是選配：資料檔不見時建置仍要成功（用臨時副本，絕不碰真實 data/）
+        copy3 = os.path.join(tmp, "copy3")
+        shutil.copytree(os.path.join(SITE_ROOT, "site"), os.path.join(copy3, "site"))
+        shutil.copytree(os.path.join(SITE_ROOT, "data"), os.path.join(copy3, "data"))
+        shutil.copy(os.path.join(SITE_ROOT, "index.html"), copy3)
+        if os.path.exists(os.path.join(copy3, "data", "home-week.json")):
+            os.remove(os.path.join(copy3, "data", "home-week.json"))
+        out3 = os.path.join(tmp, "dist3")
+        r3 = subprocess.run([sys.executable, BUILD, "--out", out3, "--root", copy3], capture_output=True, text=True, timeout=120)
+        f3 = listing(out3) if os.path.isdir(out3) else []
+        check("資料檔沒有 home-week.json 時 build_public.py 仍結束碼 0 且照常產出（一週封面缺席不擋發佈）",
+              r3.returncode == 0 and "site/home.html" in f3, (r3.stdout + r3.stderr).strip()[-200:])
         check("沒被使用的上傳音樂不會發佈，zones 中指定的曲目會發佈",
               "site/assets/upload-zone-stray.mp3" not in f2 and "site/assets/upload-zone-used.mp3" in f2)
         # serve dist and fetch the pages the way a browser would (relative ../data paths must work)

@@ -19,6 +19,13 @@
 | `site/assets/heart-surprise-dark.gif` | 點愛心後的「小驚喜」動圖（深色模式） | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 合成 16 幀，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480，16 幀、每幀 100 ms（共 1,600 ms）、播放一次不循環；邊緣已預混 `#0a1412`；514 KB |
 | `site/assets/pattern-light.png` | 抽經文卡頁面背景底紋（淺色模式），平鋪 360px | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 裁成可平鋪圖，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480 可平鋪，底色 `#f3f6f2`；文字對比見 `output/imagegen/heart-20261113/pattern-preview.png`；24 KB |
 | `site/assets/pattern-dark.png` | 抽經文卡頁面背景底紋（深色模式），平鋪 360px | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 裁成可平鋪圖，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480 可平鋪，底色 `#0a1412`；21 KB |
+| `site/assets/cover-1-mon.jpg` | 入口首頁一週封面：星期一「清晨禱告」（`data/home-week.json`，馬可福音 1:35） | 由 AGY 使用 Google Imagen 3 生成，母圖與總覽圖（contact sheet）在 `output/imagegen/weekly-cover-20261113/`，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），325 KB；經文字色 `#fae1c5` |
+| `site/assets/cover-2-tue.jpg` | 入口首頁一週封面：星期二「先求神國」（馬太福音 6:33） | 由 AGY 使用 Google Imagen 3 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），285 KB；經文字色 `#f9e2bc` |
+| `site/assets/cover-3-wed.jpg` | 入口首頁一週封面：星期三「風浪平靜」（馬可福音 4:39） | 由 AGY 使用 Google Imagen 3 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），184 KB；經文字色 `#fdebcb` |
+| `site/assets/cover-4-thu.jpg` | 入口首頁一週封面：星期四「活水泉源」（約翰福音 4:14） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），553 KB；經文字色調亮為 `#ece1d2`（原 `#c8a67d` 亮度不足） |
+| `site/assets/cover-5-fri.jpg` | 入口首頁一週封面：星期五「祈求尋見」（路加福音 11:9） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），417 KB；經文字色調亮為 `#f6dec8`（原 `#e29a57` 亮度不足） |
+| `site/assets/cover-6-sat.jpg` | 入口首頁一週封面：星期六「上好福分」（路加福音 10:42） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），439 KB；經文字色調亮為 `#eee0d1`（原 `#cba275` 亮度不足） |
+| `site/assets/cover-7-sun.jpg` | 入口首頁一週封面：星期日「生命的光」（約翰福音 8:12） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），516 KB；經文字色調亮為 `#f1e0ce`（原 `#d5a06c` 亮度不足） |
 
 經文：和合本（公有領域），由 `bible-site/tools/build_data.py` 從維基文庫與 ebible.org 轉出。後台上傳的新素材請同樣登記在這裡。
 

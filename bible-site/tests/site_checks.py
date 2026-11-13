@@ -341,6 +341,32 @@ def home_config(root=None):
     return cfg
 
 
+def active_home_config(root=None):
+    """Effective home cover config: if data/home-week.json is enabled and has today's Asia/Taipei day, merge it over home.json."""
+    cfg = home_config(root)
+    wk_path = os.path.join(root or ROOT, "data", "home-week.json")
+    if os.path.exists(wk_path):
+        try:
+            wk = json.load(open(wk_path, encoding="utf-8"))
+            if isinstance(wk, dict) and wk.get("enabled") is True:
+                day_num = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoweekday()
+                hit = next((d for d in (wk.get("days") or []) if isinstance(d, dict) and d.get("day") == day_num), None)
+                if hit and hit.get("book") in dict(BOOKS):
+                    for k in ("book", "ch", "v", "image", "alt", "light", "theme"):
+                        if hit.get(k) is not None:
+                            cfg[k] = hit[k]
+        except Exception:
+            pass
+    return cfg
+
+
+def hex_to_rgb_css(hx):
+    hx = (hx or "").lstrip("#")
+    if len(hx) != 6:
+        return SUNLIGHT_RGB
+    return f"rgb({int(hx[0:2], 16)}, {int(hx[2:4], 16)}, {int(hx[4:6], 16)})"
+
+
 def home_data():
     """data/home.json: only a reference (book/ch/v) plus asset paths and alt text; the verse must exist; no scripture text inside."""
     path = os.path.join(ROOT, "data", "home.json")
@@ -376,15 +402,16 @@ def home_data():
     check("home.json 沒有任何經文文字（沒有連續 8 字與經文相同）", not hit, "；".join(hit[:3]))
 
 
-def home_state(port, click=False, width=None, page="home.html", do=None, wides=False):
+def home_state(port, click=False, width=None, page="home.html", do=None, wides=False, wk=False):
     """Open a front-end page in tests/home_probe.html (autoplay allowed, so the music button can be tested) and return its state.
     ?do=empty|hit|miss 跑一趟搜尋三種狀態；?wides=1 在同一輪內依序量 320／375／768／1440 的主視覺幾何。"""
     q = "u=" + urllib.parse.quote("../site/" + page, safe="") + ("&click=1" if click else "") + (f"&w={width}" if width else "") \
-        + (f"&do={do}" if do else "") + ("&wides=1" if wides else "")
+        + (f"&do={do}" if do else "") + ("&wides=1" if wides else "") + ("&wk=1" if wk else "")
     with tempfile.TemporaryDirectory() as profile:
-        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=15000",
+        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
+                              "--virtual-time-budget=90000" if wk else "--virtual-time-budget=15000",
                               "--autoplay-policy=no-user-gesture-required", f"--user-data-dir={profile}", "--dump-dom",
-                              f"http://127.0.0.1:{port}/tests/home_probe.html?{q}"], capture_output=True, text=True, timeout=90).stdout
+                              f"http://127.0.0.1:{port}/tests/home_probe.html?{q}"], capture_output=True, text=True, timeout=180).stdout
     found = re.findall(r"PROBE (\{.*\})", re.sub(r"<[^>]+>", "", out))
     try:
         return json.loads(html.unescape(found[-1])) if found else {}
@@ -450,8 +477,8 @@ def home_static():
 
 
 def home_render(port, root=None, label=""):
-    """Render home.html served from `root` (default: the real site) and compare with that root's home.json."""
-    cfg = home_config(root)
+    """Render home.html served from `root` (default: the real site) and compare with the active cover config."""
+    cfg = active_home_config(root)
     book = json.load(open(os.path.join(root or ROOT, "data", cfg["book"] + ".json"), encoding="utf-8"))["chapters"]
     want = next(v["text"] for c in book if c["ch"] == cfg["ch"] for v in c["verses"] if v["v"] == cfg["v"])
     ref = f"{dict(BOOKS)[cfg['book']]} {cfg['ch']}:{cfg['v']}"
@@ -497,6 +524,9 @@ def home_variants():
                 json.dump(cfg, open(os.path.join(tmp, "data", "home.json"), "w", encoding="utf-8"), ensure_ascii=False)
             else:
                 os.remove(os.path.join(tmp, "data", "home.json"))
+            wk_copy = os.path.join(tmp, "data", "home-week.json")
+            if os.path.exists(wk_copy):
+                os.remove(wk_copy)
             handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
             with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
                 threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -1438,8 +1468,9 @@ def restyle_render(port):
               bool(h) and h.get("picOverlap") is False and h.get("picH", 0) >= 200,
               json.dumps({"pic": h.get("pic"), "verse": h.get("verse"), "picH": h.get("picH")}, ensure_ascii=False)[:260])
     hero = st.get("hero") or {}
-    check("restyle home.html：今日經文與照片裡的光同色（#fdf2da）、有金色光暈 text-shadow、用明體",
-          hero.get("color") == SUNLIGHT_RGB and hero.get("shadow") not in (None, "", "none") and hero.get("serif"),
+    want_rgb = hex_to_rgb_css(active_home_config(ROOT).get("light", SUNLIGHT))
+    check("restyle home.html：今日經文與照片裡的光同色（#fdf2da 或當日週封面光色）、有金色光暈 text-shadow、用明體",
+          hero.get("color") in (SUNLIGHT_RGB, want_rgb) and hero.get("shadow") not in (None, "", "none") and hero.get("serif"),
           json.dumps({k: hero.get(k) for k in ("color", "shadow", "serif")}, ensure_ascii=False)[:260])
     check("restyle home.html：經文區塊有一道從照片方向照過來的暖光（.hero-body 帶 radial-gradient 背景）",
           bool(hero.get("bodyHasGradient")), str(hero.get("bodyBgImage"))[:200])
@@ -1713,6 +1744,258 @@ def bookmarks_render(port):
               "；".join(bad) + (f"；{','.join(sorted(not_open))}px 找不到可展開的收藏 UI" if not_open else ""))
 
 
+# ===== 首頁一週封面（依星期輪換，2026-11-13 第三輪之後；先寫檢查，實作前預期紅燈） =====
+WEEK_DOW = {1: "星期一", 2: "星期二", 3: "星期三", 4: "星期四", 5: "星期五", 6: "星期六", 7: "星期日"}
+WEEK_COVERS = {1: "cover-1-mon.jpg", 2: "cover-2-tue.jpg", 3: "cover-3-wed.jpg", 4: "cover-4-thu.jpg",
+               5: "cover-5-fri.jpg", 6: "cover-6-sat.jpg", 7: "cover-7-sun.jpg"}
+WEEK_FIELDS = {"day", "theme", "book", "ch", "v", "image", "alt", "light"}
+HERO_DARK = (6, 20, 15)   # style.css 的 .hero background-color #06140f：七天經文字色實際壓在上面的深底
+
+
+def srgb_lum(rgb):
+    """相對亮度（WCAG 定義），rgb 是 (r, g, b) 0–255。"""
+    f = lambda c: (c / 255) / 12.92 if (c / 255) <= 0.03928 else ((c / 255 + 0.055) / 1.055) ** 2.4
+    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2])
+
+
+def srgb_contrast(a, b):
+    la, lb = srgb_lum(a), srgb_lum(b)
+    return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+
+
+def hex_rgb(text):
+    m = re.fullmatch(r"#([0-9a-fA-F]{6})", text or "")
+    return None if not m else tuple(int(m.group(1)[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def taipei_weekday(now=None):
+    """台灣時間（Asia/Taipei，無日光節約）今天是星期幾：1＝星期一 … 7＝星期日，與 home-week.json 的 day 同一套編號。"""
+    tw = datetime.timezone(datetime.timedelta(hours=8))
+    return (now or datetime.datetime.now(tw)).isoweekday()
+
+
+def home_week_raw(root=None):
+    """回傳 (狀態, 解析結果, 說明)：狀態是 missing／bad／ok。"""
+    path = os.path.join(root or ROOT, "data", "home-week.json")
+    if not os.path.exists(path):
+        return "missing", None, "找不到 data/home-week.json"
+    raw = open(path, encoding="utf-8").read()
+    try:
+        return "ok", json.loads(raw), raw
+    except ValueError as e:
+        return "bad", None, str(e)
+
+
+def home_week_days(root=None):
+    """{day: entry}，只收結構正確的行；沒有檔案或壞 JSON 時是空字典。"""
+    kind, data, _ = home_week_raw(root)
+    if kind != "ok" or not isinstance(data, dict) or not isinstance(data.get("days"), list):
+        return {}
+    return {e["day"]: e for e in data["days"] if isinstance(e, dict) and e.get("day") in WEEK_DOW}
+
+
+def home_week_verses():
+    """四卷全部經文的 {(book, ch, v): text}，用來逐字比對當天該顯示的那節。"""
+    verses = {}
+    for k, _ in BOOKS:
+        for c in json.load(open(os.path.join(ROOT, "data", k + ".json"), encoding="utf-8"))["chapters"]:
+            for v in c["verses"]:
+                verses[(k, c["ch"], v["v"])] = v["text"]
+    return verses
+
+
+def homeweek_assets():
+    """七張封面與 data/home-week.json：尺寸／容量／授權登記／光色對比，資料檔只准存座標。"""
+    lic_path = os.path.join(ROOT, "ASSETS-LICENSE.md")
+    lic = open(lic_path, encoding="utf-8").read() if os.path.exists(lic_path) else ""
+    bad, rows = [], []
+    for day, name in sorted(WEEK_COVERS.items()):
+        p = os.path.join(SITE, "assets", name)
+        if not os.path.exists(p):
+            bad.append(f"{name} 不存在")
+            continue
+        kb = os.path.getsize(p) / 1024
+        w, h = jpeg_size(p)
+        if kb < 1:
+            bad.append(f"{name} 是空檔")
+        if kb > 600:
+            bad.append(f"{name} {kb:.0f} KB > 600 KB")
+        if w < 1600:
+            bad.append(f"{name} 寬 {w} < 1600")
+        if not h or abs(w / h - 16 / 9) >= 0.03:
+            bad.append(f"{name} {w}×{h} 不是 16:9")
+        row = [l for l in lic.splitlines() if name in l and l.strip().startswith("|")]
+        want = r"AGY|Google Imagen 3" if day <= 3 else r"Codex|image_gen"
+        if not row:
+            bad.append(f"{name} 沒有登記在 ASSETS-LICENSE.md")
+        elif not re.search(want, row[0]):
+            bad.append(f"{name} 的登記列沒寫{'AGY／Google Imagen 3' if day <= 3 else 'Codex／image_gen'}")
+        rows.append({"day": day, "name": name, "w": w, "h": h, "kb": round(kb, 1)})
+    check("一週封面素材：site/assets/cover-1-mon.jpg…cover-7-sun.jpg 七張都存在、非空、≤600KB、16:9（寬 ≥1600），一至三登記 AGY／Imagen 3、四至七登記 Codex／image_gen",
+          not bad and len(rows) == 7, "；".join(bad) or json.dumps(rows, ensure_ascii=False))
+
+    kind, data, detail = home_week_raw()
+    if kind != "ok":
+        check("一週封面資料：data/home-week.json 存在且是合法 JSON", False, "找不到檔案" if kind == "missing" else detail)
+        return
+    days = data.get("days")
+    check("一週封面資料：enabled 是布林、days 剛好七筆且 day 1..7 齊全",
+          isinstance(data.get("enabled"), bool) and isinstance(days, list) and len(days) == 7
+          and sorted([e.get("day") for e in days if isinstance(e, dict)]) == [1, 2, 3, 4, 5, 6, 7],
+          json.dumps({"enabled": data.get("enabled"), "筆數": len(days or []),
+                      "day": sorted([e.get("day") for e in (days or []) if isinstance(e, dict)])}, ensure_ascii=False)[:220])
+    verses = home_week_verses()
+    probs, lights = [], []
+    for e in days or []:
+        if not isinstance(e, dict):
+            probs.append("有一筆不是物件")
+            continue
+        d = e.get("day")
+        miss = sorted((WEEK_FIELDS - {"day"}) - set(e))
+        if miss:
+            probs.append(f"day {d} 缺欄位 {'、'.join(miss)}")
+        if "text" in e:
+            probs.append(f"day {d} 有 text 欄位（經文文字不准存進資料檔）")
+        extra = sorted(set(e) - WEEK_FIELDS - {"focus"})
+        if extra:
+            probs.append(f"day {d} 有多餘欄位 {'、'.join(extra)}")
+        if (e.get("book"), e.get("ch"), e.get("v")) not in verses:
+            probs.append(f"day {d} 的座標 {e.get('book')} {e.get('ch')}:{e.get('v')} 在 data/*.json 找不到")
+        img = e.get("image") or ""
+        if not ASSET_NAME.match(img) or not os.path.isfile(os.path.join(SITE, img)):
+            probs.append(f"day {d} 的 image 不是 assets/ 下存在的檔案：{img}")
+        alt = e.get("alt") or ""
+        if not (1 <= len(alt) <= 120) or not CJK.search(alt):
+            probs.append(f"day {d} 的 alt 不是 1–120 字的繁體中文")
+        if not (e.get("theme") or "").strip():
+            probs.append(f"day {d} 沒有主題文字")
+        rgb = hex_rgb(e.get("light"))
+        if not rgb:
+            probs.append(f"day {d} 的 light 不是 #rrggbb：{e.get('light')}")
+        else:
+            lum, ratio = srgb_lum(rgb), srgb_contrast(rgb, HERO_DARK)
+            lights.append({"day": d, "light": e.get("light"), "lum": round(lum, 3), "contrast": round(ratio, 2)})
+    check("一週封面資料：每筆都有 theme／book／ch／v／image／alt／light（可選 focus），不含 text 或多餘欄位，座標與圖檔都存在，alt 是繁體中文",
+          not probs, "；".join(probs[:6]))
+    check("一週封面資料：七天 light 都是 #rrggbb、相對亮度 ≥0.72、在 .hero-body 深底（#06140f）上對比 ≥7.0",
+          len(lights) == 7 and all(x["lum"] >= 0.72 and x["contrast"] >= 7.0 for x in lights),
+          json.dumps(lights, ensure_ascii=False))
+    grams = set()
+    for t in verses.values():
+        s = cjk(t)
+        grams.update(s[i:i + 8] for i in range(len(s) - 7))
+    z = cjk(json.dumps(data, ensure_ascii=False))
+    hit = sorted({z[i:i + 8] for i in range(len(z) - 7) if z[i:i + 8] in grams})
+    check("一週封面資料：home-week.json 沒有任何經文文字（與四福音和合本沒有連續 8 字相同）", not hit, "；".join(hit[:3]))
+    raw = open(os.path.join(ROOT, "data", "home-week.json"), encoding="utf-8").read()
+    simp = [ch for ch in SIMPLIFIED if ch in raw]
+    check("一週封面資料：home-week.json 沒有簡體字", not simp, "".join(simp))
+
+
+def homeweek_render(port, root=None, label=""):
+    """一次 Chrome session 內依序走 ?day=1..7 與不帶 day 的首頁：封面、出處、字色、經文、連結、幾何一次比對。"""
+    cfg = home_week_days(root)
+    verses = home_week_verses()
+    st = home_state(port, page="home.html", wk=True)
+    weeks = st.get("week") or []
+    if not weeks:
+        check(f"homeweek{label}：探測流程跑得起來（home_probe.html?wk=1 有回傳七天）", False,
+              json.dumps({"weekError": st.get("weekError"), "輸出欄位": sorted(st)[:8]}, ensure_ascii=False)[:320])
+        return
+    check(f"homeweek{label}：七天輪換與今天預設的過程中都沒有 JavaScript 錯誤",
+          not st.get("errors"), json.dumps(st.get("errors", [])[:3], ensure_ascii=False)[:240])
+    for row in weeks:
+        q = row.get("query") or ""
+        m = re.fullmatch(r"\?day=([1-7])", q)
+        if not m:
+            continue
+        d = int(m.group(1))
+        e = cfg.get(d) or {}
+        want = verses.get((e.get("book"), e.get("ch"), e.get("v")), "")
+        img = row.get("img") or {}
+        hero = row.get("hero") or {}
+        ref = row.get("ref") or ""
+        got_ref = WEEK_DOW[d] in ref and (e.get("theme") or "∅") in ref and week_ref(e) in ref
+        check(f"homeweek{label}：?day={d}（{WEEK_DOW[d]}）顯示 cover-{d} 封面、alt、出處小標（星期＋主題＋書卷章節）、經文逐字一致、閱讀本章連到當天座標",
+              bool(e) and img.get("src") == e.get("image") and (img.get("naturalWidth") or 0) > 0
+              and img.get("alt") == e.get("alt") and got_ref
+              and (row.get("verse") or "") == want and row.get("readHref") ==
+              f"chapter.html?book={e.get('book')}&ch={e.get('ch')}#v{e.get('v')}",
+              json.dumps({"img": img, "ref": ref[:60], "出處對": got_ref, "經文相符": (row.get("verse") or "") == want,
+                          "經文長度": [len(row.get("verse") or ""), len(want)], "readHref": row.get("readHref")},
+                         ensure_ascii=False)[:300])
+        rgb = hex_rgb(e.get("light"))
+        want_rgb = "rgb(" + ", ".join(str(x) for x in rgb) + ")" if rgb else ""
+        sizes = row.get("sizes") or {}
+        wide_bad = [w for w, v in sizes.items() if (v.get("scrollWidth") or 0) > (v.get("clientWidth") or 0)]
+        overlap_bad = [w for w, v in sizes.items() if (v.get("hero") or {}).get("picOverlap")]
+        check(f"homeweek{label}：?day={d} 的經文字色＝該天 light（{e.get('light')}）、與深底對比 ≥7、照片不壓經文，320／375／768／1440px 無水平溢出",
+              hero.get("color") == want_rgb and (hero.get("contrast") or 0) >= 7.0
+              and hero.get("picOverlap") is False and not wide_bad and not overlap_bad,
+              json.dumps({"color": hero.get("color"), "want": want_rgb, "contrast": hero.get("contrast"),
+                          "overlap": hero.get("picOverlap"), "溢出": wide_bad, "重疊": overlap_bad}, ensure_ascii=False)[:280])
+    today = taipei_weekday()
+    row = next((r for r in weeks if (r.get("query") or "") == ""), {})
+    e = cfg.get(today) or {}
+    want = verses.get((e.get("book"), e.get("ch"), e.get("v")), "")
+    check(f"homeweek{label}：不帶 ?day 時用 Asia/Taipei 的星期（今天＝{WEEK_DOW[today]}）顯示對應封面與經文",
+          bool(row) and bool(e) and (row.get("img") or {}).get("src") == e.get("image")
+          and (row.get("verse") or "") == want and WEEK_DOW[today] in (row.get("ref") or ""),
+          json.dumps({"query": row.get("query"), "img": (row.get("img") or {}).get("src"),
+                      "期望": e.get("image"), "ref": (row.get("ref") or "")[:60],
+                      "經文相符": (row.get("verse") or "") == want}, ensure_ascii=False)[:280])
+
+
+def week_ref(e):
+    """資料行 → 前台出處小標該顯示的「書名 章:節」（合併節的顯示由頁面用 Bible.ref 決定，這裡只取起點）。"""
+    name = dict(BOOKS).get(e.get("book"), "?")
+    return f"{name} {e.get('ch')}:{e.get('v')}"
+
+
+def homeweek_fallbacks():
+    """退回情境：在 /tmp 副本裡把 home-week.json 弄成各種壞狀態，首頁必須安靜退回 home.json 的封面（絕不碰真實 data/）。
+    這六項是迴歸守門：實作前也該是綠（頁面本來就顯示預設），實作後不准變紅。"""
+    import shutil
+    http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
+    base_days = home_week_days()
+    today = taipei_weekday()
+    want = home_week_verses().get(("luk", 4, 27), "")
+    rows = [dict(e) for e in base_days.values()]
+
+    def days(entries, enabled=True):
+        return json.dumps({"enabled": enabled, "days": entries}, ensure_ascii=False)
+
+    cases = [("沒有 home-week.json（404）", None),
+             ("home-week.json 是壞 JSON", "{bad json"),
+             ("enabled 是 false", days(rows, False)),
+             ("缺今天（星期" + WEEK_DOW[today] + "）那一筆", days([e for e in rows if e.get("day") != today])),
+             ("今天的節數不存在（v: 999）", days([dict(e, v=999) if e.get("day") == today else e for e in rows])),
+             ("今天的圖檔載不到", days([dict(e, image="assets/cover-not-here.jpg") if e.get("day") == today else e for e in rows]))]
+    for label, content in cases:
+        with tempfile.TemporaryDirectory() as tmp:
+            for d in ("site", "data"):
+                shutil.copytree(os.path.join(ROOT, d), os.path.join(tmp, d))
+            os.makedirs(os.path.join(tmp, "tests"))
+            shutil.copy(os.path.join(ROOT, "tests", "home_probe.html"), os.path.join(tmp, "tests"))
+            path = os.path.join(tmp, "data", "home-week.json")
+            if content is None:
+                if os.path.exists(path):
+                    os.remove(path)
+            else:
+                open(path, "w", encoding="utf-8").write(content)
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=tmp)
+            with socketserver.TCPServer(("127.0.0.1", 0), handler) as srv:
+                threading.Thread(target=srv.serve_forever, daemon=True).start()
+                st = home_state(srv.server_address[1], page="home.html")
+                srv.shutdown()
+        img = st.get("img") or {}
+        ok = ((st.get("verse") or "") == want and img.get("src") == HOME_DEFAULT["image"]
+              and "路加福音 4:27" in (st.get("ref") or "") and not st.get("errors"))
+        check(f"homeweek：{label} 時安靜退回 home.json 的預設封面（路加福音 4:27／jordan.jpg），不顯示錯誤字樣、沒有 JS 錯誤", ok,
+              json.dumps({"經文相符": (st.get("verse") or "") == want, "img": img.get("src"),
+                          "ref": (st.get("ref") or "")[:60], "errors": st.get("errors", [])[:2]}, ensure_ascii=False)[:280])
+
+
 def rendering(groups):
     if not CHROME:
         check("頁面實際顯示（headless Chrome）", False, "找不到 Chrome")
@@ -1812,6 +2095,9 @@ def rendering(groups):
             heart_render(port)
         if "bookmarks" in groups:
             bookmarks_render(port)
+        if "homeweek" in groups:
+            homeweek_render(port)
+            homeweek_fallbacks()
         srv.shutdown()
 
 
@@ -1825,7 +2111,7 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart", "devotional", "restyle", "heart", "bookmarks"}
+    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart", "devotional", "restyle", "heart", "bookmarks", "homeweek"}
     links()
     external()
     single_book_text()
@@ -1851,6 +2137,8 @@ if __name__ == "__main__":
         heart_source()
     if "bookmarks" in groups:
         bookmarks_static()
+    if "homeweek" in groups:
+        homeweek_assets()
     rendering(groups)
     if ONLY and not results:
         results.append(False)   # a typo in --grep must not pass silently

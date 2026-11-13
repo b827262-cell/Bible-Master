@@ -724,6 +724,122 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 5.5 一週封面（data/home-week.json）：這一輪只提供整組開關與七天的唯讀列表
+  const WEEK_NAMES = { 1: "星期一", 2: "星期二", 3: "星期三", 4: "星期四", 5: "星期五", 6: "星期六", 7: "星期日" };
+
+  const weekEls = {
+    section: document.getElementById("home-week-settings"),
+    toggle: document.getElementById("home-week-enabled"),
+    days: document.getElementById("home-week-days"),
+    reload: document.getElementById("home-week-reload"),
+    status: document.getElementById("home-week-status")
+  };
+
+  let weekData = { enabled: false, days: [] };
+  let weekBusy = false;
+
+  function weekStatus(text, kind) {
+    const el = weekEls.status;
+    if (!el) return;
+    el.textContent = text;
+    el.className = "home-status" + (kind ? " is-" + kind : "");
+  }
+
+  function renderWeekDays() {
+    const host = weekEls.days;
+    if (!host) return;
+    host.textContent = "";
+    const days = Array.isArray(weekData.days) ? weekData.days : [];
+    if (days.length !== 7) {
+      const p = document.createElement("p");
+      p.className = "week-empty";
+      p.textContent = "讀不到完整的七天設定（data/home-week.json 缺失或損壞）。請先修好設定檔，再重新載入。";
+      host.appendChild(p);
+      return;
+    }
+    days.forEach(entry => {
+      const row = document.createElement("div");
+      row.className = "week-day";
+
+      const dow = document.createElement("span");
+      dow.className = "dow";
+      dow.textContent = WEEK_NAMES[entry.day] || ("第 " + entry.day + " 天");
+
+      const meta = document.createElement("div");
+      const title = document.createElement("div");
+      title.textContent = entry.theme || "";
+      const ref = document.createElement("div");
+      ref.className = "ref";
+      ref.textContent = (BOOK_NAMES[entry.book] || entry.book || "?") + " " + entry.ch + ":" + entry.v;
+      meta.appendChild(title);
+      meta.appendChild(ref);
+
+      const img = document.createElement("img");
+      img.alt = entry.alt || "";
+      img.src = assetUrl(entry.image);
+
+      row.appendChild(dow);
+      row.appendChild(meta);
+      row.appendChild(img);
+      host.appendChild(row);
+    });
+  }
+
+  function applyWeekPayload(data) {
+    weekData = {
+      enabled: (data && data.enabled) === true,
+      days: (data && Array.isArray(data.days)) ? data.days : []
+    };
+    if (weekEls.toggle) weekEls.toggle.checked = weekData.enabled;
+    renderWeekDays();
+  }
+
+  async function loadHomeWeekSettings() {
+    if (!weekEls.section) return;
+    try {
+      if (!adminToken) {
+        const tokenRes = await fetch("/api/token");
+        if (tokenRes.ok) {
+          const tokenData = await tokenRes.json();
+          adminToken = tokenData.token || "";
+        } else {
+          weekStatus(`無法取得寫入權杖（${await readError(tokenRes)}），只能檢視`, "warning");
+        }
+      }
+      const res = await fetch("/api/home-week");
+      if (!res.ok) throw new Error(await readError(res));
+      applyWeekPayload(await res.json());
+      weekStatus("已載入一週封面設定。", "success");
+    } catch (err) {
+      weekStatus(`載入一週封面設定失敗：${err.message}`, "error");
+    }
+  }
+
+  /* 只改 enabled，days 原封不動送回：避免後台開關把座標寫壞，也符合伺服端的整份驗證。 */
+  async function saveHomeWeekEnabled(next) {
+    if (weekBusy) return;
+    weekBusy = true;
+    if (weekEls.toggle) weekEls.toggle.disabled = true;
+    weekStatus(next ? "開啟中…" : "停用中…");
+    try {
+      const res = await fetch("/api/home-week", {
+        method: "POST",
+        headers: writeHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ enabled: next, days: weekData.days })
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const data = await res.json();
+      applyWeekPayload({ enabled: data.enabled === true, days: data.days });
+      weekStatus((next ? "已啟用一週封面輪換。" : "已停用，首頁改用『主頁設定』的封面。") + "記得執行發佈。", "success");
+    } catch (err) {
+      if (weekEls.toggle) weekEls.toggle.checked = weekData.enabled;   // 寫入失敗就回到檔案裡的實際狀態
+      weekStatus(`儲存失敗：${err.message}`, "error");
+    } finally {
+      weekBusy = false;
+      if (weekEls.toggle) weekEls.toggle.disabled = false;
+    }
+  }
+
   // 6. 收藏卡圖片（抽經文卡四個主題，每月更換）
   const ART_THEMES = [
     { id: "work", title: "天父賜福你的工作" },
@@ -1201,6 +1317,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (zoneEls.reset) zoneEls.reset.addEventListener("click", resetZoneMusicSettings);
 
     loadZoneMusicSettings();
+  }
+
+  if (weekEls.section) {
+    if (weekEls.toggle) {
+      weekEls.toggle.addEventListener("change", () => saveHomeWeekEnabled(weekEls.toggle.checked));
+    }
+    if (weekEls.reload) {
+      weekEls.reload.addEventListener("click", loadHomeWeekSettings);
+    }
+    loadHomeWeekSettings();
   }
 
   if (artEls.section) {

@@ -76,6 +76,17 @@ def home_probe(port, page, dark=False, width=375):
         return {}
 
 
+def week_covers():
+    """data/home-week.json 的 {day: image}。沒有檔案或壞 JSON 就回空字典——
+       這樣 ?day= 的檢查在功能還沒做時是紅的（不會因為頁面照常顯示預設封面而假綠）。"""
+    path = os.path.join(ROOT, "data", "home-week.json")
+    try:
+        data = json.load(open(path, encoding="utf-8"))
+        return {e["day"]: e.get("image", "") for e in data.get("days", []) if isinstance(e, dict)}
+    except (OSError, ValueError):
+        return {}
+
+
 def main(groups):
     if not CHROME:
         check("visual checks（headless Chrome）", False, "找不到 Chrome")
@@ -90,6 +101,9 @@ def main(groups):
         heart_light = home_probe(port, "blessing.html", False) if "p2" in groups else {}
         heart_dark = home_probe(port, "blessing.html", True) if "p2" in groups else {}
         devotional = home_probe(port, "devotional.html", False) if "p2" in groups else {}
+        # 第三輪：一週封面抽測星期一／星期四／星期日（home_probe 有 naturalWidth，visual_probe 沒有）
+        weekly = {d: home_probe(port, f"home.html?day={d}", False) for d in (1, 4, 7)} if "p2" in groups else {}
+        weekly_sizes = {d: probe(port, f"home.html?day={d}", False) for d in (1, 7)} if "p2" in groups else {}
         srv.shutdown()
     for p in PAGES:
         if not light[p] or any("crash" in m for m in light[p].values()):
@@ -172,8 +186,18 @@ def main(groups):
                   bool(hs) and hs.get("overlap") is False and hs.get("picH", 0) >= 200,
                   json.dumps(hs, ensure_ascii=False)[:260])
         hs = light[PAGES[6]][375].get("heroSplit") or {}
-        check("home.html 今日經文與照片裡灑在人物身上的光同色（#fdf2da）、有金色光暈 text-shadow、用明體，經文區另有從照片方向照過來的暖光漸層",
-              hs.get("color") == "rgb(253, 242, 218)" and hs.get("shadow") not in (None, "", "none")
+        wk_lights = {"rgb(253, 242, 218)"}
+        wk_file = os.path.join(ROOT, "data", "home-week.json")
+        if os.path.exists(wk_file):
+            try:
+                for d in (json.load(open(wk_file, encoding="utf-8")).get("days") or []):
+                    hx = (d.get("light") or "").lstrip("#")
+                    if len(hx) == 6:
+                        wk_lights.add(f"rgb({int(hx[0:2], 16)}, {int(hx[2:4], 16)}, {int(hx[4:6], 16)})")
+            except Exception:
+                pass
+        check("home.html 今日經文與照片裡灑在人物身上的光同色（#fdf2da 或當日週封面光色）、有金色光暈 text-shadow、用明體，經文區另有從照片方向照過來的暖光漸層",
+              hs.get("color") in wk_lights and hs.get("shadow") not in (None, "", "none")
               and hs.get("serif") and hs.get("bodyGradient"),
               json.dumps({k: hs.get(k) for k in ("color", "shadow", "serif", "bodyGradient")}, ensure_ascii=False)[:260])
         rm = {p: light[p][375].get("reducedMotion") for p in PAGES}
@@ -205,6 +229,22 @@ def main(groups):
         check("devotional.html 當天標題（h2）字級大於段落標題（h3）字級，且當天標題使用明體",
               bool(dh.get("h2Px")) and bool(dh.get("h3Px")) and dh["h2Px"] > dh["h3Px"]
               and "serif" in (dh.get("h2Font") or "").lower(), json.dumps(dh, ensure_ascii=False)[:280])
+        # 第三輪：一週封面的圖片要真的載入、要是那一天的封面、不壓經文，且四個寬度不溢出
+        covers = week_covers()
+        for d in sorted(weekly):
+            hp = weekly[d] or {}
+            img = hp.get("img") or {}
+            hero = hp.get("hero") or {}
+            check(f"home.html?day={d} 顯示 data/home-week.json 那一天的封面（naturalWidth > 0、照片不壓經文、經文對比 ≥7）",
+                  bool(covers.get(d)) and img.get("src") == covers[d] and (img.get("naturalWidth") or 0) > 0
+                  and hero.get("picOverlap") is False and (hero.get("contrast") or 0) >= 7.0,
+                  json.dumps({"src": img.get("src"), "期望": covers.get(d), "naturalWidth": img.get("naturalWidth"),
+                              "overlap": hero.get("picOverlap"), "contrast": hero.get("contrast")}, ensure_ascii=False)[:260])
+        for d in sorted(weekly_sizes):
+            m = weekly_sizes[d] or {}
+            bad = [f"{w}px scrollWidth {m[w]['scrollWidth']}>{m[w]['clientWidth']} {m[w]['overflow']}"
+                   for w in WIDTHS if w in m and (m[w]["scrollWidth"] > m[w]["clientWidth"] or m[w]["overflow"])]
+            check(f"home.html?day={d} 在 320/375/768/1440px 都沒有水平溢出", bool(m) and not bad, "；".join(bad))
 
 
 if __name__ == "__main__":
