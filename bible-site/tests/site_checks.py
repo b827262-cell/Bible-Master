@@ -147,11 +147,14 @@ def blessing_data():
         check(f"{name} 沒有寫死經文（沒有任何連續 8 字與和合本經文相同）", not hit, "；".join(hit[:3]))
 
 
-def blessing_state(port, url, act=None, width=None):
+def blessing_state(port, url, act=None, width=None, dark=False, reduce=False):
+    """?dark=1 用深色模式、?reduce=1 強制 prefers-reduced-motion: reduce（第三輪 B 要分兩套色與動效關掉三種情境量）。"""
     q = "u=" + urllib.parse.quote("../site/" + url, safe="") + ("&act=" + urllib.parse.quote(json.dumps(act)) if act else "") + (f"&w={width}" if width else "")
+    extra = ["--blink-settings=preferredColorScheme=0"] if dark else []
+    extra += ["--force-prefers-reduced-motion"] if reduce else []
     with tempfile.TemporaryDirectory() as profile:
         out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--virtual-time-budget=20000",
-                              f"--user-data-dir={profile}", "--dump-dom", f"http://127.0.0.1:{port}/tests/blessing_probe.html?{q}"],
+                              *extra, f"--user-data-dir={profile}", "--dump-dom", f"http://127.0.0.1:{port}/tests/blessing_probe.html?{q}"],
                              capture_output=True, text=True, timeout=90).stdout
     out = re.sub(r"<[^>]+>", "", out)
     found = re.findall(r"PROBE (\{[^\n]*\})\s*$", out, re.M)
@@ -919,8 +922,13 @@ function snapshot(f, w) {
   const leaves = read ? [...read.querySelectorAll("*")].filter(e => !e.querySelector("*")).map(e => ({tag: e.tagName.toLowerCase(), text: e.textContent})) : [];
   const date = d.getElementById("reading-date") || {};
   const cw = d.documentElement.clientWidth;
+  // 第三輪 C：當天標題（h2）必須比分段標題（h3）大，而且用明體
+  const h2 = read ? read.querySelector("h2") : null, h3 = read ? read.querySelector("h3") : null;
+  const px = e => e ? parseFloat(win.getComputedStyle(e).fontSize) : null;
+  const ff = e => e ? win.getComputedStyle(e).fontFamily : "";
   return {status: (d.getElementById("reading-status") || {}).textContent || "", nodes: leaves,
           headings: leaves.filter(n => /^h\\d$/.test(n.tag)).map(n => n.text),
+          h2Px: px(h2), h3Px: px(h3), h2Font: ff(h2), h3Font: ff(h3),
           dateValue: date.value || "", dateMax: date.max || "",
           nav: [...d.querySelectorAll("#nav a, .dock a")].map(a => ({href: a.getAttribute("href"), text: a.textContent.trim()})),
           navActive: [...d.querySelectorAll("#nav a, .dock a")].filter(a => a.getAttribute("aria-current") === "page" || a.classList.contains("active")).length,
@@ -1091,6 +1099,11 @@ def devotional_render(port, root, label=""):
     check(f"devotional{label}：「默想」「反思」「禱告」三段標題與對應內容都渲染出來",
           all(t in h3 for t in ("默想", "反思", "禱告")) and all(entry[k] in body for k in ("summary", "reflection", "prayer")),
           json.dumps({"h3": h3}, ensure_ascii=False)[:200])
+    # 第三輪 C：主次要分明——當天標題（h2）最大且用明體，段落標題（h3）次之
+    check(f"devotional{label}：當天標題（h2）字級大於段落標題（h3）字級，且當天標題使用明體",
+          bool(a.get("h2Px")) and bool(a.get("h3Px")) and a["h2Px"] > a["h3Px"]
+          and "serif" in (a.get("h2Font") or "").lower(),
+          json.dumps({k: a.get(k) for k in ("h2Px", "h3Px", "h2Font", "h3Font")}, ensure_ascii=False)[:300])
     check(f"devotional{label}：內容渲染成功時 #reading-status 是空字串", a.get("status") == "", repr(a.get("status"))[:120])
     check(f"devotional{label}：#reading-date 的預設值與 max 都是台灣時間今天 {today}",
           a.get("dateValue") == today and a.get("dateMax") == today, json.dumps({"value": a.get("dateValue"), "max": a.get("dateMax")}))
@@ -1462,6 +1475,244 @@ def restyle_render(port):
           bool(cov) and cov.get("hasA") and not cov.get("blankBlock"), json.dumps(cov, ensure_ascii=False)[:240])
 
 
+HEART_ASSETS = ("heart-idle-light.gif", "heart-idle-dark.gif", "heart-surprise-light.gif",
+                "heart-surprise-dark.gif", "heart-still.png", "pattern-light.png", "pattern-dark.png")
+PAPER_LIGHT = "rgb(243, 246, 242)"    # --paper #f3f6f2：GIF 淺色版預混的底色
+PAPER_DARK = "rgb(10, 20, 18)"        # --paper #0a1412：GIF 深色版預混的底色
+
+
+def heart_assets():
+    """第三輪 B：愛心與底紋七件素材都要存在、非空、<600KB，並登記生成來源。"""
+    lic_path = os.path.join(ROOT, "ASSETS-LICENSE.md")
+    lic = open(lic_path, encoding="utf-8").read() if os.path.exists(lic_path) else ""
+    bad, rows = [], []
+    for name in HEART_ASSETS:
+        p = os.path.join(SITE, "assets", name)
+        if not os.path.exists(p):
+            bad.append(f"{name} 不存在")
+            continue
+        kb = os.path.getsize(p) / 1024
+        if kb < 1:
+            bad.append(f"{name} 是空檔")
+        if kb >= 600:
+            bad.append(f"{name} {kb:.0f} KB ≥ 600 KB")
+        row = [l for l in lic.splitlines() if name in l and l.strip().startswith("|")]
+        if not row:
+            bad.append(f"{name} 沒有登記在 ASSETS-LICENSE.md")
+        rows.append({"name": name, "kb": round(kb, 1), "lic": bool(row)})
+    check("第三輪 B 素材：site/assets 有 heart-idle／heart-surprise 的 light／dark GIF、heart-still.png、pattern-light／dark.png 共 7 件，非空且每件 <600KB，並登記在 ASSETS-LICENSE.md",
+          len(bad) == 0 and len(rows) == len(HEART_ASSETS), "；".join(bad) or json.dumps(rows, ensure_ascii=False))
+    check("第三輪 B 素材登記寫明母圖由 Codex（OpenAI image_gen）產生、再用 Pillow 輸出 GIF／PNG",
+          bool(re.search(r"image_gen", lic, re.I)) and bool(re.search(r"Pillow", lic, re.I)),
+          "" if (re.search(r"image_gen", lic, re.I) and re.search(r"Pillow", lic, re.I))
+          else "ASSETS-LICENSE.md 裡找不到：" + "、".join(x for x in ("image_gen", "Pillow") if not re.search(x, lic, re.I)))
+
+
+def heart_source():
+    """源碼層：待機／小驚喜圖、區塊底色、底紋平鋪尺寸、狀態文字與 aria-busy。"""
+    page = os.path.join(SITE, "blessing.html")
+    src = open(page, encoding="utf-8").read() if os.path.exists(page) else ""
+    app = open(os.path.join(SITE, "app.js"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "app.js")) else ""
+    css = open(os.path.join(SITE, "style.css"), encoding="utf-8").read() if os.path.exists(os.path.join(SITE, "style.css")) else ""
+    where = src + app + css          # 圖檔名允許只放在共用層（跟飛鷹圖一樣）
+
+    def miss(names_, pool):
+        return "、".join(x for x in names_ if x not in pool)
+
+    bad = miss(("heart-idle-light.gif", "heart-idle-dark.gif", "heart-still.png", "prefers-reduced-motion"), where)
+    check("第三輪 B：待機愛心有淺色 heart-idle-light.gif、深色 heart-idle-dark.gif，且 prefers-reduced-motion 改用 heart-still.png",
+          not bad, "找不到：" + bad)
+    bad = miss(("heart-surprise-light.gif", "heart-surprise-dark.gif"), where)
+    check("第三輪 B：小驚喜動圖 heart-surprise-light／dark.gif 接進抽卡流程（點愛心後才翻卡）",
+          not bad, "找不到：" + bad)
+    # 區塊底色只能由這一頁的愛心舞台決定：style.css 的調色盤本來就有這兩個色，掃共用層會假綠
+    bad = miss(("#f3f6f2", "#0a1412"), src)
+    check("第三輪 B：blessing.html 的愛心區塊底色跟 GIF 預混底色一致（淺 #f3f6f2、深 #0a1412）",
+          not bad, "blessing.html 裡找不到：" + bad)
+    bad = miss(("pattern-light.png", "pattern-dark.png", "360px"), where)
+    check("第三輪 B：抽卡頁背景鋪 pattern-light.png／pattern-dark.png 且平鋪尺寸約 360px",
+          not bad, "找不到：" + bad)
+    bad = miss(("點愛心領受今天的祝福", "正在為你抽一張卡"), src)
+    check("第三輪 B：狀態列有「點愛心領受今天的祝福」待機文字與「正在為你抽一張卡…」處理中文字（不能只靠動畫傳達）",
+          not bad, "blessing.html 裡找不到：" + bad)
+    check("第三輪 B：點愛心期間設 aria-busy（防止重複觸發），動圖只播一次",
+          "aria-busy" in src, "" if "aria-busy" in src else "blessing.html 沒有 aria-busy")
+
+
+def heart_render(port):
+    """實際渲染：淺色、深色、reduced-motion 三種情境，加上點下去那一瞬間的 busy 狀態。"""
+    light = blessing_state(port, "blessing.html")
+    hl = light.get("heart") or {}
+    btn = hl.get("heartBtn") or {}
+    img = hl.get("heartImg") or {}
+    check("heart：blessing.html 抽卡前顯示待機愛心（#heart-btn 或 .heart 存在且可見）",
+          bool(btn.get("found")) and btn.get("shown") is True, json.dumps(hl, ensure_ascii=False)[:300])
+    check("heart：淺色模式待機圖是 assets/heart-idle-light.gif",
+          img.get("srcName") == "heart-idle-light.gif", json.dumps(img, ensure_ascii=False)[:200])
+    check("heart：愛心區塊底色淺色為 rgb(243, 246, 242)（GIF 預混色，錯一格就會看到邊框殘影）",
+          hl.get("stageBg") == PAPER_LIGHT, json.dumps({"stageBg": hl.get("stageBg"), "stage": hl.get("stageTag")}, ensure_ascii=False))
+    check("heart：抽卡頁背景鋪 pattern-light.png 且平鋪約 360px",
+          hl.get("pagePattern", {}).get("file") == "pattern-light.png" and "360" in (hl.get("pagePattern", {}).get("size") or ""),
+          json.dumps(hl.get("pagePattern"), ensure_ascii=False)[:240])
+    si = hl.get("statusIdle") or {}
+    check("heart：待機時狀態列（role=status）文字含「點愛心領受今天的祝福」",
+          si.get("role") == "status" and "點愛心領受今天的祝福" in (si.get("text") or ""),
+          json.dumps(si, ensure_ascii=False)[:200])
+    check("heart：卡背標題（.cover-title）與抽卡按鈕（#draw-btn）不壓在老鷹身上（在卡外或卡片下半部 65% 以下）",
+          hl.get("eagleOverlap") is False, json.dumps(hl.get("eagleDetail"), ensure_ascii=False)[:260])
+
+    dark = blessing_state(port, "blessing.html", dark=True)
+    hd = dark.get("heart") or {}
+    check("heart：深色模式待機圖改用 assets/heart-idle-dark.gif、區塊底色 rgb(10, 20, 18)、背景鋪 pattern-dark.png",
+          (hd.get("heartImg") or {}).get("srcName") == "heart-idle-dark.gif" and hd.get("stageBg") == PAPER_DARK
+          and (hd.get("pagePattern") or {}).get("file") == "pattern-dark.png",
+          json.dumps({k: hd.get(k) for k in ("stageBg", "heartImg", "pagePattern", "dark")}, ensure_ascii=False)[:300])
+
+    red = blessing_state(port, "blessing.html", reduce=True)
+    hr = red.get("heart") or {}
+    check("heart：偏好減少動態（prefers-reduced-motion: reduce）時改用靜態 heart-still.png、不播 GIF",
+          bool(hr.get("reduce")) and (hr.get("heartImg") or {}).get("srcName") == "heart-still.png",
+          json.dumps({k: hr.get(k) for k in ("reduce", "heartImg")}, ensure_ascii=False)[:240])
+
+    st = blessing_state(port, "blessing.html", act=[{"click": "#heart-btn"}])
+    act0 = (st.get("heartActs") or [{}])[0]
+    busy = act0.get("status") or {}
+    settled = act0.get("settledStatus") or {}
+    check("heart：點愛心時先設 aria-busy=true 且狀態列 data-state=busy、文字含「正在為你抽一張卡…」（期間不可重複觸發）",
+          act0.get("clicked") is True and act0.get("ariaBusy") == "true" and busy.get("state") == "busy"
+          and "正在為你抽一張卡" in (busy.get("text") or ""),
+          json.dumps({"clicked": act0.get("clicked"), "ariaBusy": act0.get("ariaBusy"), "busy": busy}, ensure_ascii=False)[:300])
+    check("heart：小驚喜播完後照舊抽出經文卡（37 張卡流程不壞），狀態列改成完成文字",
+          bool(st.get("card")) and bool(st.get("ids") and st.get("ids")[0])
+          and settled.get("state") != "busy" and bool(settled.get("text")),
+          json.dumps({"card": bool(st.get("card")), "id": (st.get("ids") or [None])[0], "settled": settled}, ensure_ascii=False)[:300])
+    check("heart：點愛心這條路徑本身沒有 JS 錯誤（動圖載入、翻卡、狀態更新都要乾淨）",
+          act0.get("clicked") is True and not st.get("errors"),
+          json.dumps({"clicked": act0.get("clicked"), "errors": st.get("errors", [])[:3]}, ensure_ascii=False)[:260])
+
+    # 迴歸守門：這一項在接線前就該是綠的，接上愛心後也不准變紅（交辦單：現有 37 張卡、四個主題、下載、音樂不可壞）
+    legacy = blessing_state(port, "blessing.html", act=[{"click": "#draw-btn"}, {"click": "#theme-tabs button[data-theme=peace]"}])
+    check("heart：接上愛心後，原有的 #draw-btn 與主題標籤流程仍能出卡、沒有 JS 錯誤（37 張卡流程不可壞）",
+          bool(legacy.get("card")) and bool((legacy.get("ids") or [None])[0]) and not legacy.get("errors"),
+          json.dumps({"ids": legacy.get("ids"), "errors": legacy.get("errors", [])[:3]}, ensure_ascii=False)[:260])
+
+
+def bm_state(port):
+    """跑 tests/home_probe.html?bm=1：在 chapter／index 兩頁之間走一遍收藏流程。"""
+    q = "u=" + urllib.parse.quote("../site/chapter.html?book=jhn&ch=3", safe="") + "&bm=1"
+    with tempfile.TemporaryDirectory() as profile:
+        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
+                              "--virtual-time-budget=90000", f"--user-data-dir={profile}", "--dump-dom",
+                              f"http://127.0.0.1:{port}/tests/home_probe.html?{q}"],
+                             capture_output=True, text=True, timeout=240).stdout
+    out = re.sub(r"<[^>]+>", "", out)
+    found = re.findall(r"PROBE (\{.*\})", out)
+    try:
+        return json.loads(html.unescape(found[-1])) if found else {}
+    except ValueError:
+        return {}
+
+
+def bookmarks_static():
+    """第三輪 D：儲存鍵 bible.bookmarks.v1 與「原始碼不寫死經文」鐵則。"""
+    names = ("chapter.html", "index.html", "app.js")
+    srcs = {}
+    for n in names:
+        p = os.path.join(SITE, n)
+        srcs[n] = open(p, encoding="utf-8").read() if os.path.exists(p) else ""
+    joined = "".join(srcs.values())
+    check("bookmarks：收藏功能用共用的 localStorage 鍵 bible.bookmarks.v1（chapter.html／index.html／app.js 其中一處定義即可）",
+          "bible.bookmarks.v1" in joined, "三個檔案裡都找不到 bible.bookmarks.v1")
+    grams = set()
+    for key, _ in BOOKS:
+        chapters = json.load(open(os.path.join(ROOT, "data", key + ".json"), encoding="utf-8"))["chapters"]
+        for c in chapters:
+            for v in c["verses"]:
+                s = cjk(v["text"])
+                grams.update(s[i:i + 8] for i in range(len(s) - 7))
+    for n, src in srcs.items():
+        s = cjk(src)
+        hit = sorted({s[i:i + 8] for i in range(len(s) - 7) if s[i:i + 8] in grams})
+        check(f"bookmarks：{n} 原始碼不含寫死經文（與和合本沒有任何連續 8 字相同）", not hit, "；".join(hit[:3]))
+    bad = [ch for ch in SIMPLIFIED if ch in joined]
+    check("bookmarks：收藏相關原始碼都是繁體中文（介面不混簡體字）", not bad, "".join(bad))
+
+
+def bookmarks_render(port):
+    """第三輪 D：實際點一遍收藏／取消／重整／目錄頁清單／移除／壞資料／四種寬度。"""
+    st = bm_state(port)
+    bm = st.get("bm") or {}
+    if not bm:
+        check("bookmarks：探測流程跑得起來（home_probe.html?bm=1 有回傳）", False, json.dumps(st, ensure_ascii=False)[:200])
+        return
+    chips = bm.get("chips") or {}
+    check("bookmarks：chapter.html?book=jhn&ch=3 點選 #v16 後，操作列 .chips 出現收藏按鈕（aria-pressed=false、文字含「收藏這一節」）",
+          bool(chips.get("found")) and chips.get("pressed") == "false" and "收藏這一節" in (chips.get("label") or ""),
+          json.dumps(chips, ensure_ascii=False)[:260])
+    marked = bm.get("marked") or {}
+    check("bookmarks：按收藏後 aria-pressed 變 true、按鈕文字變「✓ 已收藏」（不只靠顏色）",
+          marked.get("pressed") == "true" and "已收藏" in (marked.get("label") or ""),
+          json.dumps(marked, ensure_ascii=False)[:260])
+    ms = bm.get("markStatus") or {}
+    check("bookmarks：狀態列（role=status）播報含「已收藏」、「約翰福音 3:16」與「本機儲存」",
+          ms.get("role") == "status" and all(x in (ms.get("text") or "") for x in ("已收藏", "約翰福音 3:16", "本機儲存")),
+          json.dumps(ms, ensure_ascii=False)[:260])
+    store = bm.get("store") or {}
+    only_coord = all(set(str(k).split("+")) and set(str(k).split("+")) <= {"book", "ch", "v", "at"} for k in (store.get("keys") or []))
+    check("bookmarks：localStorage 的 bible.bookmarks.v1 是陣列、元素只有座標欄位（book／ch／v／at），完全不含經文文字",
+          bool(store.get("isArray")) and bool(store.get("length")) and only_coord and store.get("hasCjk") is False,
+          json.dumps(store, ensure_ascii=False)[:300])
+    rl = bm.get("afterReload") or {}
+    check("bookmarks：重新整理 chapter.html 後再點 #v16，按鈕仍是 aria-pressed=true 與「✓ 已收藏」",
+          rl.get("pressed") == "true" and "已收藏" in (rl.get("label") or ""), json.dumps(rl, ensure_ascii=False)[:260])
+    un = bm.get("unmarked") or {}
+    us = bm.get("unmarkStatus") or {}
+    check("bookmarks：再次點擊取消收藏 → aria-pressed 回到 false，狀態列播報「已取消收藏」＋約翰福音 3:16",
+          un.get("pressed") == "false" and "已取消收藏" in (us.get("text") or "") and "約翰福音 3:16" in (us.get("text") or ""),
+          json.dumps({"btn": un, "status": us}, ensure_ascii=False)[:300])
+    ib = bm.get("indexBox") or {}
+    check("bookmarks：收藏一節後打開 index.html 有「我的收藏（1 節）」摺疊區（#bookmarks-box 或 details＋summary）",
+          bool(ib.get("found")) and "我的收藏" in (ib.get("summary") or "") and "1" in (ib.get("summary") or ""),
+          json.dumps(ib, ensure_ascii=False)[:260])
+    items = bm.get("indexItems") or []
+    jhn = json.load(open(os.path.join(ROOT, "data", "jhn.json"), encoding="utf-8"))["chapters"]
+    want = next(v["text"] for c in jhn if int(str(c["ch"])) == 3 for v in c["verses"] if int(str(v["v"])) == 16)
+    one = len(items) == 1
+    text0 = items[0]["text"] if one else ""
+    check("bookmarks：收藏區列出出處約翰福音 3:16 與經文本節，經文由 Bible.load 動態載入、與 data/jhn.json 逐字一致",
+          one and "約翰福音 3:16" in text0 and want in text0,
+          json.dumps({"筆數": len(items), "含出處": "約翰福音 3:16" in text0, "經文逐字相符": want in text0,
+                      "字數": {"清單": len(text0), "預期": len(want)}}, ensure_ascii=False))
+    hrefs = [l["href"] for l in (items[0].get("links") or [])] if one else []
+    check("bookmarks：每筆提供「前往閱讀」連 chapter.html?book=jhn&ch=3#v16、「做成經文卡片」連 card.html?book=jhn&ch=3&v=16 與「移除」按鈕",
+          "chapter.html?book=jhn&ch=3#v16" in hrefs and "card.html?book=jhn&ch=3&v=16" in hrefs and bool(one and items[0].get("remove")),
+          json.dumps({"hrefs": hrefs, "remove": bool(one and items[0].get("remove"))}, ensure_ascii=False)[:260])
+    ar = bm.get("afterRemove") or {}
+    arb = ar.get("box") or {}
+    check("bookmarks：按「移除」後變成 0 節並顯示沒有收藏的說明文字（不是留白）",
+          len(ar.get("items") or []) == 0 and "0" in (arb.get("summary") or "") and bool(cjk(ar.get("emptyText") or "")),
+          json.dumps({"剩餘": len(ar.get("items") or []), "summary": arb.get("summary"), "emptyText": (ar.get("emptyText") or "")[:80]},
+                     ensure_ascii=False)[:300])
+    check("bookmarks：收藏區出現與消失時，底部導覽列都仍維持五項",
+          bool(ib.get("found")) and ib.get("navCount") == 5 and arb.get("navCount") == 5,
+          json.dumps({"打開時": [ib.get("found"), ib.get("navCount")], "移除後": arb.get("navCount")}, ensure_ascii=False))
+    ci = bm.get("corruptIndex") or {}
+    cc = bm.get("corruptChapter") or {}
+    check("bookmarks：localStorage 塞壞 JSON 時，index.html 與 chapter.html 都不壞頁、沒有 JS 錯誤，並顯示繁體中文的「怎麼修」提示",
+          ci.get("renders") is True and cc.get("renders") is True and not ci.get("newErrors") and not cc.get("newErrors")
+          and bool(ci.get("notice")) and bool(cc.get("notice")),
+          json.dumps({"index": ci, "chapter": cc}, ensure_ascii=False)[:300])
+    sizes = bm.get("sizes") or {}
+    for name, page in (("index.html 收藏區", "index"), ("chapter.html 操作列", "chapter")):
+        got = sizes.get(page) or {}
+        bad = [f"{w}px：scrollWidth {v.get('scrollWidth')} > clientWidth {v.get('clientWidth')}"
+               for w, v in got.items() if (v.get("scrollWidth") or 0) > (v.get("clientWidth") or 0)]
+        not_open = [w for w, v in got.items() if not v.get("opened")]
+        check(f"bookmarks：{name}真的展開後，在 320／375／768／1440px 都沒有水平溢出",
+              bool(got) and not bad and not not_open,
+              "；".join(bad) + (f"；{','.join(sorted(not_open))}px 找不到可展開的收藏 UI" if not_open else ""))
+
+
 def rendering(groups):
     if not CHROME:
         check("頁面實際顯示（headless Chrome）", False, "找不到 Chrome")
@@ -1557,6 +1808,10 @@ def rendering(groups):
             devotional_variants()
         if "restyle" in groups:
             restyle_render(port)
+        if "heart" in groups:
+            heart_render(port)
+        if "bookmarks" in groups:
+            bookmarks_render(port)
         srv.shutdown()
 
 
@@ -1570,7 +1825,7 @@ if __name__ == "__main__":
         i = args.index("--grep")
         ONLY = args[i + 1]
         del args[i:i + 2]
-    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart", "devotional", "restyle"}
+    groups = set(args) or {"chapter", "search", "index", "card", "blessing", "blessnav", "blessindex", "blessstyle", "home", "zonemusic", "blessart", "devotional", "restyle", "heart", "bookmarks"}
     links()
     external()
     single_book_text()
@@ -1591,6 +1846,11 @@ if __name__ == "__main__":
     if "restyle" in groups:
         restyle_assets()
         restyle_shared()
+    if "heart" in groups:
+        heart_assets()
+        heart_source()
+    if "bookmarks" in groups:
+        bookmarks_static()
     rendering(groups)
     if ONLY and not results:
         results.append(False)   # a typo in --grep must not pass silently

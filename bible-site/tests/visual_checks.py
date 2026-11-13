@@ -59,6 +59,23 @@ def probe(port, page, dark):
         return {}
 
 
+def home_probe(port, page, dark=False, width=375):
+    """第三輪 B／C：home_probe.html 有 heart（待機愛心、底紋、卡背不壓老鷹）與 headingScale（h2／h3 字級），
+       visual_probe.html 沒有這些欄位，所以這裡另外跑一次同一份探測頁。"""
+    q = "u=" + urllib.parse.quote("../site/" + page, safe="") + "&w=" + str(width)
+    with tempfile.TemporaryDirectory() as profile:
+        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
+                              "--virtual-time-budget=20000", f"--user-data-dir={profile}",
+                              f"--blink-settings=preferredColorScheme={0 if dark else 1}",
+                              "--dump-dom", f"http://127.0.0.1:{port}/tests/home_probe.html?{q}"],
+                             capture_output=True, text=True, timeout=120).stdout
+    found = re.findall(r"PROBE (\{.*\})", re.sub(r"<[^>]+>", "", out))
+    try:
+        return json.loads(html.unescape(found[-1])) if found else {}
+    except ValueError:
+        return {}
+
+
 def main(groups):
     if not CHROME:
         check("visual checks（headless Chrome）", False, "找不到 Chrome")
@@ -70,6 +87,9 @@ def main(groups):
         port = srv.server_address[1]
         light = {p: probe(port, p, False) for p in PAGES}
         dark = {p: probe(port, p, True) for p in PAGES} if "p0" in groups else {}
+        heart_light = home_probe(port, "blessing.html", False) if "p2" in groups else {}
+        heart_dark = home_probe(port, "blessing.html", True) if "p2" in groups else {}
+        devotional = home_probe(port, "devotional.html", False) if "p2" in groups else {}
         srv.shutdown()
     for p in PAGES:
         if not light[p] or any("crash" in m for m in light[p].values()):
@@ -163,6 +183,28 @@ def main(groups):
             c = light[PAGES[5]][w].get("canvas", {})
             good = c.get("attrW", 0) >= 600 and c.get("shownW", -1) == 0 and c.get("ref", "").startswith("馬太福音 25:21")
             check(f"{w}px blessing.html?card=work-01 畫布實際像素 ≥600、畫出馬太福音 25:21、頁面上不顯示（只供下載）", good, json.dumps(c, ensure_ascii=False))
+        # 第三輪 B：愛心與背景底紋接線、卡背標題不壓老鷹（heart 物件由 home_probe.html 量）
+        for scheme, data in (("淺色", heart_light), ("深色", heart_dark)):
+            h = data.get("heart") or {}
+            btn = h.get("heartBtn") or {}
+            img = h.get("heartImg") or {}
+            want_img = "heart-idle-light.gif" if scheme == "淺色" else "heart-idle-dark.gif"
+            want_bg = "rgb(243, 246, 242)" if scheme == "淺色" else "rgb(10, 20, 18)"
+            want_pat = "pattern-light.png" if scheme == "淺色" else "pattern-dark.png"
+            check(f"{scheme} blessing.html 抽卡前顯示待機愛心 {want_img}，愛心區塊底色 {want_bg}（要對得上 GIF 預混的底色，否則邊緣會有殘影）",
+                  bool(btn.get("found")) and btn.get("shown") is True and img.get("srcName") == want_img
+                  and h.get("stageBg") == want_bg,
+                  json.dumps({"heartBtn": btn, "heartImg": img, "stageBg": h.get("stageBg")}, ensure_ascii=False)[:280])
+            pp = h.get("pagePattern") or {}
+            check(f"{scheme} blessing.html 背景鋪 {want_pat} 平鋪約 360px",
+                  pp.get("file") == want_pat and "360" in (pp.get("size") or ""), json.dumps(pp, ensure_ascii=False)[:240])
+            check(f"{scheme} blessing.html 卡背標題與抽卡按鈕不壓在老鷹身上（都在卡背下半部 65% 以下或卡外）",
+                  h.get("eagleOverlap") is False, json.dumps(h.get("eagleDetail"), ensure_ascii=False)[:260])
+        # 第三輪 C：禱讀頁主次要分明——當天標題最大且用明體
+        dh = devotional.get("headingScale") or {}
+        check("devotional.html 當天標題（h2）字級大於段落標題（h3）字級，且當天標題使用明體",
+              bool(dh.get("h2Px")) and bool(dh.get("h3Px")) and dh["h2Px"] > dh["h3Px"]
+              and "serif" in (dh.get("h2Font") or "").lower(), json.dumps(dh, ensure_ascii=False)[:280])
 
 
 if __name__ == "__main__":

@@ -53,32 +53,16 @@
       }
     }
 
-    /* 抽卡前的卡背區塊：抽完卡只退場那顆按鈕，卡背留在原位（見下面 .drawn） */
+    /* 抽卡前的版面：愛心舞台 → 卡背（整張金色飛鷹，不壓任何字）→ 標題 → 按鈕。
+       標題與按鈕都在 .cover-card 之外，探測器的 eagleOverlap 才會是 false。 */
     #cover {
       display: grid;
       justify-items: center;
-      align-content: center;
-      gap: 1em;
+      gap: 14px;
       width: 100%;
       max-width: 340px;
-      aspect-ratio: 3 / 4;
       margin: 0 auto;
-      padding: 20px;
       text-align: center;
-      border-radius: var(--r-lg);
-      background-color: #0b1f1b;
-      background-position: center;
-      background-size: cover;
-      box-shadow: var(--shadow);
-    }
-
-    /* 抽出卡後：「點選領受祝福」退場，卡背壓矮成這一頁的識別帶，抽出的卡從它下方出現。
-       blessstyle 量的是 #cover 還在版面上、blessing_render 量的是 #draw-btn 不見了，
-       兩者靠這個分工同時成立（把整個 #cover 藏起來會和後者衝突，留著按鈕又和前者的用意相反）。 */
-    #cover.drawn {
-      aspect-ratio: auto;
-      min-height: 132px;
-      background-position: 50% 38%;
     }
 
     .cover-title {
@@ -86,8 +70,67 @@
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0;
-      color: var(--sunlight);
-      text-shadow: 0 0 18px rgba(253, 222, 150, .45);
+      color: var(--ink);
+    }
+
+    /* 抽出卡後只退場「抽卡入口」（愛心舞台、卡背、按鈕）；#cover 本身留在版面上
+       （blessstyle 量 #cover 可見、blessing_render 量 #draw-btn 不見，兩者靠這個分工同時成立）。 */
+    #cover.drawn .heart-stage,
+    #cover.drawn .cover-card,
+    #cover.drawn #draw-btn {
+      display: none;
+    }
+
+    /* 抽卡頁背景底紋：探測器取 body→.bless-stage→main 第一個有背景圖的元素，
+       style.css 的 body 本來有 radial-gradient，所以底紋要鋪在 body 上並取代那些漸層。 */
+    body.bless-page {
+      background-image: url("assets/pattern-light.png");
+      background-repeat: repeat;
+      background-size: 360px 360px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body.bless-page {
+        background-image: url("assets/pattern-dark.png");
+      }
+    }
+
+    :root[data-theme="dark"] body.bless-page {
+      background-image: url("assets/pattern-dark.png");
+    }
+
+    :root[data-theme="light"] body.bless-page {
+      background-image: url("assets/pattern-light.png");
+    }
+
+    /* 愛心區塊的底色必須等於 GIF 預混的邊緣色（淺 #f3f6f2、深 #0a1412），
+       差一色就會在愛心四周看到一圈方框殘影。 */
+    .heart-stage {
+      background-color: #f3f6f2;
+      background-image: none;
+      border-radius: var(--r-lg);
+      padding: 18px 20px;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .heart-stage {
+        background-color: #0a1412;
+      }
+    }
+
+    :root[data-theme="dark"] .heart-stage {
+      background-color: #0a1412;
+    }
+
+    :root[data-theme="light"] .heart-stage {
+      background-color: #f3f6f2;
+    }
+
+    #heart-status {
+      margin: 0;
+      justify-content: center;
     }
 
     #blessing-card {
@@ -182,7 +225,7 @@
     }
   </style>
 </head>
-<body>
+<body class="bless-page">
   <nav id="nav"></nav>
 
   <main class="wrap">
@@ -191,6 +234,13 @@
     <div id="theme-tabs" role="group" aria-label="祝福主題"></div>
 
     <section id="cover">
+      <div class="heart-stage">
+        <button type="button" class="heart-btn" id="heart-btn" aria-busy="false" aria-describedby="heart-status">
+          <img id="heart-img" src="assets/heart-idle-light.gif" alt="金框綠色愛心，點一下領受祝福">
+        </button>
+        <p class="status" id="heart-status" role="status" aria-live="polite" data-state="idle">點愛心領受今天的祝福</p>
+      </div>
+      <div class="cover-card card-back-art" aria-hidden="true"></div>
       <p class="cover-title">天父關心你</p>
       <button type="button" class="pill solid" id="draw-btn">點選領受祝福</button>
     </section>
@@ -239,8 +289,37 @@
       var canvas = document.getElementById("card-canvas");
       var ctx = canvas.getContext("2d");
 
-      // 抽卡前的卡背：金色飛鷹 A，路徑由共用層 app.js 的 Bible.CARD_ART.back 給（這一頁不寫死檔名）
-      cover.style.backgroundImage = 'url("' + Bible.CARD_ART.back + '")';
+      // 卡背的金色飛鷹 A 由 style.css 的 #cover .cover-card 提供；這一頁只處理愛心與底紋，不寫死任何圖檔名
+      var heartBtn = document.getElementById("heart-btn");
+      var heartImg = document.getElementById("heart-img");
+      var heartStatus = document.getElementById("heart-status");
+      var REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var SCHEME = window.matchMedia("(prefers-color-scheme: dark)");
+      var heartBusy = false;
+
+      /* 待機圖三選一：偏好減少動態 → 靜態圖；否則依淺／深色選 GIF（GIF 邊緣已預混對應底色）。 */
+      function idleSrc() {
+        if (REDUCE.matches) return Bible.HEART_ART.still;
+        return SCHEME.matches ? Bible.HEART_ART.idle.dark : Bible.HEART_ART.idle.light;
+      }
+
+      function surpriseSrc() {
+        return SCHEME.matches ? Bible.HEART_ART.surprise.dark : Bible.HEART_ART.surprise.light;
+      }
+
+      function showIdle() {
+        heartImg.src = idleSrc();
+      }
+
+      showIdle();
+
+      [REDUCE, SCHEME].forEach(function (mq) {
+        var onChange = function () {
+          if (!heartBusy) showIdle();
+        };
+        if (mq.addEventListener) mq.addEventListener("change", onChange);
+        else if (mq.addListener) mq.addListener(onChange);
+      });
 
       var cardArt = card.querySelector(".card-art");
       var cardArtImg = cardArt.querySelector("img");
@@ -625,6 +704,32 @@
         markDrawn();
         var chosen = randomCard(currentTheme, null);
         if (chosen) showCard(chosen, currentTheme);
+      });
+
+      /* 愛心是新的抽卡入口：點下去先同步進入處理中（動圖約 1.6 秒），時間到才翻卡。
+         aria-busy 同時當鎖用——探測器與快速連點都不該讓它跑第二輪。 */
+      heartBtn.addEventListener("click", function () {
+        if (heartBtn.getAttribute("aria-busy") === "true") return;
+        heartBusy = true;
+        heartBtn.setAttribute("aria-busy", "true");
+        heartStatus.setAttribute("data-state", "busy");
+        heartStatus.textContent = "正在為你抽一張卡…";
+        if (!REDUCE.matches) heartImg.src = surpriseSrc();
+        window.setTimeout(function () {
+          var chosen = randomCard(currentTheme, null);
+          heartBusy = false;
+          heartBtn.setAttribute("aria-busy", "false");
+          showIdle();
+          if (chosen) {
+            markDrawn();
+            showCard(chosen, currentTheme);
+            heartStatus.setAttribute("data-state", "ok");
+            heartStatus.textContent = "已為你抽出一張祝福卡";
+          } else {
+            heartStatus.setAttribute("data-state", "fix");
+            heartStatus.textContent = "暫時沒有祝福卡可抽，請重新整理再試一次";
+          }
+        }, REDUCE.matches ? 150 : 1600);
       });
 
       againBtn.addEventListener("click", function () {

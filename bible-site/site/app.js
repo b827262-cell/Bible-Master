@@ -114,6 +114,16 @@
      back＝抽經文卡抽卡前的卡背；face＝經文卡片的卡面。 */
   var CARD_ART = { back: "assets/eagle-A.jpg", face: "assets/eagle-B.jpg" };
 
+  /* 抽卡頁的待機愛心、小驚喜與背景底紋：路徑集中在這裡，頁面只讀常數。
+     淺深兩套是必須的——GIF 邊緣已預混底色（淺 #f3f6f2、深 #0a1412），混用會看到一圈殘影。 */
+  var HEART_ART = {
+    idle: { light: "assets/heart-idle-light.gif", dark: "assets/heart-idle-dark.gif" },
+    surprise: { light: "assets/heart-surprise-light.gif", dark: "assets/heart-surprise-dark.gif" },
+    still: "assets/heart-still.png",
+    patternLight: "assets/pattern-light.png",
+    patternDark: "assets/pattern-dark.png"
+  };
+
   /* 底部膠囊導覽列只有五項，閱讀與卡片頁要對到它們所屬的入口，
      這樣每個前台頁面都恰好有一項被標成目前頁。 */
   var NAV_KEYS = {
@@ -133,6 +143,141 @@
       return node;
     }
     return typeof node === "string" ? document.getElementById(node) : null;
+  }
+
+  /* ===== 收藏經節（純前端，localStorage）=====
+     鐵則：只存座標 { book, ch, v, at }，絕不存經文文字——經文一律由 Bible.load 現取。
+     損壞（壞 JSON、不是陣列、座標非法）與 localStorage 不可用都不拋錯，
+     改回傳 corrupted／unavailable，讓頁面顯示「怎麼修」的提示。 */
+  var BOOKMARK_KEY = "bible.bookmarks.v1";
+
+  function storageUsable() {
+    try {
+      var probe = BOOKMARK_KEY + ".probe";
+      window.localStorage.setItem(probe, "1");
+      window.localStorage.removeItem(probe);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* 一筆收藏只認四個欄位：書卷是四卷之一、章與節是正整數、at 是可選的純 ASCII 時間字串。 */
+  function bookmarkValid(item) {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+    var known = false;
+    for (var i = 0; i < BOOKS.length; i++) {
+      if (BOOKS[i].key === item.book) {
+        known = true;
+        break;
+      }
+    }
+    if (!known) {
+      return false;
+    }
+    var ch = Number(item.ch);
+    var v = Number(item.v);
+    if (!Number.isInteger(ch) || ch < 1 || !Number.isInteger(v) || v < 1) {
+      return false;
+    }
+    if (item.at != null && (typeof item.at !== "string" || !/^[\x20-\x7E]*$/.test(item.at))) {
+      return false;
+    }
+    return true;
+  }
+
+  function bookmarkStamp(item) {
+    return {
+      book: item.book,
+      ch: Number(item.ch),
+      v: Number(item.v),
+      at: typeof item.at === "string" ? item.at : ""
+    };
+  }
+
+  function bookmarkRead() {
+    if (!storageUsable()) {
+      return { items: [], corrupted: true, unavailable: true };
+    }
+    var raw = null;
+    try {
+      raw = window.localStorage.getItem(BOOKMARK_KEY);
+    } catch (e) {
+      return { items: [], corrupted: true, unavailable: true };
+    }
+    if (raw === null || raw === "") {
+      return { items: [], corrupted: false, unavailable: false };
+    }
+    var parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      return { items: [], corrupted: true, unavailable: false };
+    }
+    if (!Array.isArray(parsed)) {
+      return { items: [], corrupted: true, unavailable: false };
+    }
+    var items = [];
+    var dropped = false;
+    for (var i = 0; i < parsed.length; i++) {
+      if (bookmarkValid(parsed[i])) {
+        items.push(bookmarkStamp(parsed[i]));
+      } else {
+        dropped = true;
+      }
+    }
+    return { items: items, corrupted: dropped, unavailable: false };
+  }
+
+  /* 寫入前再過濾一次，保證存進去的就是這四個欄位、不夾其他東西。 */
+  function bookmarkWrite(items) {
+    var clean = [];
+    for (var i = 0; i < items.length; i++) {
+      if (bookmarkValid(items[i])) {
+        clean.push(bookmarkStamp(items[i]));
+      }
+    }
+    try {
+      window.localStorage.setItem(BOOKMARK_KEY, JSON.stringify(clean));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function bookmarkSame(item, book, ch, v) {
+    return item.book === book && Number(item.ch) === Number(ch) && Number(item.v) === Number(v);
+  }
+
+  function bookmarkHas(book, ch, v) {
+    var items = bookmarkRead().items;
+    for (var i = 0; i < items.length; i++) {
+      if (bookmarkSame(items[i], book, ch, v)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* 回傳 { added, saved, count }：added＝這次變成收藏，saved＝真的寫進 localStorage。 */
+  function bookmarkToggle(book, ch, v) {
+    var items = bookmarkRead().items;
+    var at = -1;
+    for (var i = 0; i < items.length; i++) {
+      if (bookmarkSame(items[i], book, ch, v)) {
+        at = i;
+        break;
+      }
+    }
+    var added = at < 0;
+    if (added) {
+      items.push({ book: book, ch: Number(ch), v: Number(v), at: new Date().toISOString() });
+    } else {
+      items.splice(at, 1);
+    }
+    return { added: added, saved: bookmarkWrite(items), count: items.length };
   }
 
   /* 處理中：轉圈圖示＋「…中」文字，aria-busy 並鎖住按鈕免於重複送出。 */
@@ -295,6 +440,14 @@
   window.Bible = {
     BOOKS: BOOKS,
     CARD_ART: CARD_ART,
+    HEART_ART: HEART_ART,
+    bookmarks: {
+      KEY: BOOKMARK_KEY,
+      read: bookmarkRead,
+      write: bookmarkWrite,
+      has: bookmarkHas,
+      toggle: bookmarkToggle
+    },
     load: load,
     loadAll: loadAll,
     bookKey: bookKey,

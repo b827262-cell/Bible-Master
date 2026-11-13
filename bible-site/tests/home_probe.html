@@ -10,7 +10,12 @@
             "hero":{pic,body,verse,picOverlap,verseInPic,picH,color,shadow,serif,bodyBgImage,bodyHasGradient,contrast},
             "tiles":{bookCount,dailyHref,drawHref,find,findInput,fan:["url(...)"],fanNames:["eagle-B.jpg"]},
             "cover":{bg,imgNames},
+            "heart":{heartBtn{found,shown,id,ariaBusy,label},heartImg{found,src,srcName,alt},stageBg,pagePattern{host,file,size},
+                     statusIdle,statusRegion{role,live,state},reduce,dark,eagleOverlap,eagleDetail}   (第三輪 B)
+            "headingScale":{h2Px,h3Px,h2Font,h3Font,h2Text,h3Text}                                     (第三輪 C)
             "states":{"empty":{busy,final},"hit":{...},"miss":{...}}  (only with ?do=...)
+            "bm":{...收藏經節全流程：chips/marked/store/afterReload/unmarked/indexBox/indexItems/afterRemove/
+                  corruptIndex/corruptChapter/sizes}  (only with ?bm=1)                                (第三輪 D)
             "statusRegion":{role,live,text}}
      Contract of the home page: .home-verse and .home-ref (filled by Bible.load), .home-hero img, audio#home-music,
      button#music-btn[aria-pressed] (pressed="true" exactly when the audio is playing), links 進入四福音 / 抽一張經文卡 / 閱讀本章.
@@ -127,6 +132,61 @@ function statusRegion(d) {
   return {role: s.getAttribute("role") || "", live: s.getAttribute("aria-live") || "", text: s.textContent.trim(),
           state: s.getAttribute("data-state"), glyph: (cs(s, "::before").content || "").slice(0, 40)};
 }
+/* 第三輪 B：抽卡頁的待機愛心、小驚喜、底紋，以及卡背標題／按鈕不可壓在老鷹身上。
+   頁面還沒接線時每個欄位都回傳 null／false，讓檢查紅燈而不是讓探測頁壞掉。 */
+function heart(d) {
+  const w = f.contentWindow;
+  const btn = d.getElementById("heart-btn") || d.querySelector(".heart");
+  const img = d.getElementById("heart-img") || (btn ? btn.querySelector("img") : null);
+  const stage = d.querySelector(".heart-stage") || (btn ? btn.parentElement : null);
+  const hosts = [d.body, d.querySelector(".bless-stage"), d.querySelector("main")].filter(Boolean);
+  const patHost = hosts.find(e => (cs(e).backgroundImage || "none") !== "none") || null;
+  const pat = patHost ? cs(patHost).backgroundImage : "none";
+  const st = d.getElementById("heart-status") || d.getElementById("share-msg") || d.querySelector("[role=status]");
+  const card = d.querySelector(".cover-card") || d.querySelector(".card-back-art") || d.getElementById("cover");
+  const base = s => (s || "").split("?")[0].split("/").pop();
+  let overlap = null, detail = {reason: card ? "" : "找不到卡背元素"};
+  if (card) {
+    const cr = card.getBoundingClientRect();
+    const zone = cr.top + cr.height * 0.65;                 // 老鷹在中上部，下半部才是可放字的深色留白
+    const bad = [];
+    const tops = {};
+    for (const sel of [".cover-title", "#draw-btn"]) {
+      const e = d.querySelector(sel);
+      if (!e) { bad.push(sel + " 不存在"); continue; }
+      const r = e.getBoundingClientRect();
+      tops[sel] = Math.round(r.top);
+      const touches = r.left < cr.right && r.right > cr.left && r.top < cr.bottom && r.bottom > cr.top;
+      if (touches && r.top < zone) bad.push(sel);
+    }
+    overlap = bad.length === 0 ? false : true;
+    detail = Object.assign({cardTop: Math.round(cr.top), cardH: Math.round(cr.height), zoneTop: Math.round(zone), bad: bad}, tops, detail);
+  }
+  return {
+    heartBtn: btn ? {found: true, shown: visible(btn), id: btn.id || "", ariaBusy: btn.getAttribute("aria-busy"),
+                     ariaPressed: btn.getAttribute("aria-pressed"), label: btn.textContent.trim(),
+                     radius: parseFloat(cs(btn).borderTopLeftRadius) || 0} : {found: false},
+    heartImg: img ? {found: true, src: img.getAttribute("src") || "", srcName: base(img.getAttribute("src")),
+                     alt: img.getAttribute("alt") || "", complete: !!img.complete, naturalWidth: img.naturalWidth || 0} : {found: false},
+    stageBg: stage ? cs(stage).backgroundColor : null,
+    stageTag: stage ? (stage.id || stage.className || stage.tagName) : null,
+    pagePattern: {host: patHost ? (patHost.id || patHost.tagName) : null, file: base(fileOf(pat)),
+                  size: patHost ? cs(patHost).backgroundSize : "", raw: (pat || "").slice(0, 200)},
+    statusIdle: st ? st.textContent.trim() : null,
+    statusRegion: st ? {role: st.getAttribute("role") || "", live: st.getAttribute("aria-live") || "",
+                        state: st.getAttribute("data-state")} : null,
+    reduce: w.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    dark: w.matchMedia("(prefers-color-scheme: dark)").matches,
+    eagleOverlap: overlap, eagleDetail: detail
+  };
+}
+/* 第三輪 C：禱讀頁的當天標題（h2）要比分段標題（h3）大、且用明體。 */
+function headingScale(d) {
+  const h2 = d.querySelector("#reading h2"), h3 = d.querySelector("#reading h3");
+  return {h2Px: h2 ? parseFloat(cs(h2).fontSize) : null, h3Px: h3 ? parseFloat(cs(h3).fontSize) : null,
+          h2Font: h2 ? cs(h2).fontFamily : "", h3Font: h3 ? cs(h3).fontFamily : "",
+          h2Text: h2 ? h2.textContent.trim().slice(0, 40) : "", h3Text: h3 ? h3.textContent.trim() : ""};
+}
 function fieldState(d) {
   const i = d.querySelector("input[type=search]") || d.querySelector(".find input") || d.querySelector("main input[type=text]");
   if (!i) return null;
@@ -172,6 +232,170 @@ async function searchFlow(mode) {
   return {busy, final: {status: statusRegion(dd), field: fieldState(dd),
           results: dd.querySelectorAll("#results li").length, info: text(dd, "#result-info").slice(0, 120)}};
 }
+/* ===== 第三輪 D：收藏經節（localStorage 鍵 bible.bookmarks.v1，只准存座標） =====
+   頁面還沒實作時每一步都回傳 null／false，讓 site_checks 的 bookmarks 群組紅燈而不是讓探測頁出錯。 */
+const BM_KEY = "bible.bookmarks.v1";
+const CHAPTER_URL = "../site/chapter.html?book=jhn&ch=3";
+const INDEX_URL = "../site/index.html";
+function goto(url) {
+  return new Promise(resolve => {
+    f.addEventListener("load", () => setTimeout(() => resolve(f.contentDocument), 350), {once: true});
+    f.src = url;
+  });
+}
+async function waitFor(fn, tries) {
+  for (let i = 0; i < (tries || 20); i++) { const v = fn(); if (v) return v; await sleep(150); }
+  return null;
+}
+function bmStatus(d) {
+  const s = d.getElementById("reading-status") || d.querySelector(".status") || d.querySelector("[role=status]");
+  if (!s) return null;
+  return {text: s.textContent.trim(), state: s.getAttribute("data-state"),
+          role: s.getAttribute("role") || "", live: s.getAttribute("aria-live") || ""};
+}
+/* 收藏資料壞掉時要看的「怎麼修」提示：必須是跟收藏有關、也講到損壞／無法讀取／清除的那一句，
+   不是任何一句中文都算（否則頁面根本沒實作也會假綠）。 */
+function noticeText(d) {
+  const skip = ["SCRIPT", "STYLE", "TEMPLATE", "NOSCRIPT"];
+  const leaves = [...d.querySelectorAll("body *")].filter(e => !skip.includes(e.tagName) && !e.querySelector("*") && e.textContent.trim());
+  const hit = leaves.filter(e => /收藏/.test(e.textContent)
+    && /(損壞|無法|讀取失敗|載入失敗|清除|重新)/.test(e.textContent)).find(visible);
+  return hit ? hit.textContent.trim().slice(0, 140) : "";
+}
+function chipBtn(d, id) {
+  const li = d.getElementById(id);
+  const chips = (li && li.querySelector(".chips")) || d.querySelector(".chips");
+  if (!chips) return null;
+  return [...chips.querySelectorAll("button")].find(x => /收藏/.test(x.textContent)) || null;
+}
+function chipState(d, id) {
+  const li = d.getElementById(id);
+  const chips = (li && li.querySelector(".chips")) || d.querySelector(".chips");
+  const b = chipBtn(d, id);
+  return {li: !!li, chips: !!chips, found: !!b, pressed: b ? b.getAttribute("aria-pressed") : null,
+          label: b ? b.textContent.trim() : "", busy: b ? b.getAttribute("aria-busy") : null,
+          chipsText: chips ? chips.textContent.trim().slice(0, 140) : ""};
+}
+function bmStore(w) {
+  let raw = null, readErr = "";
+  try { raw = w.localStorage.getItem(BM_KEY); } catch (e) { readErr = String(e); }
+  let parsed = null, parseErr = "";
+  if (typeof raw === "string") { try { parsed = JSON.parse(raw); } catch (e) { parseErr = String(e); } }
+  return {present: raw !== null, raw: raw === null ? null : String(raw).slice(0, 400), readErr, parseErr,
+          isArray: Array.isArray(parsed), length: Array.isArray(parsed) ? parsed.length : null,
+          keys: Array.isArray(parsed) ? parsed.map(x => Object.keys(x || {}).sort().join("+")) : [],
+          hasCjk: typeof raw === "string" ? /[㐀-鿿]/.test(raw) : false};
+}
+function bmBox(d) {
+  const box = d.getElementById("bookmarks-box")
+    || [...d.querySelectorAll("details")].find(x => /我的收藏/.test(x.textContent));
+  if (!box) return {found: false, navCount: d.querySelectorAll("#nav a, .dock a").length};
+  const summary = box.tagName === "DETAILS" ? box.querySelector("summary") : (box.querySelector("button,h2") || null);
+  return {found: true, tag: box.tagName, id: box.id || "", open: box.tagName === "DETAILS" ? !!box.open : true,
+          summary: summary ? summary.textContent.trim() : "", toggle: !!summary,
+          navCount: d.querySelectorAll("#nav a, .dock a").length};
+}
+function bmItems(d) {
+  const box = d.getElementById("bookmarks-box") || [...d.querySelectorAll("details")].find(x => /我的收藏/.test(x.textContent));
+  if (!box) return [];
+  return [...box.querySelectorAll("li")].map(li => ({
+    text: li.textContent.trim().slice(0, 160),
+    links: [...li.querySelectorAll("a")].map(a => ({text: a.textContent.trim(), href: a.getAttribute("href")})),
+    remove: !![...li.querySelectorAll("button")].find(b => /移除/.test(b.textContent))
+  }));
+}
+async function bmFlow() {
+  const out = {key: BM_KEY, errorsAt: {}};
+  const mark = (label) => { out.errorsAt[label] = errors.length; };
+  mark("start");
+  const d = d0(), w = f.contentWindow;
+  out.startUrl = (d.location.pathname || "").replace(/^\/+/, "") + (d.location.search || "");
+  try { w.localStorage.removeItem(BM_KEY); } catch (e) { out.clearError = String(e); }
+
+  // 1) 閱讀頁：點經節 → 操作列出現收藏按鈕
+  const li = await waitFor(() => d.getElementById("v16"), 40);
+  out.verseFound = !!li;
+  if (li) { li.scrollIntoView(); li.click(); await sleep(300); }
+  await waitFor(() => !!chipBtn(d, "v16"), 20);
+  out.chips = chipState(d, "v16");
+  // 2) 按收藏：aria-pressed 變 true、文字變「✓ 已收藏」、狀態列播報
+  const b1 = chipBtn(d, "v16");
+  if (b1) { b1.click(); await sleep(450); }
+  out.marked = chipState(d, "v16");
+  out.markStatus = bmStatus(d);
+  out.store = bmStore(w);
+  // 3) 重新整理後仍保持已收藏
+  const d2 = await goto(f.src);
+  await waitFor(() => d2.getElementById("v16"), 40);
+  const li2 = d2.getElementById("v16");
+  if (li2) { li2.scrollIntoView(); li2.click(); await sleep(300); }
+  out.afterReload = chipState(d2, "v16");
+  out.reloadStore = bmStore(f.contentWindow);
+  // 4) 再點一次＝取消收藏
+  const b2 = chipBtn(d2, "v16");
+  if (b2) { b2.click(); await sleep(450); }
+  out.unmarked = chipState(d2, "v16");
+  out.unmarkStatus = bmStatus(d2);
+  out.storeAfterUnmark = bmStore(f.contentWindow);
+  // 5) 再收藏一次，然後打開目錄頁看收藏區
+  if (b2) { b2.click(); await sleep(450); }
+  out.remarked = chipState(d2, "v16");
+  mark("beforeIndex");
+  const d3 = await goto(INDEX_URL);
+  await waitFor(() => d3.querySelector(".chapter-card"), 40);
+  out.indexBox = bmBox(d3);
+  const box = d3.getElementById("bookmarks-box") || [...d3.querySelectorAll("details")].find(x => /我的收藏/.test(x.textContent));
+  if (box && box.tagName === "DETAILS") { box.open = true; await sleep(200); }
+  if (box && box.tagName !== "DETAILS") {
+    const t = box.querySelector("summary,button,h2");
+    if (t) { t.click(); await sleep(250); }
+  }
+  out.indexOpen = bmBox(d3);
+  out.indexItems = bmItems(d3);
+  // 6) 移除 → 變成 0 節並顯示說明文字
+  const rmBtn = box ? [...box.querySelectorAll("li button")].find(b => /移除/.test(b.textContent)) : null;
+  if (rmBtn) { rmBtn.click(); await sleep(500); }
+  out.afterRemove = {items: bmItems(d3), box: bmBox(d3),
+                     emptyText: box ? box.textContent.trim().slice(0, 200) : "",
+                     store: bmStore(f.contentWindow)};
+  // 7) 損壞資料容錯：塞壞 JSON 後開目錄頁與閱讀頁
+  try { f.contentWindow.localStorage.setItem(BM_KEY, "{bad json"); } catch (e) { out.seedError = String(e); }
+  mark("beforeCorrupt");
+  const d4 = await goto(INDEX_URL);
+  await waitFor(() => d4.querySelector(".chapter-card"), 40);
+  out.corruptIndex = {renders: !!d4.querySelector(".chapter-card"), chinese: /[㐀-鿿]/.test(d4.body.textContent),
+                      notice: noticeText(d4), box: bmBox(d4), newErrors: errors.slice(out.errorsAt.beforeCorrupt)};
+  mark("beforeCorruptChapter");
+  const d5 = await goto(CHAPTER_URL);
+  await waitFor(() => d5.getElementById("v16"), 40);
+  out.corruptChapter = {renders: !!d5.getElementById("v16"), chinese: /[㐀-鿿]/.test(d5.body.textContent),
+                        notice: noticeText(d5), newErrors: errors.slice(out.errorsAt.beforeCorruptChapter)};
+  // 8) 四種寬度：目錄頁展開收藏區、閱讀頁展開 chips，都不能水平溢出（也要記錄真的有把新 UI 攤開來量）
+  try { f.contentWindow.localStorage.setItem(BM_KEY, JSON.stringify([{book: "jhn", ch: 3, v: 16, at: "2026-11-13T00:00:00Z"}])); } catch (e) {}
+  out.sizes = {};
+  for (const [name, url] of [["index", INDEX_URL], ["chapter", CHAPTER_URL]]) {
+    out.sizes[name] = {};
+    for (const wid of [320, 375, 768, 1440]) {
+      f.style.width = wid + "px";
+      const dd = await goto(url);
+      await waitFor(() => dd.querySelector(".chapter-card") || dd.getElementById("v16"), 40);
+      let opened = false;
+      if (name === "chapter") {
+        const t = dd.getElementById("v16");
+        if (t) { t.click(); await sleep(300); }
+        opened = !!chipBtn(dd, "v16");
+      } else {
+        const bx = dd.getElementById("bookmarks-box") || [...dd.querySelectorAll("details")].find(x => /我的收藏/.test(x.textContent));
+        if (bx && bx.tagName === "DETAILS") { bx.open = true; await sleep(200); }
+        opened = !!bx && bmItems(dd).length > 0;
+      }
+      out.sizes[name][wid] = {scrollWidth: dd.documentElement.scrollWidth, clientWidth: dd.documentElement.clientWidth,
+                              navCount: dd.querySelectorAll("#nav a, .dock a").length, opened: opened};
+    }
+    f.style.width = (parseInt(qs.get("w")) || 375) + "px";
+  }
+  return out;
+}
 function read() {
   const d = d0(), o = {errors};
   o.verse = text(d, ".home-verse");
@@ -189,6 +413,8 @@ function read() {
   o.hero = hero(d);
   o.tiles = tiles(d);
   o.cover = cover(d);
+  o.heart = heart(d);
+  o.headingScale = headingScale(d);
   o.statusRegion = statusRegion(d);
   o.musicStatus = (() => { const b = d.getElementById("music-btn") || d.getElementById("zone-music-btn");
     if (!b) return null; const sib = b.parentElement ? [...b.parentElement.querySelectorAll("[role=status],[aria-live],.status")] : [];
@@ -225,6 +451,7 @@ function read() {
       await sleep(300);
     }
   }
+  if (qs.get("bm")) { o.bm = await bmFlow(); }
   document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
 })();
 </script>

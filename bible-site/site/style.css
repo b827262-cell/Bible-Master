@@ -1159,6 +1159,42 @@ a.tile:hover {
   background-image: url("assets/eagle-B.jpg");
 }
 
+/* 抽卡前的卡背與待機愛心：這裡只給共用尺寸，圖檔路徑都在共用層（Bible.CARD_ART／Bible.HEART_ART） */
+#cover .cover-card {
+  width: min(300px, 100%);
+  aspect-ratio: 3 / 4;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+
+.heart-stage {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  background-image: none;
+}
+
+/* 愛心按鈕不是膠囊、也不是主色實心（blessstyle 在數實心按鈕與膠囊圓角） */
+.heart-btn {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 96px;
+  padding: 8px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.heart-btn img {
+  display: block;
+  /* 動圖畫布 480px、愛心約佔 62%；太小會看不到光點與光束，所以至少 200px */
+  width: min(200px, 60vw);
+  height: min(200px, 60vw);
+  object-fit: contain;
+}
+
 /* ===== 閱讀頁 ===== */
 .reader {
   display: grid;
@@ -1235,6 +1271,57 @@ a.tile:hover {
   font-size: .9rem;
 }
 
+/* ===== 收藏經節（第三輪 D）：目錄頁的摺疊清單 ===== */
+.bookmarks-panel summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.bookmarks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+/* 操作列一定要換行，否則 320px 會把三個按鈕擠到畫面外 */
+.bookmark-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  padding: 14px 16px;
+}
+
+.bookmark-ref {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--river);
+}
+
+.bookmark-text {
+  flex: 1 1 100%;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--ink);
+}
+
+.bookmarks-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
 /* ===== 每日禱讀 ===== */
 .dev {
   display: grid;
@@ -1243,8 +1330,22 @@ a.tile:hover {
   margin: 0 auto;
 }
 
-.dev h3 {
+/* 禱讀頁的層級：當天標題最大（明體），段落標題「經文／默想／反思／禱告」次之（黑體小字）。
+   先前把樣本三的大字級留給了 h3，正式頁的 h3 是段落標題，結果比 h2 的當天標題還大，主次顛倒。 */
+.dev h2 {
+  font-family: var(--display);
   font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.dev h3 {
+  font-family: var(--body);
+  font-size: 1rem;
+  letter-spacing: .14em;
+  color: var(--river);
+  font-weight: 700;
+  margin: 0;
 }
 
 .dev section {
@@ -1252,6 +1353,7 @@ a.tile:hover {
   gap: 6px;
 }
 
+/* 樣本三用的是 h4；正式頁渲染 h3，兩者也維持同一套小標樣式 */
 .dev h4 {
   margin: 0;
   font-size: .8rem;

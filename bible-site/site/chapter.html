@@ -125,7 +125,15 @@
 
       const list = document.getElementById("verses");
       const status = document.getElementById("reading-status");
-      Bible.say(status, "busy", "正在載入經文…");
+
+      /* 收藏資料一有損壞就在頁面載入時講清楚：提示必須是看得見的葉節點，
+         收在還沒展開的 chips 裡等於沒說。之後渲染完成不再蓋掉這句話。 */
+      const bookmarkBroken = Bible.bookmarks.read().corrupted;
+      if (bookmarkBroken) {
+        Bible.say(status, "fix", "收藏資料損壞或無法讀取，已略過異常項目（可重新收藏）");
+      } else {
+        Bible.say(status, "busy", "正在載入經文…");
+      }
 
       function addLink(container, label, href) {
         const li = document.createElement("li");
@@ -203,7 +211,9 @@
           addLink(links, "下一章", "chapter.html?book=" + key + "&ch=" + (ch + 1));
         }
 
-        Bible.say(status, "ok", "經文已載入");
+        if (!bookmarkBroken) {
+          Bible.say(status, "ok", "經文已載入");
+        }
 
         const hash = location.hash;
         if (hash && hash.length > 1) {
@@ -218,9 +228,35 @@
         Bible.fail(document.querySelector("main"), err);
       });
 
-      /* 點一節經文：標成目前節，並給「做成經文卡片」快捷列（連到 card.html 帶書卷／章／節）。
-         收藏按鈕是新功能，依交辦單不在這裡加。 */
+      /* 點一節經文：標成目前節，給「做成經文卡片」與「收藏這一節」兩顆操作。
+         收藏只寫座標進 localStorage（見 app.js 的 Bible.bookmarks），經文文字一律不存。 */
+      const MARK_ON = "✓ 已收藏";
+      const MARK_OFF = "收藏這一節";
+
+      function markVerseOf(btn) {
+        return Number(btn.getAttribute("data-v"));
+      }
+
+      function paintMark(btn) {
+        const on = Bible.bookmarks.has(key, ch, markVerseOf(btn));
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.textContent = on ? MARK_ON : MARK_OFF;
+      }
+
       list.addEventListener("click", function (event) {
+        const btn = event.target.closest("[data-bookmark-btn]");
+        if (btn) {
+          const vNum = markVerseOf(btn);
+          const res = Bible.bookmarks.toggle(key, ch, vNum);
+          paintMark(btn);
+          if (!res.saved) {
+            Bible.say(status, "fix", "收藏無法寫入（本機儲存空間不可用），請重新整理後再試");
+            return;
+          }
+          Bible.say(status, "ok",
+            (res.added ? "已收藏 " : "已取消收藏 ") + Bible.bookName(key) + " " + ch + ":" + vNum + "（本機儲存）");
+          return;
+        }
         if (event.target.closest(".chips")) {
           return;
         }
@@ -240,13 +276,24 @@
           return;
         }
         li.classList.add("on");
+        const vNum = Number(li.id.slice(1));
         const chips = document.createElement("div");
         chips.className = "chips";
+
         const a = document.createElement("a");
         a.className = "pill";
-        a.href = "card.html?book=" + key + "&ch=" + ch + "&v=" + li.id.slice(1);
+        a.href = "card.html?book=" + key + "&ch=" + ch + "&v=" + vNum;
         a.textContent = "做成經文卡片 →";
         chips.appendChild(a);
+
+        const mark = document.createElement("button");
+        mark.type = "button";
+        mark.className = "pill keep";
+        mark.setAttribute("data-bookmark-btn", "1");
+        mark.setAttribute("data-v", String(vNum));
+        paintMark(mark);
+        chips.appendChild(mark);
+
         li.appendChild(chips);
       });
     })();

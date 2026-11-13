@@ -12,6 +12,13 @@
 | `site/assets/upload-20261103-153344-681a.jpg` | 抽經文卡收藏卡圖：faith 在神凡事都能（2026 年 11 月版） | 站長使用 AI 工具 Gemini 4 Agon 生成，2026-11-03 上傳 | 站長自有作品；公開授權條款由站長決定 | 1792×2400，圖內已有金框（取代 2026-11-03 先前上傳的 `upload-20261103-151549-c910.jpg`） |
 | `site/assets/eagle-A.jpg` | 2026-11 改版：抽經文卡（`blessing.html`）抽卡前的卡背；首頁入口方塊扇形紙卡中間那張（B、A、B 的 A） | 由 AGY（w2:p6）使用 Google Imagen 3 生成，2026-11-13（候選圖 `output/imagegen/eagle-20261113/eagle-A.jpg` 896×1200，本檔為重出的高解析度正式版） | 站長自有作品；公開授權條款由站長決定 | 1792×2400，深綠底燙金徽章風，圖內已有金框（CSS 不再另外加框）；0.90 MB |
 | `site/assets/eagle-B.jpg` | 2026-11 改版：經文卡片頁（`card.html`）卡面裝飾；首頁入口方塊扇形紙卡的最上層與最底層（B、A、B 的兩個 B） | 由 AGY（w2:p6）使用 Google Imagen 3 生成，2026-11-13（候選圖 `output/imagegen/eagle-20261113/eagle-B.jpg` 896×1200，本檔為重出的高解析度正式版） | 站長自有作品；公開授權條款由站長決定 | 1792×2400，水彩風，圖內已有金框（CSS 不再另外加框）；0.73 MB |
+| `site/assets/heart-still.png` | 抽經文卡（`blessing.html`）待機愛心的靜態版：`prefers-reduced-motion: reduce` 時取代 GIF | Codex 以 OpenAI `image_gen` 產生母圖（`output/imagegen/heart-20261113/v1/heart-source.png`），再由 Python Pillow 輸出 PNG，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480，RGBA 真透明，愛心約佔畫布寬 62%；121 KB |
+| `site/assets/heart-idle-light.gif` | 抽經文卡待機愛心（淺色模式） | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 合成 9 幀迴圈，2026-11-13（建置腳本 `output/imagegen/heart-20261113/build_assets.py`） | 站長自有作品；公開授權條款由站長決定 | 480×480，9 幀／2,400 ms 無限循環；邊緣已預混 `#f3f6f2`，愛心區塊底色必須同色，否則四周會看到一圈殘影；276 KB |
+| `site/assets/heart-idle-dark.gif` | 抽經文卡待機愛心（深色模式） | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 合成 9 幀迴圈，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480，9 幀／2,400 ms 無限循環；邊緣已預混 `#0a1412`；273 KB |
+| `site/assets/heart-surprise-light.gif` | 點愛心後的「小驚喜」動圖（淺色模式），播完才翻出經文卡 | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 合成 16 幀，2026-11-13（v3 把結尾的尖錐光改成從愛心頂部後方升起的三階扇形暖光） | 站長自有作品；公開授權條款由站長決定 | 480×480，16 幀、每幀 100 ms（共 1,600 ms）、播放一次不循環；邊緣已預混 `#f3f6f2`；531 KB |
+| `site/assets/heart-surprise-dark.gif` | 點愛心後的「小驚喜」動圖（深色模式） | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 合成 16 幀，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480，16 幀、每幀 100 ms（共 1,600 ms）、播放一次不循環；邊緣已預混 `#0a1412`；514 KB |
+| `site/assets/pattern-light.png` | 抽經文卡頁面背景底紋（淺色模式），平鋪 360px | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 裁成可平鋪圖，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480 可平鋪，底色 `#f3f6f2`；文字對比見 `output/imagegen/heart-20261113/pattern-preview.png`；24 KB |
+| `site/assets/pattern-dark.png` | 抽經文卡頁面背景底紋（深色模式），平鋪 360px | Codex 以 OpenAI `image_gen` 產生母圖，Python Pillow 裁成可平鋪圖，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 480×480 可平鋪，底色 `#0a1412`；21 KB |
 
 經文：和合本（公有領域），由 `bible-site/tools/build_data.py` 從維基文庫與 ebible.org 轉出。後台上傳的新素材請同樣登記在這裡。
 

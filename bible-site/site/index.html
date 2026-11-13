@@ -75,6 +75,13 @@
       <div id="book-tabs"></div>
       <div class="chapter-grid" id="chapters"></div>
     </section>
+
+    <details class="panel bookmarks-panel" id="bookmarks-box">
+      <summary id="bookmarks-summary">我的收藏（0 節）</summary>
+      <p class="status" id="bookmarks-status" role="status" aria-live="polite"></p>
+      <ul class="bookmarks-list" id="bookmarks-list"></ul>
+      <p class="bookmarks-empty" id="bookmarks-empty">尚未收藏經節。在閱讀頁點選任何一節經文，即可按「收藏這一節」保存在本機。</p>
+    </details>
   </main>
 
   <footer>四福音 · 和合本</footer>
@@ -152,6 +159,105 @@
         searchStatus.textContent = "搜尋中…";
         window.location.href = "search.html?q=" + encodeURIComponent(word) + "&book=" + encodeURIComponent(select.value);
       });
+
+      /* ===== 我的收藏（第三輪 D）=====
+         localStorage 只存座標 { book, ch, v, at }；經文文字一律由 Bible.load 現取，
+         所以這一頁的原始碼與瀏覽器儲存裡都不會出現經文內容。 */
+      const bmBox = document.getElementById("bookmarks-box");
+      const bmSummary = document.getElementById("bookmarks-summary");
+      const bmStatus = document.getElementById("bookmarks-status");
+      const bmList = document.getElementById("bookmarks-list");
+      const bmEmpty = document.getElementById("bookmarks-empty");
+
+      function verseAt(data, chNum, vNum) {
+        const chapter = Bible.chapterOf(data, chNum);
+        if (!chapter) {
+          return null;
+        }
+        for (let i = 0; i < chapter.verses.length; i++) {
+          if (Number(chapter.verses[i].v) === Number(vNum)) {
+            return chapter.verses[i];
+          }
+        }
+        return null;
+      }
+
+      function bookmarkRow(item) {
+        const li = document.createElement("li");
+        li.className = "bookmark-item";
+
+        const ref = document.createElement("span");
+        ref.className = "bookmark-ref";
+        ref.textContent = Bible.bookName(item.book) + " " + item.ch + ":" + item.v;
+
+        const text = document.createElement("span");
+        text.className = "bookmark-text";
+        text.textContent = "經文載入中…";
+
+        const go = document.createElement("a");
+        go.className = "pill";
+        go.setAttribute("href", "chapter.html?book=" + item.book + "&ch=" + item.ch + "#v" + item.v);
+        go.textContent = "前往閱讀";
+
+        const card = document.createElement("a");
+        card.className = "pill";
+        card.setAttribute("href", "card.html?book=" + item.book + "&ch=" + item.ch + "&v=" + item.v);
+        card.textContent = "做成經文卡片";
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "pill bookmark-remove";
+        remove.setAttribute("data-book", item.book);
+        remove.setAttribute("data-ch", String(item.ch));
+        remove.setAttribute("data-v", String(item.v));
+        remove.textContent = "移除";
+
+        li.appendChild(ref);
+        li.appendChild(text);
+        li.appendChild(go);
+        li.appendChild(card);
+        li.appendChild(remove);
+
+        Bible.load(item.book).then(function (data) {
+          const verse = verseAt(data, item.ch, item.v);
+          text.textContent = verse ? verse.text : "找不到這節經文，請到閱讀頁確認";
+        }).catch(function () {
+          text.textContent = "經文載入失敗，請重新整理";
+        });
+        return li;
+      }
+
+      function renderBookmarks() {
+        const stored = Bible.bookmarks.read();
+        bmList.innerHTML = "";
+        if (stored.corrupted) {
+          // 提示必須看得見：收合著的 details 裡的文字不算提示
+          bmBox.open = true;
+          Bible.say(bmStatus, "fix", "收藏資料損壞或無法讀取，已略過異常項目（可重新收藏）");
+        } else {
+          bmStatus.removeAttribute("data-state");
+          bmStatus.textContent = "";
+        }
+        bmSummary.textContent = "我的收藏（" + stored.items.length + " 節）";
+        bmEmpty.hidden = stored.items.length > 0;
+        stored.items.forEach(function (item) {
+          bmList.appendChild(bookmarkRow(item));
+        });
+      }
+
+      bmList.addEventListener("click", function (event) {
+        const btn = event.target.closest(".bookmark-remove");
+        if (!btn) {
+          return;
+        }
+        const res = Bible.bookmarks.toggle(btn.getAttribute("data-book"),
+          Number(btn.getAttribute("data-ch")), Number(btn.getAttribute("data-v")));
+        renderBookmarks();
+        Bible.say(bmStatus, res.saved ? "ok" : "fix",
+          res.saved ? "已移除收藏（本機儲存）" : "收藏無法寫入（本機儲存空間不可用），請重新整理後再試");
+      });
+
+      renderBookmarks();
     })();
   </script>
 </body>

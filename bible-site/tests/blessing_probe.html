@@ -1,15 +1,23 @@
 <!doctype html>
 <meta charset="utf-8">
 <!-- Loaded by tests/site_checks.py through its local server. Opens ?u=<page> in an iframe, performs ?act=<json>
-     (a list of {click: "<css selector>"}; after each click it waits until #blessing-card[data-draws] changes, at most 2 s),
+     (a list of {click: "<css selector>"}; after each click it waits until #blessing-card[data-draws] changes —
+     小驚喜動圖約 1.6 秒才翻卡，所以每次點擊最多等 3.5 秒），
      then writes one JSON line into <pre id="out">:
      PROBE {"cover":bool,"drawBtn":text,"themes":[{"id","active"}],"card":{id,theme,ref,title,verse,message,sign,draws}|null,
-            "ids":[data-id after each click],"errors":[...],"canvasRef":..}
+            "ids":[data-id after each click],"heartActs":[{status,ariaBusy,label} right after each click],
+            "heart":{heartBtn{found,shown,id,ariaBusy,label},heartImg{found,src,srcName,alt},stageBg,pagePattern{host,file,size},
+                     statusIdle,statusRegion{role,live,state},reduce,dark,eagleOverlap,eagleDetail},
+            "errors":[...],"canvasRef":..}
      Contract of the blessing page: #draw-btn (cover button), #again-btn, #theme-tabs button[data-theme] (active one has
      aria-pressed="true"), #blessing-card[data-id][data-theme][data-draws] holding .card-title .card-verse .card-ref
      .card-message .card-sign, canvas#card-canvas[data-ref].
      Collectible-art contract (group blessart): #blessing-card[data-art] = the theme's image path or "", figure.card-art > img (+ .card-edition badge) shown only
-     when the theme has art, a#art-download[download][href] (hidden without art); read() adds "art" and canvasPixels.red/blue. -->
+     when the theme has art, a#art-download[download][href] (hidden without art); read() adds "art" and canvasPixels.red/blue.
+     Round-3 contract (group heart): before drawing, #heart-btn plays heart-idle-{light,dark}.gif (heart-still.png when
+     prefers-reduced-motion), the stage background must equal the GIF's pre-blended paper colour (#f3f6f2 / #0a1412),
+     the page tiles pattern-{light,dark}.png at ~360px, the status line must read 點愛心領受今天的祝福 while idle and
+     正在為你抽一張卡… with aria-busy while playing, and .cover-title / #draw-btn must not sit over the eagle's upper 65%. -->
 <pre id="out">running</pre>
 <script>
 const qs = new URLSearchParams(location.search);
@@ -23,6 +31,56 @@ const acts = JSON.parse(qs.get("act") || "[]");
 const sleep = t => new Promise(r => setTimeout(r, t));
 const text = (d, s) => { const e = d.querySelector(s); return e ? e.textContent.trim() : ""; };
 const visible = e => !!e && !e.hidden && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden";
+/* 第三輪 B：待機愛心、底紋、卡背標題不壓老鷹。頁面還沒接線時一律回傳 null／false，讓 heart 群組紅燈而不是讓探測頁出錯。 */
+function statusNow(d) {
+  const s = d.getElementById("heart-status") || d.getElementById("share-msg") || d.querySelector(".status") || d.querySelector("[role=status]");
+  if (!s) return null;
+  return {id: s.id || "", text: s.textContent.trim(), state: s.getAttribute("data-state"),
+          role: s.getAttribute("role") || "", live: s.getAttribute("aria-live") || ""};
+}
+function heartOf(d) {
+  const w = f.contentWindow, cs = (e, p) => e ? w.getComputedStyle(e, p || null) : null;
+  const fileOf = u => { const m = /url\(["']?[^"'()]*?([\w.-]+\.(?:jpg|jpeg|png|webp|gif))["']?\)/i.exec(u || ""); return m ? m[1] : ""; };
+  const base = s => (s || "").split("?")[0].split("/").pop();
+  const btn = d.getElementById("heart-btn") || d.querySelector(".heart");
+  const img = d.getElementById("heart-img") || (btn ? btn.querySelector("img") : null);
+  const stage = d.querySelector(".heart-stage") || (btn ? btn.parentElement : null);
+  const hosts = [d.body, d.querySelector(".bless-stage"), d.querySelector("main")].filter(Boolean);
+  const patHost = hosts.find(e => (cs(e).backgroundImage || "none") !== "none") || null;
+  const pat = patHost ? cs(patHost).backgroundImage : "none";
+  const card = d.querySelector(".cover-card") || d.querySelector(".card-back-art") || d.getElementById("cover");
+  let overlap = null, detail = {reason: card ? "" : "找不到卡背元素"};
+  if (card) {
+    const cr = card.getBoundingClientRect();
+    const zone = cr.top + cr.height * 0.65;                 // 老鷹在卡背上部，標題與按鈕只能落在下半部或卡外
+    const bad = [];
+    const tops = {};
+    for (const sel of [".cover-title", "#draw-btn"]) {
+      const e = d.querySelector(sel);
+      if (!e) { bad.push(sel + " 不存在"); continue; }
+      const r = e.getBoundingClientRect();
+      tops[sel] = Math.round(r.top);
+      const touches = r.left < cr.right && r.right > cr.left && r.top < cr.bottom && r.bottom > cr.top;
+      if (touches && r.top < zone) bad.push(sel);
+    }
+    overlap = bad.length === 0 ? false : true;
+    detail = Object.assign({cardTop: Math.round(cr.top), cardH: Math.round(cr.height), zoneTop: Math.round(zone), bad: bad}, tops, detail);
+  }
+  return {
+    heartBtn: btn ? {found: true, shown: visible(btn), id: btn.id || "", ariaBusy: btn.getAttribute("aria-busy"),
+                     ariaPressed: btn.getAttribute("aria-pressed"), label: btn.textContent.trim()} : {found: false},
+    heartImg: img ? {found: true, src: img.getAttribute("src") || "", srcName: base(img.getAttribute("src")),
+                     alt: img.getAttribute("alt") || "", complete: !!img.complete} : {found: false},
+    stageBg: stage ? cs(stage).backgroundColor : null,
+    stageTag: stage ? (stage.id || stage.className || stage.tagName) : null,
+    pagePattern: {host: patHost ? (patHost.id || patHost.tagName) : null, file: base(fileOf(pat)),
+                  size: patHost ? cs(patHost).backgroundSize : "", raw: (pat || "").slice(0, 200)},
+    statusIdle: statusNow(d),
+    reduce: w.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    dark: w.matchMedia("(prefers-color-scheme: dark)").matches,
+    eagleOverlap: overlap, eagleDetail: detail
+  };
+}
 function read() {
   const d = f.contentDocument, o = {errors};
   const draw = d.getElementById("draw-btn");
@@ -57,6 +115,7 @@ function read() {
            artAttr: c ? c.getAttribute("data-art") : null, vw: f.contentWindow.innerWidth, scrollW: d.documentElement.scrollWidth,
            frame: fig ? (cs => ({bg: cs.backgroundImage, borderImage: cs.borderImageSource, border: parseFloat(cs.borderTopWidth) || 0}))(f.contentWindow.getComputedStyle(fig)) : null};
   o.style = styleOf(d, c, cv);
+  o.heart = heartOf(d);
   return o;
 }
 // computed look of the card page (blessstyle / restyle checks): which buttons are solid accent, theme tabs, card typography
@@ -114,13 +173,18 @@ function styleOf(d, c, cv) {
   for (let i = 0; i < 40; i++) { await sleep(150); const d = f.contentDocument; if (d && (d.getElementById("draw-btn") || d.getElementById("blessing-card") || d.querySelector(".error"))) break; }
   await sleep(400);
   const ids = [];
+  const heartActs = [];
   for (const a of acts) {
     const d = f.contentDocument, el = d.querySelector(a.click);
-    if (!el) { ids.push("無此元素 " + a.click); continue; }
+    if (!el) { ids.push("無此元素 " + a.click); heartActs.push({clicked: false, selector: a.click}); continue; }
     const c = d.getElementById("blessing-card");
     const before = c ? c.getAttribute("data-draws") : null;
     el.click();
-    for (let i = 0; i < 20; i++) {
+    // 點下去的瞬間就記錄一次：小驚喜動圖約 1.6 秒，之後 data-draws 才會變，busy 狀態只能在此刻量
+    heartActs.push({clicked: true, selector: a.click, ariaBusy: el.getAttribute("aria-busy"),
+                    label: el.textContent.trim(), status: statusNow(d),
+                    cardNow: c ? (c.getAttribute("data-draws") || null) : null});
+    for (let i = 0; i < 35; i++) {
       await sleep(100);
       const c2 = d.getElementById("blessing-card");
       if (c2 && c2.getAttribute("data-draws") !== before) break;
@@ -128,10 +192,12 @@ function styleOf(d, c, cv) {
     }
     const c3 = d.getElementById("blessing-card");
     ids.push(c3 ? c3.getAttribute("data-id") : null);
+    heartActs[heartActs.length - 1].settledStatus = statusNow(d);
   }
   await sleep(300);
   const o = read();
   o.ids = ids;
+  o.heartActs = heartActs;
   document.getElementById("out").textContent = "PROBE " + JSON.stringify(o);
 })();
 </script>

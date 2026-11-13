@@ -792,3 +792,83 @@ ks.py            │
   - 檢查 `test -d bible-site/screenshots-restyle` → 通過
   - 檢查 `python3 bible-site/tools/check_all.py` → 通過
   - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
+
+## 2026-11-13 08:20:57　124-heart-beam-v3　pane 卡在審批（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：output/imagegen/heart-20261113/build_assets.py, output/imagegen/heart-20261113/README.md, output/imagegen/heart-20261113/heart-still.png, output/imagegen/heart-20261113/heart-idle-light.gif, output/imagegen/heart-20261113/heart-idle-dark.gif, output/imagegen/heart-20261113/heart-surprise-light.gif, output/imagegen/heart-20261113/heart-surprise-dark.gif, output/imagegen/heart-20261113/pattern-light.png, output/imagegen/heart-20261113/pattern-dark.png, output/imagegen/heart-20261113/pattern-preview.png, output/imagegen/heart-20261113/surprise-preview.png
+- 第 1 次（w2:p1）：pane 卡在審批；耗時 173 秒；pane 狀態 blocked；改動 無
+  - 錯誤：等待過程中變成 blocked，需要人工處理。畫面尾端：
+ht.p…
+    + 379 lines (^t to expand)
+
+• Ran sed -n '/A\. 小驚喜光束修正/,/^[[:space:]]*B\./…
+  └ pattern-dark.png PNG (480, 480) 1 21336
+    pattern-light.png PNG (480, 480) 1 24211
+    pattern-preview.png PNG (1440, 960) 1 76185
+    + 404 lines (^t to expand)
+
+• Viewed image heart-still.png
+    + Show details
+
+• Ran python3 - <<'PY' …
+  └ /tmp/heart-v2-beam.png
+    + Show details
+
+• Viewed image heart-v2-beam.png
+    + Show details
+
+? 任務要求把現行 10 個素材檔移入 output/imagegen/
+  heart-20261113/v2/，但白名單未列出任何 v2/ 路徑。是
+  否授權新增這 10 個封存檔？
+
+  • 允許建立 v2/ 封存
+  • 維持白名單，不建立 v2/
+
+• Working
+
+## 2026-11-13 08:50:28　125-round3-checks　等待逾時（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/tests/site_checks.py, bible-site/tests/visual_checks.py, bible-site/tests/blessing_probe.html, bible-site/tests/home_probe.html
+- 第 1 次（w2:p5）：等待逾時；耗時 1500 秒；pane 狀態 timeout；改動 bible-site/tests/blessing_probe.html, bible-site/tests/home_probe.html, bible-site/tests/site_checks.py, bible-site/tests/visual_checks.py
+  - 錯誤：25 分鐘內沒等到 idle/done（目前 working）
+
+## 2026-11-13 09:20:45　126-round3-b-heart-blessing　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/ASSETS-LICENSE.md, bible-site/site/assets/heart-idle-light.gif, bible-site/site/assets/heart-idle-dark.gif, bible-site/site/assets/heart-surprise-light.gif, bible-site/site/assets/heart-surprise-dark.gif, bible-site/site/assets/heart-still.png, bible-site/site/assets/pattern-light.png, bible-site/site/assets/pattern-dark.png, bible-site/site/app.js, bible-site/site/style.css, bible-site/site/blessing.html
+- 第 1 次（w2:p5）：通過；耗時 837 秒；pane 狀態 done；改動 bible-site/ASSETS-LICENSE.md, bible-site/site/app.js, bible-site/site/assets/heart-idle-dark.gif, bible-site/site/assets/heart-idle-light.gif, bible-site/site/assets/heart-still.png, bible-site/site/assets/heart-surprise-dark.gif, bible-site/site/assets/heart-surprise-light.gif, bible-site/site/assets/pattern-dark.png, bible-site/site/assets/pattern-light.png, bible-site/site/blessing.html, bible-site/site/style.css
+  - 檢查 `python3 bible-site/tests/site_checks.py blessing blessstyle blessart heart` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "blessing\.html"` → 通過
+
+## 2026-11-13 09:25:25　130-weekly-cover-thu-sun　失敗（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：output/imagegen/weekly-cover-20261113/cover-4-thu.jpg, output/imagegen/weekly-cover-20261113/cover-5-fri.jpg, output/imagegen/weekly-cover-20261113/cover-6-sat.jpg, output/imagegen/weekly-cover-20261113/cover-7-sun.jpg, output/imagegen/weekly-cover-20261113/PROPOSAL.md, output/imagegen/weekly-cover-20261113/weekly.json, output/imagegen/weekly-cover-20261113/contact-sheet.jpg
+- 第 1 次（w2:p1）：沒有改任何檔案；耗時 150 秒；pane 狀態 done；改動 無
+- 第 2 次（w2:p1）：沒有改任何檔案；耗時 29 秒；pane 狀態 done；改動 無
+
+## 2026-11-13 09:30:27　127-round3-c-devotional-heading　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/style.css, bible-site/site/devotional.html
+- 第 1 次（w2:p5）：通過；耗時 476 秒；pane 狀態 done；改動 bible-site/site/style.css
+  - 檢查 `python3 bible-site/tests/site_checks.py devotional` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py p0 p1 p2 --grep "devotional\.html"` → 通過
+
+## 2026-11-13 11:09:28　128-round3-d-bookmarks　通過（herdr_team）
+
+- pane：w2:p5（qwen、fe、ui｜前端 HTML/CSS/JS 主力）；檔案：bible-site/site/app.js, bible-site/site/style.css, bible-site/site/chapter.html, bible-site/site/index.html
+- 第 1 次（w2:p5）：通過；耗時 1436 秒；pane 狀態 done；改動 bible-site/site/app.js, bible-site/site/chapter.html, bible-site/site/index.html, bible-site/site/style.css
+  - 檢查 `python3 bible-site/tests/site_checks.py chapter index bookmarks` → 通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
+  - 檢查 `python3 bible-site/tests/deploy_checks.py` → 通過
+
+## 2026-11-13 11:14:17　129-round3-review　通過（herdr_team）
+
+- pane：w2:p1（codex、cbr、review｜架構與最終審查）；檔案：bible-site/REVIEW-round3.md, bible-site/screenshots-round3/home-375-light.png, bible-site/screenshots-round3/home-375-dark.png, bible-site/screenshots-round3/home-1440-light.png, bible-site/screenshots-round3/home-1440-dark.png, bible-site/screenshots-round3/index-375-light.png, bible-site/screenshots-round3/index-375-dark.png, bible-site/screenshots-round3/index-1440-light.png, bible-site/screenshots-round3/index-1440-dark.png, bible-site/screenshots-round3/chapter-375-light.png, bible-site/screenshots-round3/chapter-375-dark.png, bible-site/screenshots-round3/chapter-1440-light.png, bible-site/screenshots-round3/chapter-1440-dark.png, bible-site/screenshots-round3/search-375-light.png, bible-site/screenshots-round3/search-375-dark.png, bible-site/screenshots-round3/search-1440-light.png, bible-site/screenshots-round3/search-1440-dark.png, bible-site/screenshots-round3/card-375-light.png, bible-site/screenshots-round3/card-375-dark.png, bible-site/screenshots-round3/card-1440-light.png, bible-site/screenshots-round3/card-1440-dark.png, bible-site/screenshots-round3/blessing-375-light.png, bible-site/screenshots-round3/blessing-375-dark.png, bible-site/screenshots-round3/blessing-1440-light.png, bible-site/screenshots-round3/blessing-1440-dark.png, bible-site/screenshots-round3/devotional-375-light.png, bible-site/screenshots-round3/devotional-375-dark.png, bible-site/screenshots-round3/devotional-1440-light.png, bible-site/screenshots-round3/devotional-1440-dark.png
+- 第 1 次（w2:p1）：通過；耗時 233 秒；pane 狀態 done；改動 bible-site/REVIEW-round3.md, bible-site/screenshots-round3/blessing-1440-dark.png, bible-site/screenshots-round3/blessing-1440-light.png, bible-site/screenshots-round3/blessing-375-dark.png, bible-site/screenshots-round3/blessing-375-light.png, bible-site/screenshots-round3/card-1440-dark.png, bible-site/screenshots-round3/card-1440-light.png, bible-site/screenshots-round3/card-375-dark.png, bible-site/screenshots-round3/card-375-light.png, bible-site/screenshots-round3/chapter-1440-dark.png, bible-site/screenshots-round3/chapter-1440-light.png, bible-site/screenshots-round3/chapter-375-dark.png, bible-site/screenshots-round3/chapter-375-light.png, bible-site/screenshots-round3/devotional-1440-dark.png, bible-site/screenshots-round3/devotional-1440-light.png, bible-site/screenshots-round3/devotional-375-dark.png, bible-site/screenshots-round3/devotional-375-light.png, bible-site/screenshots-round3/home-1440-dark.png, bible-site/screenshots-round3/home-1440-light.png, bible-site/screenshots-round3/home-375-dark.png, bible-site/screenshots-round3/home-375-light.png, bible-site/screenshots-round3/index-1440-dark.png, bible-site/screenshots-round3/index-1440-light.png, bible-site/screenshots-round3/index-375-dark.png, bible-site/screenshots-round3/index-375-light.png, bible-site/screenshots-round3/search-1440-dark.png, bible-site/screenshots-round3/search-1440-light.png, bible-site/screenshots-round3/search-375-dark.png, bible-site/screenshots-round3/search-375-light.png
+  - 檢查 `test -s bible-site/REVIEW-round3.md` → 通過
+  - 檢查 `sed -n '3p' bible-site/REVIEW-round3.md | grep -Eq '^\*\*狀態：(PASS|FAIL)\*\*$'` → 通過
+  - 檢查 `grep -q "^\*\*狀態：PASS\*\*$" bible-site/REVIEW-round3.md` → 通過
+  - 檢查 `test -d bible-site/screenshots-round3` → 通過
+  - 檢查 `python3 bible-site/tools/check_all.py` → 通過
+  - 檢查 `python3 bible-site/tests/visual_checks.py` → 通過
+  - 檢查 `python3 bible-site/tests/deploy_checks.py` → 通過
