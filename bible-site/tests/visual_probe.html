@@ -8,6 +8,7 @@
 <script>
 const qs = new URLSearchParams(location.search);
 const widths = (qs.get("w") || "375").split(",").map(Number);
+const wantDate = qs.get("d") || "";   // ?d=YYYY-MM-DD：禱讀頁先切到資料檔實際存在的日期再量，不依賴「今天」有上架
 const sleep = t => new Promise(r => setTimeout(r, t));
 
 function rgba(s) {
@@ -171,6 +172,14 @@ function measure(f, width) {
   }
   o.dark = w.matchMedia("(prefers-color-scheme: dark)").matches;
   o.error = !!d.querySelector(".error");
+  // 禱讀頁：當天標題（h2）與段落標題（h3）的字級、字體，必須量到實際渲染後的節點
+  const h2 = d.querySelector("#reading h2"), h3 = d.querySelector("#reading h3");
+  o.headingScale = {h2Px: h2 ? parseFloat(w.getComputedStyle(h2).fontSize) : null,
+                    h3Px: h3 ? parseFloat(w.getComputedStyle(h3).fontSize) : null,
+                    h2Font: h2 ? w.getComputedStyle(h2).fontFamily : "",
+                    h3Font: h3 ? w.getComputedStyle(h3).fontFamily : "",
+                    h2Text: h2 ? h2.textContent.trim().slice(0, 40) : "",
+                    h3Text: h3 ? h3.textContent.trim() : ""};
   return o;
 }
 
@@ -185,7 +194,21 @@ function measure(f, width) {
   const ready = d => d && d.readyState === "complete" && (d.querySelector(".chapter-card, .verse-text, #results li, .error, .home-verse, #reading h2, .dev .pray") ||
     (d.getElementById("card-canvas") && d.getElementById("card-canvas").getAttribute("data-ref")) ||
     (d.getElementById("result-info") && d.getElementById("result-info").textContent.trim()));
-  for (let i = 0; i < 60 && !frames.every(([, f]) => ready(f.contentDocument)); i++) await sleep(150);
+  // 禱讀頁預設日期是「今天」；今天不一定有上架資料，所以載入後先切到測試指定的日期。
+  // 只切一次（值相同就不重送 change），後續等 #reading h2 出現才算就緒。
+  const applyDate = f => {
+    if (!wantDate) return;
+    const d = f.contentDocument;
+    if (!d || d.readyState !== "complete") return;
+    const input = d.getElementById("reading-date");
+    if (!input || input.value === wantDate) return;
+    input.value = wantDate;
+    input.dispatchEvent(new Event("change", {bubbles: true}));
+  };
+  for (let i = 0; i < 60 && !frames.every(([, f]) => ready(f.contentDocument)); i++) {
+    frames.forEach(([, f]) => applyDate(f));
+    await sleep(150);
+  }
   await sleep(400);
   const out = {};
   for (const [width, f] of frames) {

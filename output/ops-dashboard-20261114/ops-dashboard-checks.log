@@ -1,0 +1,123 @@
+test_invalid_data_and_missing_site_are_not_complete (__main__.Progress.test_invalid_data_and_missing_site_are_not_complete) ... /home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpf4q9efzs/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpf4q9efzs/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpf4q9efzs/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpf4q9efzs/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpnxy9gske/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpnxy9gske/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpnxy9gske/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpnxy9gske/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpszujx1wa/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpszujx1wa/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpszujx1wa/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpszujx1wa/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp5la_xtg4/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp5la_xtg4/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp5la_xtg4/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp5la_xtg4/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjn35doze/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjn35doze/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjn35doze/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjn35doze/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp7xytaj6a/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp7xytaj6a/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp7xytaj6a/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp7xytaj6a/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp9hhh_ejd/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp9hhh_ejd/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp9hhh_ejd/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmp9hhh_ejd/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_valid_current_site (__main__.Progress.test_valid_current_site) ... /home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:117: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpykrzhp_g/FAILS.md' mode='r' encoding='utf-8'>
+  passed = os.path.isfile(fails) and "全部通過" in open(fails, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:102: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpykrzhp_g/REVIEW.md' mode='r' encoding='utf-8'>
+  s = open(p, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpykrzhp_g/PROGRESS.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read() if exists(path) else f"# PM 進度\n\n{START}\n{END}\n"
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/b827262/project/AI/Bible-Master/bible-site/tools/pm_status.py:160: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpykrzhp_g/PROGRESS.md' mode='w' encoding='utf-8'>
+  open(path, "w", encoding="utf-8").write(text)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_agent_not_found_is_rejected (__main__.Routes.test_agent_not_found_is_rejected) ... ok
+test_current_roles_and_opaque_ids (__main__.Routes.test_current_roles_and_opaque_ids) ... ok
+test_recognized_idle_agent_accepts_explicit_prompt (__main__.Routes.test_recognized_idle_agent_accepts_explicit_prompt) ... ok
+test_rejected_targets_never_dispatch (__main__.Routes.test_rejected_targets_never_dispatch) ... ok
+test_unknown_completion_never_runs_checks_or_passes (__main__.Routes.test_unknown_completion_never_runs_checks_or_passes) ... ok
+test_working_then_unknown_is_not_done (__main__.Routes.test_working_then_unknown_is_not_done) ... ok
+test_api_integration_read_only_and_static_privacy (__main__.Status.test_api_integration_read_only_and_static_privacy) ... ok
+test_cutoff_changes_with_loaded_calendar (__main__.Status.test_cutoff_changes_with_loaded_calendar) ... ok
+test_empty_is_valid (__main__.Status.test_empty_is_valid) ... ok
+test_http_failure_keeps_schedule_and_hides_raw_error (__main__.Status.test_http_failure_keeps_schedule_and_hides_raw_error) ... ok
+test_http_fixed_source_timeout_and_read_limit (__main__.Status.test_http_fixed_source_timeout_and_read_limit) ... ok
+test_last_run_failed_never_and_invalid_status (__main__.Status.test_last_run_failed_never_and_invalid_status) ... ok
+test_local_invalid_or_missing (__main__.Status.test_local_invalid_or_missing) ... ok
+test_malformed_public_is_invalid_not_zero (__main__.Status.test_malformed_public_is_invalid_not_zero) ... ok
+test_no_systemd_is_unknown_not_failed (__main__.Status.test_no_systemd_is_unknown_not_failed) ... ok
+test_payload_size_boundary (__main__.Status.test_payload_size_boundary) ... ok
+test_redirects_are_rejected (__main__.Status.test_redirects_are_rejected) ... ok
+test_sources_separate_and_input_unchanged (__main__.Status.test_sources_separate_and_input_unchanged) ... ok
+test_systemctl_commands_timeout_and_oversize (__main__.Status.test_systemctl_commands_timeout_and_oversize) ... ok
+test_taipei_cutoff_boundary (__main__.Status.test_taipei_cutoff_boundary) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.571s
+
+OK

@@ -1,0 +1,147 @@
+[
+  {
+    "name": "Public and local distinct",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Dynamic cutoff, no hard-coded Nov25",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Successful service and Taiwan observation",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "320 no overflow",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "375 no overflow",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "768 no overflow",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1440 no overflow",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Partial failure keeps local source",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Empty data differs from unknown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Missing systemd stays unknown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Failed release visible",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Cutoff is normal stop",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Warning is text, no XSS",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "HTTP failure clears stale success",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Invalid JSON clears stale success",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Busy locks duplicate refresh",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Timeout removes success and unlocks retry",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Recovery succeeds",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Read-only GET only",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Accessible live feedback",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "light normal text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":42,\"min\":4.758842787868666,\"fails\":[]}"
+  },
+  {
+    "name": "light warning text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":44,\"min\":4.758842787868666,\"fails\":[]}"
+  },
+  {
+    "name": "light error text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":43,\"min\":4.758842787868666,\"fails\":[]}"
+  },
+  {
+    "name": "light cutoff text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":42,\"min\":4.758842787868666,\"fails\":[]}"
+  },
+  {
+    "name": "dark normal text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":42,\"min\":5.563834025206535,\"fails\":[]}"
+  },
+  {
+    "name": "dark warning text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":44,\"min\":5.868260300886558,\"fails\":[]}"
+  },
+  {
+    "name": "dark error text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":43,\"min\":5.60176454596722,\"fails\":[]}"
+  },
+  {
+    "name": "dark cutoff text contrast >=4.5",
+    "ok": true,
+    "detail": "{\"n\":42,\"min\":5.868260300886558,\"fails\":[]}"
+  },
+  {
+    "name": "No JS exceptions",
+    "ok": true,
+    "detail": "[]"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "tools/herdr_team.py": "5e7f315a91327c2065cccf43c30ca82d8c66f73b03bf01ab74df3924bada5860",
+  "tools/pm_status.py": "f305c8346573696dc6093beae5664741a7526af9a1591852db40ae46b0e8462b",
+  "admin/server.py": "5aea3f31d651a449913b05ad8de31b6f7d385ee0b750ecee86ee577f39b4dac7",
+  "admin/devotional_status.py": "0fd8ccad9c7ac88033db5a2af9bdd891ab6bce9ae784aeabf38bdcadfa2231f2",
+  "admin/admin.js": "8781e84829c6613bac76828b6cafd045f8b80456e9d3fa366a6088db658db358",
+  "admin/index.html": "0ea30d943cf74131e107855b149c68ff27c81f4e119f550b188eb591a716e642",
+  "admin/admin.css": "1f7f8009584475bd2a8dd020d8e78eecfbf6798cd43151031849e6adca43fbc9",
+  "tests/ops_dashboard_checks.py": "7e56f357f9a17c027bf335ed4ef4bb2547aaef9f9aecdfa6f274647e43cbf9eb"
+}

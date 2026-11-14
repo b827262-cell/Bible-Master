@@ -1,0 +1,38 @@
+[
+  {
+    "case": "normal",
+    "exit": 0,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：驗證成功\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 完成 |\n| 1 建站（site/ 11 個檔案） | 完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：11/11（缺：無）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：四福音皆驗證成功\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：全部完成\n"
+  },
+  {
+    "case": "missing",
+    "exit": 1,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：缺失檔案\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 未完成 |\n| 1 建站（site/ 11 個檔案） | 完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：11/11（缺：無）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：驗證失敗：mrk 驗證失敗，請檢查個別錯誤詳情。\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：還有未完成的步驟\n"
+  },
+  {
+    "case": "broken",
+    "exit": 1,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：JSON 格式錯誤\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 未完成 |\n| 1 建站（site/ 11 個檔案） | 完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：11/11（缺：無）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：驗證失敗：mrk 驗證失敗，請檢查個別錯誤詳情。\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：還有未完成的步驟\n"
+  },
+  {
+    "case": "null_verse",
+    "exit": 1,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：經文元素非字典類型\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 未完成 |\n| 1 建站（site/ 11 個檔案） | 完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：11/11（缺：無）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：驗證失敗：mrk 驗證失敗，請檢查個別錯誤詳情。\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：還有未完成的步驟\n"
+  },
+  {
+    "case": "short",
+    "exit": 1,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：逐節總數不符：實際 677，預期 678\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 未完成 |\n| 1 建站（site/ 11 個檔案） | 完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：11/11（缺：無）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：驗證失敗：mrk 驗證失敗，請檢查個別錯誤詳情。\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：還有未完成的步驟\n"
+  },
+  {
+    "case": "missing_page",
+    "exit": 1,
+    "ok": true,
+    "output": "福音 mat 驗證結果：驗證成功\n福音 mrk 驗證結果：驗證成功\n福音 luk 驗證結果：驗證成功\n福音 jhn 驗證結果：驗證成功\n更新時間：2026-11-14 16:59（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）\n\n| 步驟 | 狀態 |\n|---|---|\n| 0 資料產生（四福音 3776 節驗證） | 完成 |\n| 1 建站（site/ 11 個檔案） | 未完成 |\n| 2 自動檢查 check_all.py 全過 | 完成 |\n| 3 審核（REVIEW.md） | 完成 |\n| 4 修正與 CHANGELOG.md | 完成 |\n| 5 TODO.md 清空或不存在 | 完成 |\n\n- site 檔案：10/11（缺：devotional.html）\n- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過\n- 四福音JSON驗證：四福音皆驗證成功\n- 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）\n- TODO.md 未完成項目：沒有 TODO.md\n\n整體：還有未完成的步驟\n"
+  }
+]

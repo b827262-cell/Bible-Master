@@ -2,15 +2,15 @@
 """派工給 Herdr pane 裡的 coding agent —— 團隊編制的 tools/dispatch.py。
 
   bible-site/tools/herdr_team.py status [--workspace w2]        各 pane 的 agent／狀態／角色／最後任務結果
-  bible-site/tools/herdr_team.py prompt w2:p3 '文字' [--wait]    直接對一個 pane（或角色）送 prompt
+  bible-site/tools/herdr_team.py prompt w2:p2 '文字' [--wait]    直接對一個 pane（或角色）送 prompt
   bible-site/tools/herdr_team.py run tasks/*.md [--dry-run]      依任務檔平行派工、驗範圍、跑 checks、失敗重試一次
                                                                 run 另有 --ignore <路徑片段>（可重複）給範圍檢查多擋掉
                                                                 別的 agent 在同一棵樹上動出來的檔案
 
 任務檔＝YAML front matter＋prompt 正文；相比 dispatch.py，這裡多接受 `pane:`（直接指定 pane_id）：
   ---
-  pane: w2:p3                            # 或 role: e500（兩者都給時以 pane 為準）
-  role: e500                             # codex/cbr/review · pi/a16 · opencode/e500/pm/backend · qwen/fe/ui · kilo/de1050/qa · agy/image
+  pane: w2:p2                            # 或 role: backend（兩者都給時以 pane 為準）
+  role: backend                          # codex · backend/pm · fe/ui · qa/test · assistant/local/docs（見下方角色映射）
   files: [bible-site/admin/admin.js]     # 該 agent 唯一准改的檔案，也是「檔案不重疊才平行」的依據
   depends: [108-admin-server-zone-art]   # 必須已通過的任務 id（檔名主檔）
   checks:                                # 從專案根執行，全部 exit 0 才算通過
@@ -29,11 +29,19 @@
 
 這支腳本本身只寫上面那兩個路徑；它不 commit、不 push、不部署。需要用到的只有標準函式庫＋PyYAML。
 herdr 的 `agent wait` 逾時時離開碼仍是 0，差別在 JSON 裡的 error.code，所以狀態一律從 JSON 讀。
-已知手動 pane：w2:p4 是 CodeBuddy（Herdr 尚未識別 agent），w2:p8 是 Claude（總PM，負責統籌與發佈）。
-w2:p4 不加 `pane run` 自動派工分支：Herdr pane list 的 agent 為空、agent_status 恆為 unknown，
-無法透過 `herdr agent wait` 偵測完成或 blocked 審批狀態；在互動式 TUI 派工也有競態風險，因此維持手動派發。
-實作上 MANUAL_PANES 就是這條結論的落點：`run` 遇到表裡的 pane 直接回報「這個 pane 只手動派發」（不送 prompt、不重試），
-`prompt` 仍允許人工指定但會先提醒無法可靠判斷完成；`status` 則顯示這段說明而不是一句「不在團隊映射」。
+角色映射（2026-11-14，對應 bible-site/AGENT-ROLES.md 的 tab1～tab5）：
+  w2:p1 codex/cbr/review              PM／架構／最終驗收
+  w2:p2 backend/backend_developer/pm  後端與資料工程（pm 保留舊「後端 PM」語意；總 PM 請用 codex）
+  w2:p5 fe/ui/frontend                主力實作與前端整合
+  w2:pC qa/test                       測試與獨立 QA
+  w2:pD assistant/local/docs          地端工程助理
+舊機器別名（e500/opencode→p2、qwen→p5、kilo/de1050→pC、pi/a16/deepseek→pD）只是相容別名，
+不再導向已移除的 w2:p3/p4/p6/p7。pane ID 視為 opaque、大小寫敏感（w2:pC 不會被改成 w2:pc）；
+短 ID 只在同一個 workspace 展開（pC → w2:pC）。
+
+送出前一律以 live `pane list` 核對：pane 不在 inventory、agent 空白、agent_status 空白／unknown／blocked
+都拒絕送出，不把 unknown 當成完成。tab2～tab5 若 Herdr 認不到 agent，`run` 會回報「請人工派發」，
+不新增 `pane run` 自動輸入分支。MANUAL_PANES 保留給未來明確硬編的手動 pane；目前由 live inventory 動態判定。
 離開碼：0 全部通過／1 有任務未通過／2 前置檢查失敗（找不到 herdr、任務檔或 pane）／3 目標 pane 卡在 blocked／4 等待逾時。
 """
 import argparse, concurrent.futures as cf, datetime, glob, hashlib, json, os, re, shutil, subprocess, sys, threading, time
@@ -53,15 +61,23 @@ ACTIVITY_WINDOW_S = 30                                              # 送出後�
 MIN_POLL_S = 0.5                                                    # herdr 立刻回傳時的最短輪詢間隔（別把 CLI 打爆）
 
 # ---------------------------------------------------------------- 團隊編制
+# 固定角色以 AGENT-ROLES.md 為準；pane ID 大小寫敏感，這裡保留原樣。
 TEAM = [
-    {"pane": "w2:p1", "duty": "架構與最終審查", "roles": ["codex", "cbr", "review"]},
-    {"pane": "w2:p2", "duty": "地端快速單檔開發", "roles": ["pi", "a16"]},
-    {"pane": "w2:p3", "duty": "主力全端／後端開發", "roles": ["opencode", "e500", "pm", "backend"]},
-    {"pane": "w2:p5", "duty": "前端 HTML/CSS/JS 主力", "roles": ["qwen", "fe", "ui"]},
-    {"pane": "w2:p6", "duty": "PM 調度／前端與生圖", "roles": ["agy", "image"]},
-    {"pane": "w2:p7", "duty": "腳本管理員與測試執行", "roles": ["kilo", "de1050", "qa"]},
+    {"pane": "w2:p1", "duty": "PM／架構／最終驗收", "roles": ["codex", "cbr", "review"]},
+    {"pane": "w2:p2", "duty": "後端與資料工程", "roles": ["backend", "backend_developer", "pm"]},
+    {"pane": "w2:p5", "duty": "主力實作與前端整合", "roles": ["fe", "ui", "frontend"]},
+    {"pane": "w2:pC", "duty": "測試與獨立 QA", "roles": ["qa", "test"]},
+    {"pane": "w2:pD", "duty": "地端工程助理", "roles": ["assistant", "local", "docs"]},
 ]
-ROLE_TO_PANE = {r: m["pane"] for m in TEAM for r in m["roles"]}
+# 舊機器別名只做相容，全部導向目前存在的 pane；不再指向已移除的 p3/p4/p6/p7。
+COMPAT_ALIASES = {
+    "e500": "w2:p2", "opencode": "w2:p2",
+    "qwen": "w2:p5",
+    "kilo": "w2:pC", "de1050": "w2:pC",
+    "pi": "w2:pD", "a16": "w2:pD", "deepseek": "w2:pD",
+}
+ROLE_TO_PANE = {r.lower(): m["pane"] for m in TEAM for r in m["roles"]}
+ROLE_TO_PANE.update(COMPAT_ALIASES)
 PANE_DUTY = {m["pane"]: m["duty"] for m in TEAM}
 PANE_ROLES = {m["pane"]: m["roles"] for m in TEAM}
 
@@ -70,10 +86,7 @@ IGNORE = ["bible-site/logs/", "bible-site/.verify/", "bible-site/output/", "bibl
 IGNORE_FILES = {"bible-site/DISPATCH-REPORT.md", "bible-site/PROGRESS.md", "bible-site/admin/.token", "bible-site/TEST-REPORT.md", "bible-site/FAILS.md"}
 EXTRA_IGNORE = set()                                                # run --ignore 加進來的（同一棵樹上有別的 agent 時很有用）
 
-MANUAL_PANES = {
-    "w2:p4": "CodeBuddy（Herdr 未識別 agent，手動派發）",
-    "w2:p8": "Claude（總PM，負責統籌與發佈）"
-}
+MANUAL_PANES = {}                                                   # 目前不硬編；由 live inventory 動態判定
 
 STATE_LOCK = threading.Lock()
 RUN_LOCK = threading.Lock()
@@ -161,16 +174,62 @@ def roles_for_pane(pane):
 
 
 def resolve(target):
-    """pane_id（w2:p3，也允許只寫 p3）或角色名 → pane_id。"""
-    t = str(target).strip().lower().replace(" ", "")
+    """pane_id（w2:p2，也允許只寫 p2）或角色名 → pane_id。
+       pane ID 是 opaque、大小寫敏感：w2:pC 不得被正規化成 w2:pc；角色名才做 case-insensitive。"""
+    t = str(target).strip().replace(" ", "")
     ws = os.environ.get("HERDR_DEFAULT_WORKSPACE", "w2")
-    if re.fullmatch(r"w\d+:p\d+", t):
+    if re.fullmatch(r"w\d+:p[0-9A-Za-z_-]+", t):
         return t
-    if re.fullmatch(r"p\d+", t):
+    if re.fullmatch(r"p[0-9A-Za-z_-]+", t):
         return ws + ":" + t
-    if t in ROLE_TO_PANE:
-        return ROLE_TO_PANE[t]
-    raise SystemExit(f"不認得的目標：{target}（可以用 pane_id 如 w2:p3，或角色：" + "、".join(sorted(ROLE_TO_PANE)) + "）")
+    key = t.lower()
+    if key in ROLE_TO_PANE:
+        return ROLE_TO_PANE[key]
+    raise SystemExit(f"不認得的目標：{target}（可以用 pane_id 如 w2:p2，或角色：" + "、".join(sorted(ROLE_TO_PANE)) + "）")
+
+
+def live_inventory(pane):
+    """從 live pane list 取這個 pane 的資料；pane 不在 inventory 時回 None。"""
+    workspace = pane.split(":", 1)[0] if ":" in pane else os.environ.get("HERDR_DEFAULT_WORKSPACE", "w2")
+    for entry in pane_list(workspace):
+        if entry.get("pane_id") == pane:
+            return entry
+    return None
+
+
+def manual_reason(entry):
+    """live inventory 顯示這個 pane 無法自動追蹤時的原因；可自動派工回空字串。"""
+    if not entry:
+        return "pane 不在 live inventory（可能已移除）"
+    agent = (entry.get("agent") or "").strip()
+    state = (entry.get("agent_status") or "").strip()
+    if not agent:
+        return "Herdr 未識別 agent（agent 為空），僅能手動派發"
+    if state in ("", "unknown"):
+        return "agent 狀態為 unknown，無法確認完成，僅能手動派發"
+    if state == "blocked":
+        return "agent 卡在審批／提問，需人工處理"
+    return ""
+
+
+def require_dispatchable(pane):
+    """送出前檢查 live inventory；回 (entry, None) 或 (entry_or_None, 拒絕原因)。
+       不在 inventory、agent_not_found、空 agent、unknown、blocked 一律拒絕，不送任何輸入。"""
+    entry = live_inventory(pane)
+    if entry is None:
+        return None, "pane 不在 live inventory（可能已移除）"
+    reason = manual_reason(entry)
+    if reason:
+        return entry, reason
+    info = agent_get(pane)
+    if not info.get("pane_id"):
+        return entry, "agent get 回 agent_not_found（Herdr 無法追蹤這個 pane），僅能手動派發"
+    if (info.get("agent_status") or "") in ("", "unknown"):
+        return entry, "agent get 的狀態為 unknown，無法確認完成，僅能手動派發"
+    if info.get("agent_status") == "blocked":
+        return entry, "agent 卡在審批／提問，需人工處理"
+    return entry, None
+
 
 
 def last_result(pane):
@@ -192,11 +251,12 @@ def cmd_status(workspace):
         roles = "、".join(roles_for_pane(pid))
         agent, state = p.get("agent") or "-", p.get("agent_status") or "-"
         duty = PANE_DUTY.get(pid, "")
+        reason = manual_reason(p)
         flag = ""
-        if pid in MANUAL_PANES:
-            flag = f"｜{MANUAL_PANES[pid]}"
+        if reason:
+            flag = f"｜{reason}"
         elif not roles:
-            flag = "｜不在團隊映射（如需派工請先加進 TEAM 或 MANUAL_PANES）"
+            flag = "｜不在團隊映射（如需派工請先加進 TEAM）"
         log(f"  {pid}  agent={agent:10} status={state:8} 角色={roles or '-':26} 職務={duty or '-':20} "
             f"最後={last_result(pid)}{flag}")
         if state == "blocked":
@@ -265,6 +325,8 @@ def wait_for(pane, timeout_ms):
 def settle(pane, budget_min, prefix=""):
     """送出後等這個 pane 真的動過、再回到 idle/done。回傳 idle／done／blocked／timeout／quiet。"""
     a0 = agent_get(pane)
+    if not a0.get("pane_id"):
+        return "unknown"                                   # 送出後 agent 消失：不可當完成
     if (a0.get("agent_status") or "") == "blocked":
         return "blocked"
     seq0 = a0.get("state_change_seq")
@@ -280,8 +342,10 @@ def settle(pane, budget_min, prefix=""):
             return "blocked"
         if (seq is not None and seq != seq0) or st == "working":
             moved = True
-        if moved and st in ("idle", "done", "unknown"):
+        if moved and st in ("idle", "done"):
             return st
+        if moved and st == "unknown":
+            return "unknown"                                   # 曾 working 後變 unknown：不能當完成
         if not moved and time.time() - started > ACTIVITY_WINDOW_S:
             if prefix:
                 log(f"{prefix} {ACTIVITY_WINDOW_S} 秒內沒有觀察到狀態變化，視為 agent 沒有開始工作")
@@ -322,7 +386,7 @@ def load_task(path):
     meta = yaml.safe_load(m.group(1)) or {}
     target = meta.get("pane") or meta.get("role")
     if not target:
-        raise SystemExit(f"{os.path.basename(path)}: front matter 要有 pane（例 w2:p3）或 role（team 內的角色）")
+        raise SystemExit(f"{os.path.basename(path)}: front matter 要有 pane（例 w2:p2）或 role（team 內的角色）")
     pane = resolve(target)
     return {"id": os.path.splitext(os.path.basename(path))[0],
             "path": os.path.abspath(path),
@@ -367,22 +431,17 @@ def attempt(task, failure=None, dry=False, baseline=None):
         log(f"--- {task['id']} → {pane}（{task['role']}）\n{dispatch_message(task, failure)}\n")
         return {"pane": pane, "verdict": "dry-run", "seconds": 0, "changed": [], "checks": [], "agent_state": "-"}, True
 
-    info = agent_get(pane)
-    if not info.get("pane_id"):
-        # MANUAL_PANES 裡的 w2:p4 之類：herdr 回 agent_not_found，agent wait 也等不到 idle/done/blocked，
-        # 依任務 112 的評估結論不假裝能自動派工；其他查無 agent 的 pane 仍是原本的訊息。
-        if pane in MANUAL_PANES:
-            return {"pane": pane, "verdict": "這個 pane 只手動派發", "seconds": 0, "changed": [], "checks": [],
-                    "agent_state": "unknown",
-                    "error": f"{pane} 是 {MANUAL_PANES[pane]}：Herdr 認不到它的 agent（agent get 回 agent_not_found，"
-                             f"pane list 的 agent_status 恆為 unknown），`herdr agent wait` 等不到完成也等不到 blocked。"
-                             f"請人工把任務檔 {task['path']} 的內容貼進該 pane；這支腳本不自動派工，也不重試。"}, False
-        return {"pane": pane, "verdict": "找不到 agent", "seconds": 0, "changed": [], "checks": [],
-                "agent_state": "-", "error": f"{pane} 上沒有可派工的 agent（用 status 檢視線上 pane）"}, False
-    if info.get("agent_status") == "blocked":
-        return {"pane": pane, "verdict": "pane 卡在審批", "seconds": 0, "changed": [], "checks": [],
-                "agent_state": "blocked",
-                "error": f"{pane} 目前是 blocked，未送出任何輸入。畫面尾端：\n{pane_read(pane, 20)}"}, False
+    entry, reason = require_dispatchable(pane)
+    if reason:
+        if entry and entry.get("agent_status") == "blocked":
+            return {"pane": pane, "verdict": "pane 卡在審批", "seconds": 0, "changed": [], "checks": [],
+                    "agent_state": "blocked",
+                    "error": f"{pane} 目前是 blocked，未送出任何輸入。畫面尾端：\n{pane_read(pane, 20)}"}, False
+        verdict = "pane 不在 live inventory" if entry is None else "這個 pane 只手動派發"
+        return {"pane": pane, "verdict": verdict, "seconds": 0, "changed": [], "checks": [],
+                "agent_state": (entry or {}).get("agent_status") or "unknown",
+                "error": f"{pane}：{reason}。未送出任何輸入；請人工把任務檔 {task['path']} 的內容貼進該 pane，"
+                         f"或由 PM 重新確認 pane ID。"}, False
 
     t0 = time.time()
     with pane_lock(pane):
@@ -425,6 +484,11 @@ def attempt(task, failure=None, dry=False, baseline=None):
     if state == "timeout":
         a["verdict"], a["error"] = "等待逾時", f"{task['timeout_min']} 分鐘內沒等到 idle/done（目前 {agent_get(pane).get('agent_status')}）"
         return a, False
+    if state == "unknown":
+        a["verdict"] = "無法確認完成"
+        a["error"] = ("agent 曾進入 working 後變成 unknown，Herdr 無法確認是否完成；"
+                      "不以檔案變化或 checks 當成通過，請人工到該 pane 核對。")
+        return a, False
     if state == "quiet":
         a["error"] = f"送出後 {ACTIVITY_WINDOW_S} 秒內沒觀察到 agent 開始工作，仍依檔案變化與 checks 判定"
     if out_scope:
@@ -455,7 +519,8 @@ def run_task(task, dry=False):
             retried = True
             log(f"[{now()[11:]}] {task['id']}：{a['verdict']}，帶著錯誤說明重試一次")
             continue
-        if a["verdict"] in ("pane 卡在審批", "找不到 agent", "prompt 未受理", "等待逾時", "這個 pane 只手動派發"):
+        if a["verdict"] in ("pane 卡在審批", "找不到 agent", "pane 不在 live inventory", "prompt 未受理",
+                            "等待逾時", "這個 pane 只手動派發", "無法確認完成"):
             status = a["verdict"]
         break
     result = {"status": status, "at": now(), "pane": task["pane"], "task": task["id"], "role": task["role"],
@@ -559,7 +624,7 @@ def run_many(paths, dry=False):
                         log(f"提醒：{t['id']} 的依賴 {d} 沒有通過紀錄（不在本批、state.json 也沒有），照常派工")
                 if t["pane"] in busy_panes or (set(t["files"]) & busy_files):
                     continue                                          # 同一 pane 一次一個；檔案重疊不平行
-                log(f"[{now()[11:]}] 開始 {t['id']} → {t['pane']}（{'、'.join(roles_for_pane(t['pane'])) or t['role'] or MANUAL_PANES.get(t['pane'], '不在團隊映射')}）")
+                log(f"[{now()[11:]}] 開始 {t['id']} → {t['pane']}（{'、'.join(roles_for_pane(t['pane'])) or t['role'] or PANE_DUTY.get(t['pane'], '不在團隊映射')}）")
                 running[t["id"]] = pool.submit(run_task, t, dry)
                 busy_panes.add(t["pane"])
                 busy_files |= set(t["files"])
@@ -576,30 +641,27 @@ def run_many(paths, dry=False):
 # ---------------------------------------------------------------- 子命令
 def cmd_prompt(target, text, wait, timeout_min, lines):
     pane = resolve(target)
-    info = agent_get(pane)
-    manual = MANUAL_PANES.get(pane, "")
-    if not info.get("pane_id"):
-        if manual:      # w2:p4 這類：herdr 本來就認不到它的 agent，不是腳本壞了
-            log(f"target : {pane}  （{manual}）")
-            log("Herdr 對這個 pane 回 agent_not_found（沒有 agent 狀態可追蹤），所以不代送文字、也不做完成偵測；"
-                "請人工在該 TUI 貼上下來的指令，或改用 TEAM 裡的 pane。")
-            return 2
-        log(f"{pane} 上查無 agent。目前線上 agent：")
-        data, _, _ = herdr_out(["agent", "list"])
-        for a in ((data or {}).get("result") or {}).get("agents", []):
-            log(f"  {a.get('pane_id'):8} {a.get('name') or a.get('agent') or '-':12} {a.get('agent_status'):9} {a.get('cwd')}")
+    entry, reason = require_dispatchable(pane)
+    if reason:
+        if entry and entry.get("agent_status") == "blocked":
+            log(f"target : {pane}")
+            log("pane 卡在審批／提問對話，未送出任何輸入。畫面尾端：")
+            for line in pane_read(pane, 20).splitlines():
+                log("  | " + line)
+            return 3
+        log(f"target : {pane}")
+        log(f"拒絕   : {reason}。未送出任何輸入。")
+        if entry is None:
+            log("目前線上 agent：")
+            data, _, _ = herdr_out(["agent", "list"])
+            for a in ((data or {}).get("result") or {}).get("agents", []):
+                log(f"  {a.get('pane_id'):8} {a.get('name') or a.get('agent') or '-':12} {a.get('agent_status'):9} {a.get('cwd')}")
+        else:
+            log("Herdr 無法可靠追蹤這個 pane 的完成或 blocked 狀態；請人工在該 TUI 貼上指令。")
         return 2
-    log(f"target : {pane}  agent={info.get('agent') or '-'}  status={info.get('agent_status') or '-'}  "
-        f"cwd={info.get('cwd') or '-'}")
-    log(f"角色   : {'、'.join(roles_for_pane(pane)) or (manual or '（不在團隊映射）')}  職務：{PANE_DUTY.get(pane, '-')}")
-    if manual:
-        log(f"提醒   : {pane} 在手動／總PM 編制（{manual}），不在 TEAM 的角色表裡；"
-            f"herdr 追蹤得到它的狀態，所以任務檔直接指定這個 pane 時仍會派工，但完成與否請自己到該 pane 核對。")
-    if info.get("agent_status") == "blocked":
-        log("pane 卡在審批／提問對話，未送出任何輸入。畫面尾端：")
-        for line in pane_read(pane, 20).splitlines():
-            log("  | " + line)
-        return 3
+    log(f"target : {pane}  agent={entry.get('agent') or '-'}  status={entry.get('agent_status') or '-'}  "
+        f"cwd={entry.get('cwd') or '-'}")
+    log(f"角色   : {'、'.join(roles_for_pane(pane)) or '（不在團隊映射）'}  職務：{PANE_DUTY.get(pane, '-')}")
     if len(text.encode("utf-8")) > PROMPT_INLINE_MAX:
         pf = write_text_file(f"manual-{pane.replace(':', '_')}-{datetime.datetime.now():%H%M%S}.md", text)
         log(f"指令超過 {PROMPT_INLINE_MAX} bytes，改送檔案：{pf}")
@@ -630,7 +692,7 @@ def main():
     s.add_argument("--workspace", default=os.environ.get("HERDR_DEFAULT_WORKSPACE", "w2"))
 
     p = sub.add_parser("prompt", help="直接對某個 pane 或角色送 prompt")
-    p.add_argument("target", help="pane_id（w2:p3）或角色名（e500）")
+    p.add_argument("target", help="pane_id（w2:p2）或角色名（backend）")
     p.add_argument("text", help="指令文字")
     p.add_argument("--wait", action="store_true", help="等它回到 idle/done，並印出回覆摘要")
     p.add_argument("--timeout-min", type=float, default=20, dest="timeout_min")

@@ -137,32 +137,208 @@
       gap: 10px;
       margin-bottom: 14px;
     }
-    #home-week-settings .week-day {
-      display: grid;
-      grid-template-columns: 5.5em 1fr auto;
-      gap: 12px;
-      align-items: center;
+    #home-week-settings .week-card {
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 10px;
+      background: var(--bg-surface);
+      overflow: hidden;
     }
-    #home-week-settings .week-day .dow {
+    #home-week-settings .week-summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+    }
+    #home-week-settings .week-summary::-webkit-details-marker {
+      display: none;
+    }
+    #home-week-settings .week-summary::before {
+      content: "▸";
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      transition: transform 0.15s ease;
+    }
+    #home-week-settings .week-card[open] .week-summary::before {
+      transform: rotate(90deg);
+    }
+    #home-week-settings .week-summary:focus-visible {
+      outline: 2px solid var(--accent-light);
+      outline-offset: -2px;
+    }
+    #home-week-settings .week-summary .dow {
+      flex: none;
       font-weight: 700;
     }
-    #home-week-settings .week-day .ref {
+    #home-week-settings .week-summary .week-sum-theme {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-weight: 500;
       color: var(--text-muted);
-      font-size: 0.85rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    #home-week-settings .week-day img {
-      display: block;
-      width: 96px;
-      height: 54px;
-      object-fit: cover;
-      border-radius: 6px;
+    #home-week-settings .week-dirty {
+      flex: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--warning);
+      background: var(--warning-bg);
+      border: 1px solid var(--warning);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    #home-week-settings .week-dirty[hidden] {
+      display: none;
+    }
+    #home-week-settings .week-body {
+      padding: 4px 12px 14px;
+      border-top: 1px solid var(--border);
+    }
+    #home-week-settings .week-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+    #home-week-settings .week-field-wide {
+      grid-column: 1 / -1;
+    }
+    #home-week-settings .home-field {
+      min-width: 0;
+    }
+    #home-week-settings input[type="text"],
+    #home-week-settings input[type="file"],
+    #home-week-settings select {
+      font: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 44px;
+      padding: 8px 10px;
       background: var(--bg-primary);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    #home-week-settings input[type="file"] {
+      padding: 10px;
+      cursor: pointer;
+    }
+    #home-week-settings input:focus,
+    #home-week-settings select:focus {
+      outline: 2px solid var(--accent-light);
+      outline-offset: 2px;
+    }
+    #home-week-settings [aria-invalid="true"] {
+      border-color: var(--error);
+    }
+    #home-week-settings .week-color-row {
+      display: flex;
+      gap: 8px;
+      min-width: 0;
+    }
+    #home-week-settings input[type="color"] {
+      flex: none;
+      width: 52px;
+      min-height: 44px;
+      padding: 4px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #home-week-settings .week-focus-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 10px;
+      align-items: center;
+    }
+    #home-week-settings input[type="range"] {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      accent-color: var(--accent);
+      margin: 0;
+    }
+    #home-week-settings .week-focus-row output {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-width: 3.5em;
+      text-align: right;
+    }
+    #home-week-settings .week-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    #home-week-settings .week-error {
+      font-size: 0.8rem;
+      color: var(--error);
+      line-height: 1.5;
+    }
+    #home-week-settings .week-error[hidden] {
+      display: none;
+    }
+    #home-week-settings .week-verse {
+      margin-bottom: 12px;
+    }
+    #home-week-settings .week-preview {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 16 / 9;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #06140f;
+    }
+    #home-week-settings .week-preview img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 35% 50%;
+    }
+    #home-week-settings .week-preview img[hidden] {
+      display: none;
+    }
+    #home-week-settings .week-preview-caption {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 18px 14px 10px;
+      background: linear-gradient(to bottom, rgba(6, 20, 15, 0), rgba(6, 20, 15, 0.82));
+      line-height: 1.7;
+    }
+    #home-week-settings .week-preview-ref {
+      display: block;
+      font-size: 0.75rem;
+      opacity: 0.85;
+      margin-bottom: 2px;
+    }
+    #home-week-settings .week-preview-text {
+      display: block;
+      font-size: 0.95rem;
     }
     #home-week-settings .week-empty {
       color: var(--text-muted);
+    }
+    @media (max-width: 600px) {
+      #home-week-settings .week-summary {
+        flex-wrap: wrap;
+      }
+      #home-week-settings .week-fields {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
   </style>
 </head>
@@ -366,7 +542,7 @@
         <span style="font-size:0.8rem; color:var(--text-muted);">首頁依台灣時間的星期幾換封面圖與經文出處</span>
       </div>
 
-      <p class="home-note">開啟後，入口首頁會用下面七筆中「今天星期幾」那一筆的封面圖、主題與經文座標；經文文字一律現讀 <code>data／*.json</code>，設定檔只存書卷、章、節。關閉時首頁退回上面『主頁設定』的封面。逐日編輯主題、經文與換圖這一輪尚未提供，改完記得執行發佈。</p>
+      <p class="home-note">開啟後，入口首頁會用下面七筆中「今天星期幾」那一筆的封面圖、主題與經文座標；經文文字一律現讀 <code>data／*.json</code>，設定檔只存書卷、章、節與光色。七天的修改都先留在這個頁面的草稿裡，按「儲存整週」才會一次寫回；關閉時首頁退回上面『主頁設定』的封面。</p>
 
       <label class="week-switch" for="home-week-enabled">
         <input type="checkbox" id="home-week-enabled">
@@ -376,10 +552,76 @@
       <div class="week-days" id="home-week-days"></div>
 
       <div class="home-actions-row">
+        <button type="button" class="btn btn-primary" id="home-week-save">儲存整週</button>
         <button type="button" class="btn btn-outline" id="home-week-reload">重新載入</button>
       </div>
 
       <p class="home-status" id="home-week-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 主區塊：每日禱讀上架狀態（唯讀） -->
+    <section class="card" id="devotional-status" aria-labelledby="devotional-status-title">
+      <div class="card-header">
+        <h2 id="devotional-status-title">📖 每日禱讀上架狀態</h2>
+        <button type="button" class="btn btn-outline" id="devotional-status-refresh">重新整理</button>
+      </div>
+
+      <p class="home-note">唯讀摘要：正式站與本機匯出分開顯示；「已排程」只代表時間已安排，不代表未來內容已發布。此卡片不提供修改、核准、發布或延長截止日。</p>
+
+      <p class="dev-status-live" id="devotional-status-live" role="status" aria-live="polite" aria-atomic="true">
+        <span class="dev-status-badge" id="dev-status-release">載入中</span>
+        <span id="devotional-status-observed">正在取得上架狀態…</span>
+      </p>
+
+      <div class="dev-status-groups">
+        <section class="dev-status-group" aria-labelledby="dev-status-public-title">
+          <h3 id="dev-status-public-title">正式站公開</h3>
+          <dl class="dev-status-list">
+            <div><dt>資料狀態</dt><dd class="dev-status-value" id="dev-status-public-state">未知</dd></div>
+            <div><dt>公開篇數</dt><dd id="dev-status-public-count">未知</dd></div>
+            <div><dt>最新日期</dt><dd id="dev-status-public-latest">未知</dd></div>
+          </dl>
+          <p class="dev-status-detail" id="dev-status-public-detail"></p>
+        </section>
+
+        <section class="dev-status-group" aria-labelledby="dev-status-local-title">
+          <h3 id="dev-status-local-title">本機匯出</h3>
+          <dl class="dev-status-list">
+            <div><dt>資料狀態</dt><dd class="dev-status-value" id="dev-status-local-state">未知</dd></div>
+            <div><dt>匯出篇數</dt><dd id="dev-status-local-count">未知</dd></div>
+            <div><dt>最新日期</dt><dd id="dev-status-local-latest">未知</dd></div>
+          </dl>
+          <p class="dev-status-detail" id="dev-status-local-detail"></p>
+        </section>
+
+        <section class="dev-status-group" aria-labelledby="dev-status-schedule-title">
+          <h3 id="dev-status-schedule-title">發佈排程</h3>
+          <dl class="dev-status-list">
+            <div><dt>資料狀態</dt><dd class="dev-status-value" id="dev-status-schedule-state">未知</dd></div>
+            <div><dt>啟用</dt><dd id="dev-status-schedule-enabled">未知</dd></div>
+            <div><dt>Timer 狀態</dt><dd id="dev-status-schedule-active">未知</dd></div>
+            <div><dt>下一次</dt><dd id="dev-status-schedule-next">未知</dd></div>
+            <div><dt>截止日</dt><dd id="dev-status-schedule-cutoff">未知</dd></div>
+          </dl>
+          <p class="dev-status-detail" id="dev-status-schedule-detail"></p>
+        </section>
+
+        <section class="dev-status-group" aria-labelledby="dev-status-last-title">
+          <h3 id="dev-status-last-title">最後執行</h3>
+          <dl class="dev-status-list">
+            <div><dt>結果</dt><dd class="dev-status-value" id="dev-status-last-state">未知</dd></div>
+            <div><dt>開始</dt><dd id="dev-status-last-started">未知</dd></div>
+            <div><dt>結束</dt><dd id="dev-status-last-finished">未知</dd></div>
+            <div><dt>結束碼</dt><dd id="dev-status-last-exit">未知</dd></div>
+          </dl>
+          <p class="dev-status-detail" id="dev-status-last-detail"></p>
+        </section>
+      </div>
+
+      <div class="dev-status-warnings" id="dev-status-warnings" hidden>
+        <h3>提醒</h3>
+        <ul id="dev-status-warning-list"></ul>
+      </div>
     </section>
 
     <!-- 主區塊：前台音樂 -->

@@ -316,6 +316,24 @@ def homeadmin():
                   len(toggles) == 2 and all(t["http"] == 200 and t["file"] == t["enabled"] for t in toggles), str(toggles))
         else:
             check("homeadmin：POST /api/home-week 能切換 enabled 並寫回資料檔", False, "GET /api/home-week 沒有可用的七天，無法驗證寫入")
+        if len(days) == 7:
+            edited = [dict(e) for e in days]
+            first_ch = luk["chapters"][0]
+            edited[0].update(theme="編輯測試", book="luk", ch=first_ch["ch"], v=first_ch["verses"][0]["v"],
+                             image=names["png"], alt="日光照亮山谷的測試圖片", light="#ffffff", focus="100% 0%")
+            st, _, _ = post("/api/home-week", {"enabled": False, "days": edited})
+            gst, _, got = req2(base + "/api/home-week")
+            read_back = json.loads(got) if gst == 200 else {}
+            saved = json.load(open(wkf, encoding="utf-8"))
+            check("homeadmin：一天全部欄位可編輯並整週儲存，另外六天與 enabled 完整保留",
+                  st == 200 and read_back.get("days") == edited and read_back.get("enabled") is False
+                  and saved == {"enabled": False, "days": edited}, f"HTTP {st}/{gst}")
+            edited[0].pop("focus")
+            st, _, _ = post("/api/home-week", {"enabled": True, "days": edited})
+            saved = json.load(open(wkf, encoding="utf-8"))
+            check("homeadmin：未指定 focus 保持省略，其他六天裁切設定不變",
+                  st == 200 and saved.get("days") == edited, f"HTTP {st}")
+            post("/api/home-week", {"enabled": True, "days": days})
         wk_saved = md5(wkf)
         wk_bad = {}
         if len(days) == 7:
@@ -331,6 +349,11 @@ def homeadmin():
             wk_bad = {"書卷不存在": mut(0, book="xyz"), "章不存在": mut(0, ch=99), "節不存在": mut(0, v=999),
                       "圖檔不存在": mut(0, image="assets/cover-nope.jpg"), "圖檔跳出 assets/": mut(0, image="assets/../../data/luk.json"),
                       "light 不是 #rrggbb": mut(0, light="#12"), "light 是顏色名字": mut(0, light="red"),
+                      "light 過暗": mut(0, light="#000000"), "light 亮度不足": mut(0, light="#bbbbbb"),
+                      "focus 超過100": mut(0, focus="101% 50%"), "focus 負數": mut(0, focus="-1% 50%"),
+                      "focus 非整數": mut(0, focus="35.5% 50%"), "focus 非字串": mut(0, focus=[35, 50]),
+                      "星期重複": mut(0, day=2), "星期是布林": mut(0, day=True),
+                      "章是布林": mut(0, ch=True), "節是布林": mut(0, v=True),
                       "缺 theme": drop(0, "theme"), "缺 light": drop(0, "light"), "缺 alt": drop(0, "alt"),
                       "多出 text 欄位": mut(0, text="測試用文字"), "多出別欄位": mut(0, extra="x"),
                       "days 不是陣列": {"enabled": True, "days": {}}, "days 只有六筆": {"enabled": True, "days": [dict(e) for e in days[:6]]},

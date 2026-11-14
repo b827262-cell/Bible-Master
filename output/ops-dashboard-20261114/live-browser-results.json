@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Live API 200 and expected schema",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Actual source differs honestly",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Actual installed timer",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "New Python module remains private",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Write token protection retained",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Actual UI matches API",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "Live UI no JavaScript exceptions",
+    "ok": true,
+    "detail": "[]"
+  }
+]

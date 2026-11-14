@@ -1,0 +1,23 @@
+[
+  {
+    "mutation": "cached_false",
+    "test": "Progress.test_valid_current_site",
+    "exit": 1,
+    "detected": true,
+    "output_tail": "FAIL: test_valid_current_site (__main__.Progress.test_valid_current_site)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/ops-mutation-6ryy8std/bible-site/tests/ops_dashboard_checks.py\", line 139, in test_valid_current_site\n    code,text=self.run_case('valid');self.assertEqual(code,0);self.assertNotIn('mark.json',text)\n                                     ~~~~~~~~~~~~~~~~^^^^^^^^\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 1 test in 0.007s\n\nFAILED (failures=1)"
+  },
+  {
+    "mutation": "hardcoded_cutoff",
+    "test": "Status.test_cutoff_changes_with_loaded_calendar",
+    "exit": 1,
+    "detected": true,
+    "output_tail": "    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '2026-11-25' != '2026-12-20'\n- 2026-11-25\n?       ^  ^\n+ 2026-12-20\n?       ^  ^\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nFAILED (failures=1)"
+  },
+  {
+    "mutation": "unknown_pass",
+    "test": "Routes.test_unknown_completion_never_runs_checks_or_passes",
+    "exit": 1,
+    "detected": true,
+    "output_tail": "FAIL: test_unknown_completion_never_runs_checks_or_passes (__main__.Routes.test_unknown_completion_never_runs_checks_or_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/ops-mutation-m_85xs6t/bible-site/tests/ops_dashboard_checks.py\", line 90, in test_unknown_completion_never_runs_checks_or_passes\n    self.assertFalse(ok)\n    ~~~~~~~~~~~~~~~~^^^^\nAssertionError: True is not false\n\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nFAILED (failures=1)"
+  }
+]

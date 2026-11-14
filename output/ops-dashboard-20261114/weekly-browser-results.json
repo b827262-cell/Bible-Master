@@ -1,0 +1,107 @@
+[
+  {
+    "name": "七張編輯卡、星期一預設展開",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "未儲存 focus 的星期日顯示 35/50",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "320px 無水平溢出",
+    "ok": true,
+    "detail": "{\"width\":320,\"scroll\":320,\"section\":278,\"client\":278}"
+  },
+  {
+    "name": "375px 無水平溢出",
+    "ok": true,
+    "detail": "{\"width\":375,\"scroll\":375,\"section\":333,\"client\":333}"
+  },
+  {
+    "name": "768px 無水平溢出",
+    "ok": true,
+    "detail": "{\"width\":768,\"scroll\":768,\"section\":726,\"client\":726}"
+  },
+  {
+    "name": "1440px 無水平溢出",
+    "ok": true,
+    "detail": "{\"width\":1440,\"scroll\":1440,\"section\":1198,\"client\":1198}"
+  },
+  {
+    "name": "修改欄位及開關只改草稿",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "草稿啟用離頁提示",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "取消重新載入保留草稿",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "偏暗光色標為錯誤且不寫入",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "儲存失敗保留草稿",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "重新載入失敗保留草稿並禁止儲存",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "重新載入成功清除草稿",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "經文預覽與 JSON 原文一致",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "小圖可上傳並提示尺寸，仍只改草稿",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "構圖與光色預覽同步",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "儲存中鎖欄位且防重複提交",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "一天儲存成功，其餘六天及省略 focus 不變",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "儲存後離頁提示解除",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "重新整理後設定保留",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "頁面沒有 JS 例外",
+    "ok": true,
+    "detail": "[]"
+  }
+]

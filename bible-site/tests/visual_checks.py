@@ -15,6 +15,7 @@ Opens each page in tests/visual_probe.html (headless Chrome, light and dark colo
       home and devotional, light and dark.
 Usage: python3 bible-site/tests/visual_checks.py [p0] [p1] [p2] [--grep REGEX]   (no group: all three)"""
 import functools, html, http.server, json, os, re, socketserver, sys, tempfile, threading, urllib.parse, subprocess
+from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHROME = next((c for c in ("/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/snap/bin/chromium") if os.path.exists(c)), None)
@@ -44,8 +45,10 @@ def top_level_rules(css):
     return n
 
 
-def probe(port, page, dark):
+def probe(port, page, dark, date=""):
     q = "u=" + urllib.parse.quote("../site/" + page, safe="") + "&w=" + ",".join(map(str, WIDTHS))
+    if date:
+        q += "&d=" + urllib.parse.quote(date, safe="")   # 讓探測頁把禱讀頁切到指定日期
     with tempfile.TemporaryDirectory() as profile:
         out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
                               "--virtual-time-budget=15000", f"--user-data-dir={profile}",
@@ -87,6 +90,21 @@ def week_covers():
         return {}
 
 
+def devotional_date():
+    """data/devotional.json 裡「<= 今天（Asia/Taipei）」的最新日期。
+    禱讀頁預設載入今天；今天沒有上架資料時 h2／h3 不會出現，所以量測前先切到實際存在的日期，
+    讓這項檢查不依賴執行當天剛好有內容。日期是 YYYY-MM-DD，字串比較即可。"""
+    try:
+        entries = json.load(open(os.path.join(ROOT, "data", "devotional.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        return ""
+    today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+    dates = [e.get("devotional_date") for e in entries
+             if isinstance(e, dict) and isinstance(e.get("devotional_date"), str)]
+    past = [d for d in dates if d <= today]
+    return max(past) if past else ""
+
+
 def main(groups):
     if not CHROME:
         check("visual checks（headless Chrome）", False, "找不到 Chrome")
@@ -100,7 +118,9 @@ def main(groups):
         dark = {p: probe(port, p, True) for p in PAGES} if "p0" in groups else {}
         heart_light = home_probe(port, "blessing.html", False) if "p2" in groups else {}
         heart_dark = home_probe(port, "blessing.html", True) if "p2" in groups else {}
-        devotional = home_probe(port, "devotional.html", False) if "p2" in groups else {}
+        dev_date = devotional_date() if "p2" in groups else ""
+        # 用 visual_probe 的 ?d= 先把禱讀頁切到資料檔實際存在的日期，再量 h2／h3（不再假設今天有上架）
+        devotional = probe(port, "devotional.html", False, dev_date) if dev_date else {}
         # 第三輪：一週封面抽測星期一／星期四／星期日（home_probe 有 naturalWidth，visual_probe 沒有）
         weekly = {d: home_probe(port, f"home.html?day={d}", False) for d in (1, 4, 7)} if "p2" in groups else {}
         weekly_sizes = {d: probe(port, f"home.html?day={d}", False) for d in (1, 7)} if "p2" in groups else {}
@@ -224,11 +244,12 @@ def main(groups):
                   pp.get("file") == want_pat and "360" in (pp.get("size") or ""), json.dumps(pp, ensure_ascii=False)[:240])
             check(f"{scheme} blessing.html 卡背標題與抽卡按鈕不壓在老鷹身上（都在卡背下半部 65% 以下或卡外）",
                   h.get("eagleOverlap") is False, json.dumps(h.get("eagleDetail"), ensure_ascii=False)[:260])
-        # 第三輪 C：禱讀頁主次要分明——當天標題最大且用明體
-        dh = devotional.get("headingScale") or {}
+        # 第三輪 C：禱讀頁主次要分明——當天標題最大且用明體（量測日期已切到 devotional.json 實際存在的最近一天）
+        dh = (devotional.get(375) or {}).get("headingScale") or {}
         check("devotional.html 當天標題（h2）字級大於段落標題（h3）字級，且當天標題使用明體",
               bool(dh.get("h2Px")) and bool(dh.get("h3Px")) and dh["h2Px"] > dh["h3Px"]
-              and "serif" in (dh.get("h2Font") or "").lower(), json.dumps(dh, ensure_ascii=False)[:280])
+              and "serif" in (dh.get("h2Font") or "").lower(),
+              json.dumps({"date": dev_date, **dh}, ensure_ascii=False)[:280])
         # 第三輪：一週封面的圖片要真的載入、要是那一天的封面、不壓經文，且四個寬度不溢出
         covers = week_covers()
         for d in sorted(weekly):

@@ -26,6 +26,9 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 # 站台根目錄（內含 data/ 與 site/）；可用環境變數覆蓋，測試會指到暫存目錄
 SITE_ROOT = os.path.abspath(os.environ.get("BIBLE_SITE_ROOT") or os.path.join(HERE, ".."))
 PROJECT_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+# 禱讀狀態收集器與 server.py 同目錄；只做唯讀查詢，不寫入任何檔案
+sys.path.insert(0, HERE)
+import devotional_status
 # 後台寫入權杖檔；每次啟動重新產生，可用環境變數覆蓋
 TOKEN_FILE = os.path.abspath(os.environ.get("BIBLE_ADMIN_TOKEN_FILE") or os.path.join(HERE, ".token"))
 
@@ -107,7 +110,11 @@ WEEK_OPTIONAL_FIELDS = ("focus",)
 WEEK_MAX_BODY = 65536
 WEEK_DAYS = (1, 2, 3, 4, 5, 6, 7)
 WEEK_LIGHT_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
-WEEK_FOCUS_RE = re.compile(r"^[0-9]{1,3}% [0-9]{1,3}%$")
+WEEK_FOCUS_RE = re.compile(r"^([0-9]{1,3})% ([0-9]{1,3})%$")
+# 經文光色要能壓在深底上閱讀：相對亮度至少 0.72，且與 #06140f 的對比至少 7:1（sRGB 標準公式）
+WEEK_LIGHT_MIN_LUMINANCE = 0.72
+WEEK_LIGHT_BG = "#06140f"
+WEEK_LIGHT_MIN_CONTRAST = 7.0
 WEEK_DEFAULTS = {"enabled": False, "days": []}
 UPLOAD_MAX = {"image": 5 * 1024 * 1024, "music": 8 * 1024 * 1024}
 LOCAL_HOSTNAMES = ("127.0.0.1", "localhost", "::1")
@@ -151,6 +158,25 @@ def art_config_path():
 
 def home_week_config_path():
     return os.path.join(SITE_ROOT, "data", "home-week.json")
+
+
+def srgb_channel(value):
+    """單一 0–255 色版轉成線性亮度（sRGB 標準公式）。"""
+    c = value / 255.0
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def relative_luminance(hex_color):
+    """#rrggbb 的相對亮度（WCAG 定義）。呼叫前必須先確認格式。"""
+    return (0.2126 * srgb_channel(int(hex_color[1:3], 16))
+            + 0.7152 * srgb_channel(int(hex_color[3:5], 16))
+            + 0.0722 * srgb_channel(int(hex_color[5:7], 16)))
+
+
+def contrast_ratio(lum_a, lum_b):
+    """兩個相對亮度的對比倍率（1–21）。"""
+    hi, lo = max(lum_a, lum_b), min(lum_a, lum_b)
+    return (hi + 0.05) / (lo + 0.05)
 
 
 def validate_home_week_config(obj):
@@ -220,6 +246,11 @@ def validate_home_week_config(obj):
         light = entry.get("light")
         if not isinstance(light, str) or not WEEK_LIGHT_RE.match(light):
             return None, label + "的 light 必須是 #rrggbb 六位色碼"
+        light_lum = relative_luminance(light)
+        if light_lum < WEEK_LIGHT_MIN_LUMINANCE:
+            return None, label + "的 light 太暗（相對亮度需 ≥ 0.72，目前 %.2f）" % light_lum
+        if contrast_ratio(light_lum, relative_luminance(WEEK_LIGHT_BG)) < WEEK_LIGHT_MIN_CONTRAST:
+            return None, label + "的 light 與深底 " + WEEK_LIGHT_BG + " 的對比需 ≥ 7:1"
         clean = {
             "day": day,
             "theme": theme.strip(),
@@ -232,9 +263,13 @@ def validate_home_week_config(obj):
         }
         if "focus" in keys:
             focus = entry.get("focus")
-            if not isinstance(focus, str) or not WEEK_FOCUS_RE.match(focus.strip()):
-                return None, label + "的 focus 必須是「數字% 數字%」"
-            clean["focus"] = focus.strip()
+            m = WEEK_FOCUS_RE.match(focus.strip()) if isinstance(focus, str) else None
+            if not m:
+                return None, label + "的 focus 必須是「整數% 整數%」（0 到 100）"
+            fx, fy = int(m.group(1)), int(m.group(2))
+            if fx > 100 or fy > 100:
+                return None, label + "的 focus 兩個數字都必須是 0 到 100 的整數百分比"
+            clean["focus"] = "%d%% %d%%" % (fx, fy)
         clean_days.append(clean)
     if seen != set(WEEK_DAYS):
         return None, "day 必須 1 到 7 各出現一次"
@@ -589,6 +624,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_blessing_art_get()
         elif path == "/api/home-week":
             self.handle_api_home_week_get()
+        elif path == "/api/devotional-status":
+            self.handle_api_devotional_status()
         elif path.startswith("/api/book/"):
             self.handle_api_book(path[len("/api/book/"):])
         elif path.startswith("/site-assets/"):
@@ -951,6 +988,15 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"error": "無法寫入一週封面設定"}, code=500)
             return
         self.send_json({"ok": True, "enabled": cfg["enabled"], "days": cfg["days"]})
+
+    # ---------- 禱讀唯讀狀態 ----------
+    def handle_api_devotional_status(self):
+        """只讀彙整正式站、本機資料與固定 systemd unit；局部失敗仍回 200 與可用區塊。"""
+        try:
+            data = devotional_status.collect_status(SITE_ROOT)
+        except Exception:
+            data = devotional_status.fallback_status()
+        self.send_json(data)
 
     # ---------- 抽經文卡四個主題的收藏卡圖 ----------
     def handle_api_blessing_art_get(self):
