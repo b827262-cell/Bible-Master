@@ -23,7 +23,7 @@ Flow per task: health -> snapshot file hashes -> `dsh --profile headless --patch
 scope check (only `files` changed) -> checks -> pass | retry once on the same role with the failure text | escalate to the
 role's escalate_to (a local role) | needs-cloud (never calls the cloud model itself).
 Results are appended to DISPATCH-REPORT.md and PROGRESS.md; raw event logs go to logs/dispatch/. Standard library + PyYAML."""
-import argparse, concurrent.futures as cf, datetime, glob, hashlib, json, os, re, signal, subprocess, sys, threading, time, urllib.request
+import argparse, concurrent.futures as cf, datetime, fnmatch, glob, hashlib, json, os, re, signal, subprocess, sys, threading, time, urllib.request
 
 import yaml
 
@@ -157,7 +157,8 @@ def write_report(task, result):
 
 # ---------------------------------------------------------------- snapshots
 def ignored(rel):
-    return any(rel.startswith(i) or i in rel for i in IGNORE)
+    # entries may be prefixes (bible-site/logs/), substrings (__pycache__/) or globs (bible-site/screenshots-*)
+    return any(rel.startswith(i) or i in rel or fnmatch.fnmatch(rel, i) for i in IGNORE)
 
 
 def snapshot():

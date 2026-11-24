@@ -19,3 +19,15 @@ bible-site/devotional/batch-365/
 bible-site/devotional/batch-365-backup-*/
 bible-site/devotional/*.md
 !bible-site/devotional/README.md
+
+# 測試截圖、驗證輸出與工具暫存目錄（已納入版控的證據目錄不排除）
+output/*
+!output/ops-dashboard-20261114/
+bible-site/screenshots-*/
+!bible-site/screenshots-admin/
+!bible-site/screenshots-desktop/
+!bible-site/screenshots-music/
+!bible-site/screenshots-ops/
+!bible-site/screenshots-weekly-editor/
+.codex-attachments/
+.freebuff/

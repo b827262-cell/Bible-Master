@@ -50,6 +50,8 @@ Bible-Master/
 |---|---|---|---|---|
 | **前台閱讀網站** | `8090` | `http://127.0.0.1:8090/site/index.html`<br>*(或 `http://127.0.0.1:8090/` 自動跳轉)* | `http://100.76.46.86:8090/site/index.html` | 四福音閱讀、章節切換、全文搜尋、卡片生成、深淺色無障礙閱讀。 |
 | **後台管理儀表板** | `8091` | `http://127.0.0.1:8091/` | `http://100.76.46.86:8091/` | 專案總覽、四福音資料校驗、地端 AI 叢集探測、一鍵執行全檢驗、報告檢視。 |
+| **後台管理（本機覆寫埠）** | `8092` | `http://127.0.0.1:8092/` | — | 本機 `.env.local` 將 `BACKEND_PORT` 設為 `8092` 時，主後台改以此埠運行，職責同 8091，與 8091 分開避免衝突。 |
+| **每日禱讀內容管理** | `8093` | `http://127.0.0.1:8093/#devotional-editor` | — | 獨立 systemd user unit `bible-site-admin-editor.service`，每日禱讀草稿編輯、審核與排程上架，使用獨立私人權杖。 |
 
 ---
 
@@ -74,6 +76,48 @@ Bible-Master/
    - 終端輸出即時回傳於網頁控制台，並自動更新全站健康狀態徽章。
 4. **專案歷史與報告切換檢視**
    - 線上即時切換檢視 `TEST-REPORT.md`、`FAILS.md`、`DISPATCH-REPORT.md`、`PROGRESS.md` 與 `CHANGELOG.md`。
+
+---
+
+## 三之一、每日禱讀服務與自動發布機制
+
+每日禱讀在既有 8090／8091／8092 之外，另以獨立服務運行，並以獨立排程發布到正式網站。
+
+### 1. 本機多埠分工
+
+- **8090**：前台靜態網站，由 `start.sh` 管理。
+- **8091**：預設後台管理儀表板；未設定 `.env.local` 時由 `start.sh` 管理（本機目前使用 8092）。
+- **8092**：本機 `.env.local` 設定 `BACKEND_PORT=8092` 時，主後台改以此埠運行。`start.sh` 會載入 `.env.local`，但呼叫端明確指定的環境變數優先，測試用埠不會被覆寫。
+- **8093**：每日禱讀內容管理專用服務，由 systemd user unit `bible-site-admin-editor.service` 啟動，入口 <http://127.0.0.1:8093/#devotional-editor>，使用獨立私人權杖（`~/.local/state/bible-master/admin-editor/token`），不覆寫舊後台權杖。
+
+### 2. 每日禱讀內容管理服務（8093）
+
+- **服務**：`bible-site-admin-editor.service`（systemd user unit，已啟用自動啟動）。
+- **命令**：`server.py --host 127.0.0.1 --port 8093`，以 `Restart=on-failure` 守護，`UMask=0077`。
+- **權杖**：獨立存放於 `~/.local/state/bible-master/admin-editor/token`，與 8091／8092 舊權杖分離。
+- **功能**：新增／修改日期、主題、經文出處、來源、默想、反思、禱告；預覽四福音唯讀經文；草稿與樂觀版本檢查；審核後單一交易套用；可調整啟用、開始／截止日期與每日台灣時間，支援手動上架已核准內容。
+- **操作說明**：見 `bible-site/admin/DEVOTIONAL-EDITOR.md`；驗收結果見 `bible-site/REVIEW-devotional-admin-editor.md`。
+
+### 3. 每日禱讀自動發布排程（bible-devotional-publish.timer）
+
+- **排程**：`bible-devotional-publish.timer` 於每日 06:00（Asia/Taipei）觸發 `bible-devotional-publish.service`（`OnCalendar=*-*-* 06:00:00 Asia/Taipei`、`Persistent=true`）。
+- **執行方式**：服務為 `oneshot`，在獨立 checkout `~/.local/share/bible-devotional/main` 先 `fetch` 並對齊 `origin/main`，再執行該目錄的 `publish_daily.py`，匯出「已核准且不晚於當日」的文章並推送到正式網站。
+- **隔離設計**：由於發布走獨立 checkout，**開發工作樹內的 `bible-site/data/devotional.json` 篇數不會隨每日排程自動增加**，這是刻意隔離的設計。正式站篇數請以獨立 checkout 與實際公開網站為準，勿以工作樹的資料檔篇數判斷發布進度。
+
+### 4. 狀態檢查指令
+
+```bash
+# 每日禱讀內容管理服務 (8093)
+systemctl --user status bible-site-admin-editor.service --no-pager
+curl -fsS http://127.0.0.1:8093/ >/dev/null && echo "8093 可連"
+
+# 每日禱讀自動發布排程
+systemctl --user status bible-devotional-publish.timer --no-pager
+systemctl --user list-timers bible-devotional-publish.timer --no-pager
+
+# 主後台 (8091 / 8092，視 .env.local 而定)
+./start.sh status
+```
 
 ---
 
@@ -179,4 +223,8 @@ Bible-Master/
 | `bible-site/admin/admin.css` | 新增 | 後台專用樣式（支援系統深淺色主題） |
 | `bible-site/admin/admin.js` | 新增 | 後台即時探測與測試控制台邏輯 |
 | `.gitignore` | 更新 | 納入 `logs/` 與 `*.pid` 避免雜訊提交 |
+| `bible-site/admin/systemd/bible-site-admin-editor.service` | 新增 | 每日禱讀內容管理服務（8093）systemd user unit |
+| `bible-site/devotional/systemd/bible-devotional-publish.timer` | 新增 | 每日禱讀 06:00（Asia/Taipei）自動發布排程 |
+| `bible-site/devotional/systemd/bible-devotional-publish.service` | 新增 | 每日禱讀發布服務（於獨立 checkout 執行 publish_daily.py） |
+| `bible-site/admin/DEVOTIONAL-EDITOR.md` | 新增 | 每日禱讀內容管理操作說明 |
 | `SERVICE-REPORT.md` | 新增 | 本交付報告 |

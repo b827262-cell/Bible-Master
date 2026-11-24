@@ -4,19 +4,20 @@
 環境檢查與基準線：`bash bible-site/tools/pm_setup.sh`；更新狀態：`python3 bible-site/tools/pm_status.py`。
 
 <!-- pm:auto:start -->
-更新時間：2026-11-12 18:33（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
+更新時間：2026-11-24 16:54（由 `python3 bible-site/tools/pm_status.py` 產生，請勿手改此區塊）
 
 | 步驟 | 狀態 |
 |---|---|
-| 0 資料產生（mark.json 678 節） | 未完成 |
-| 1 建站（site/ 6 個檔案） | 完成 |
+| 0 資料產生（四福音 3776 節驗證） | 完成 |
+| 1 建站（site/ 11 個檔案） | 完成 |
 | 2 自動檢查 check_all.py 全過 | 完成 |
 | 3 審核（REVIEW.md） | 完成 |
 | 4 修正與 CHANGELOG.md | 完成 |
 | 5 TODO.md 清空或不存在 | 完成 |
 
-- site 檔案：6/6（缺：無）
-- check_all.py：總結：3/3 項檢查通過
+- site 檔案：11/11（缺：無）
+- check_all.py：沿用上次 check_all.py 的結果（FAILS.md）：全部通過
+- 四福音JSON驗證：四福音皆驗證成功
 - 審核：通過 6 項，不通過 0 項（粗略計數，請人工看 REVIEW.md）
 - TODO.md 未完成項目：沒有 TODO.md
 <!-- pm:auto:end -->
@@ -102,3 +103,14 @@
 - 2026-11-12 23:30　PM 盤點區域音樂／單卡收藏圖（任務 105–110）：105／106／107 已由 dispatch 通過；108（server.py）、109（index.html）、109b（admin.js）的改動已在工作樹（11-12 18:00 前後，不是經 dispatch.py 完成，沒有派工紀錄），PM 重跑三份任務檔的 checks 全過。110 最終審查原本卡在「跨頁續播探測 2/3」：原因是測試伺服器不支援 HTTP Range，headless Chrome 對未整檔下載的 mp3 無法 seek（不是 `music.js` 缺陷）。PM 改測試：`site_checks.py` 加 `RangeHandler`、`zone_probe.html` 第三頁同曲時最多等 6 秒、四區改用不同曲目並加「兩區同曲」與 blessing 獨立曲案例；zonemusic 平行 8 次全過（改前 6 次有 1 次失敗），四個突變（永不續播、忽略分區鍵、search 誤用 index 鍵、忽略 blessing 鍵）都被抓到。地端 `dsh` 與三台 Ollama 端點當時無回應，110b 複審改用 `tools/herdr_team.py` 派給 w2:p1（Codex）：`REVIEW-zone-art.md` 狀態 PASS、無中度以上問題。PM 複驗：`check_all.py` 3/3、`service_checks.py zoneadmin blessartadmin homeadmin admin`、`deploy_checks.py`、`visual_checks.py` 全過；四福音 JSON、`blessing.json`、`home.json` 無 diff。待：使用者決定 commit／發佈；`devotional`（禱讀）尚無任務檔與驗收檢查。
 - 2026-11-13 00:30　禱讀：本地提交分區音樂／單卡圖、herdr 派工工具與紀錄後，合併 origin/main（PR #1 的每日禱讀頁、審核修正、06:00 上架程式；禱讀檔案以遠端較新版本為準）。合併後 `check_all.py` 3/3、`deploy_checks.py`、`service_checks.py`、`devotional/test_publish.py`（隔離測試庫）全過。資料庫 `bible_devotional`（本機 DT 10.0.3.69，PostgreSQL 18，port 5433）共 380 篇（2026-11-06～2027-11-20，日期連續；後 365 篇涵蓋四福音 3776 節），PM 機器稽核：經文範圍與標示一致、無空欄、無簡體／日文。5 篇引號內經文與四福音 JSON 字句不同（id 192、306、328、342、362），已由程式從 JSON 複製原文取代。使用者 2026-11-12 決定全部核准：380 篇來源與神學審核均登記為核准（審核者欄註明由使用者授權、Claude 代為登記）。注意：`cli.py` 預設主機名 `debian-toshiba` 不在 known_hosts，需設 `DEVOTIONAL_SSH_HOST=10.0.3.69`。
 - 2026-11-13 00:45　禱讀上架排程：在 DT 安裝並啟用 `bible-devotional-publish.timer`（user timer，每日 06:00，Linger=yes；發佈用 checkout 在 `~/.local/share/bible-devotional/main`，drop-in 設 `DEVOTIONAL_SSH_HOST=10.0.3.69`）。`publish_daily.py --dry-run`：已核准且到期 8 篇（11-06～11-13）；暫存副本以 headless Chrome 開 `devotional.html`，當日標題、經文、默想／反思／禱告都有顯示。**未完成**：DT 沒有 GitHub 寫入憑證（無 gh、無 HTTPS 憑證、SSH 金鑰被 GitHub 拒絕），本地 main 領先 origin/main 的 commit 尚未 push，06:00 排程的 push 也會失敗，待使用者設定憑證。
+- 2026-11-24 16:45　任務 144～147 程式碼鐵則審查與測試驗證（t5 審核官）：
+  - **審查範圍**：`admin/devotional_editor.py`（443 行）、`admin/devotional_editor.js`（1261 行）、`admin/devotional_operations.py`（444 行）、`devotional/005_admin_editor.sql`（428 行）、`admin/systemd/bible-site-admin-editor.service`（19 行）、`devotional/systemd/bible-devotional-publish.service`（9 行）。
+  - **(a) 無寫死聖經經文**：通過。devotional_editor.py 的 `_scripture()` 方法從 `data/*.json` 讀取經文，不內建任何經文內容；devotional_editor.js 的經文顯示來自 API 回應的 `verse.text` 欄位；其餘檔案不涉及經文。
+  - **(b) 介面文字全為繁體中文**：通過。所有使用者可見文字（錯誤訊息、UI 標籤、註解）均為繁體中文，無簡體或日文。
+  - **(c) 無載入外部 CDN/字型資源**：通過。devotional_editor.js 為純前端腳本，不引用任何外部 CDN 或字型；systemd 設定檔僅含路徑與環境變數。
+  - **(d) 無洩漏私人 token 或未核准草稿正文**：通過。devotional_editor.js 的 token 僅從 `/api/token` 端點動態取得，存於 closure 記憶體中，不寫入 localStorage；systemd 設定檔中的 `BIBLE_ADMIN_TOKEN_FILE` 僅為路徑，不含實際 token 值；SQL 與 Python 檔案無 token 或草稿內容。
+  - **測試結果**：
+    - `tests/ops_dashboard_checks.py`：25 項測試全部通過（exit code 0）。
+    - `tests/devotional_operations_checks.py`：23 項測試全部通過（exit code 0）。
+    - `tests/deploy_checks.py`：全部檢查通過（結果：全部通過，exit code 0）。
+  - **待收斂之版控狀態**：本地 main 落後 origin/main 10 個每日禱讀發布 commit，待總工程師驗收後整理提交。

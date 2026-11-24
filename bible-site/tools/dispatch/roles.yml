@@ -1,18 +1,18 @@
 # Roles for tools/dispatch.py. Providers/models are the ones already defined in the Harness web profile
 # (~/.dsh/profiles/web/cordis.patch.yml); dispatch.py copies the provider block from there into a headless overlay,
 # so nothing is typed twice. Smoke-tested 2026-11-01: `dsh --profile headless --patch <overlay> --json -`.
-dsh_bin: ~/.npm/_npx/7eff65a5cfe9d1d1/node_modules/.bin/dsh
+dsh_bin: ~/.local/bin/dsh
 web_patch: ~/.dsh/profiles/web/cordis.patch.yml
 
 roles:
-  e500:                       # E500 專案主力：Qwen3.5 4B Q4 128K，基準 25/30、89/98、87.32 tok/s
-    provider: qwen-e500
-    model: qwen35-4b-q4_k_m-gpu-128k:latest
+  e500:                       # E500 專案主力：Swift 1.5 27B IQ3_XXS (Ollama 10.0.3.68:11434)，64K、不思考
+    provider: swift-e500
+    model: swift15-27b:iq3xxs-mtp-64k
     reasoning: "off"
-    health: http://127.0.0.1:11437/v1/models
+    health: http://10.0.3.68:11434/v1/models
     timeout_min: 45
     max_files: 2
-    escalate_to: cloud
+    escalate_to: cb            # E500 離線時自動升級至 cb
   a16:                        # TUF A16：Qwen3.5 4B Q4 128K，25/30、89/98、95.74 tok/s
     provider: qwen-a16
     model: qwen35-4b-q4_k_m-gpu-128k-pp03:latest
@@ -89,3 +89,7 @@ ignore_changes:
   - bible-site/admin/.token          # written by admin/server.py when a model starts it to test
   - bible-site/tools/dispatch/generated/
   - __pycache__/
+  - output/
+  - bible-site/screenshots-*
+  - .codex-attachments/
+  - .freebuff/
