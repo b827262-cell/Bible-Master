@@ -18,13 +18,14 @@
 
 | 項目 | 內容 |
 | --- | --- |
-| 終端 | 不固定；由 `foreground.argv` 的檔名 `freebuff` 動態解析（目前為 t7），tab id 亦每次動態取得 |
-| 模型 | Solar Pro 4（廣告贊助免費額度，時間制，用完即停） |
+| 終端 | 預設預期 `t7`；實際由 `foreground.argv` 的檔名 `freebuff` 動態解析（不另開第二實例，維持單一 `t7`），tab id 與 pane id 亦每次動態取得 |
+| 模型 | Solar Pro 4（廣告贊助免費額度，時間制，用完即停）；使用者可自行 `/model` 切換 |
 | 能力（已驗證） | 唯讀程式審查、短文問答；能自行讀檔後給出條列意見 |
 | 能力邊界 | 行號與事實精確度不穩定：實測 3 條審查意見中 1 條為誤判、1 條行號錯誤。不可當最終驗收來源 |
 | 派工工具 | `bible-site/tools/freebuff_dispatch.py`（`roles.yml` 的 `freebuff.dispatch` 同步登錄） |
 | 派工流程 | 動態解析 terminal/tab → `herdr-app do tab.select` → `pane.focus` → `herdr-core send`（send 自帶 Enter，不再補按） |
-| 完成判定 | 讀 freebuff 自己的 `~/.config/manicode/projects/*/chats/*/chat-messages.json`；**不可**用 `hc wait`／`turn`／`status`（hc 未註冊 freebuff，turn 恆 0、status 恆 null） |
+| 完成判定 | 以終端 cwd 對應 `~/.config/manicode/projects/<cwd 名>/chats/*`，要求本次 prompt 的 user 訊息＋其後 `isComplete` 的 assistant 訊息，且時間晚於派工；**不可**用 `hc wait`／`turn`／`status`（hc 未註冊 freebuff，turn 恆 0、status 恆 null） |
+| 防護 | 併發鎖（`dispatch.lock`）＋相同 prompt 短時間重送封鎖；多個 freebuff 終端或無法唯一識別 session 一律拒絕，不猜測；逾時不自動重試 |
 | 驗收 | 一律人工／PM／CodeBuddy 核對回覆內容；工具只輸出原文，不宣告通過 |
 | 限制 | 無 headless、無 ACP；每次派工消耗免費額度，不適合高頻自動化 |
 

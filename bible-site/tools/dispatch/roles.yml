@@ -81,10 +81,15 @@ roles:
     dispatch:               # 2026-11-24 實測通過的派工流程，由 tools/freebuff_dispatch.py 執行
       tool: bible-site/tools/freebuff_dispatch.py
       transport: herdr-core # 走 herdr-core send，不經 dsh/overlay
-      resolve: dynamic      # terminal 與 tab id 每次動態解析，不硬編碼
+      terminal: t7          # 預設預期終端；維持單一 t7 實例，避免多實例觸發 ambiguous 與重複消耗時間制額度。不存在或不是 freebuff 時，工具改以動態探索並在報告標記 mismatch
+      resolve: dynamic      # terminal 與 tab id、pane id 每次動態解析，不硬編碼
       steps: [tab.select, pane.focus, "herdr-core send"]
       extra_enter: false    # send 自帶 Enter 會自動提交，再補按只會多送空回合
       completion: freebuff-chat-store   # 讀 freebuff 自己的 chat-messages.json；不用 hc wait/turn/status
+      session_match: cwd    # 以終端 cwd 對應 projects/<cwd 名>，避免跨 session 取到舊回覆
+      timeout_sec: 180
+      guards: [lock, duplicate]         # 併發鎖與相同 prompt 短時間重送防護
+      checks: bible-site/tests/freebuff_dispatch_checks.py
       acceptance: manual    # 回覆內容由 PM／CodeBuddy 人工核對，工具不代為宣告通過
   cloud:                    # 貓聽 / DeepSeek cloud model: never called by the script (uses quota); the task is reported as needs-cloud
     manual: true

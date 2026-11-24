@@ -2,7 +2,7 @@
 """freebuff 派工工具 —— 已驗證流程的正式版（Herdr Core + Herdr App + Freebuff CLI）。
 
   python3 bible-site/tools/freebuff_dispatch.py --dry-run
-  python3 bible-site/tools/freebuff_dispatch.py --terminal t8 --text "Reply exactly FREEBUFF_T8_OK" --timeout 60
+  python3 bible-site/tools/freebuff_dispatch.py --terminal t7 --text "Reply exactly FREEBUFF_OK" --timeout 60
   python3 bible-site/tools/freebuff_dispatch.py --file tasks/x.md --no-wait --json
 
 流程（順序不可顛倒，2026-11-24 實測）：
@@ -55,7 +55,7 @@ CHAT_ROOT = Path(
 STATE_DIR = Path(
     os.environ.get("FREEBUFF_DISPATCH_STATE_DIR", str(Path.home() / ".cache" / "freebuff-dispatch"))
 )
-DEFAULT_EXPECTED_TERMINAL = "t8"
+DEFAULT_EXPECTED_TERMINAL = "t7"
 PLACEHOLDER_RE = re.compile(r"enter a coding task", re.IGNORECASE)
 BUSY_RE = re.compile(r"esc to stop|esc to interrupt|working\.\.\.|thinking", re.IGNORECASE)
 FREEBUFF_RE = re.compile(r"^freebuff(\.exe)?$", re.IGNORECASE)
