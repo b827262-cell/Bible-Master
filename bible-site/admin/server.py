@@ -29,6 +29,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 # 禱讀狀態收集器與 server.py 同目錄；只做唯讀查詢，不寫入任何檔案
 sys.path.insert(0, HERE)
 import devotional_status
+import devotional_editor
 # 後台寫入權杖檔；每次啟動重新產生，可用環境變數覆蓋
 TOKEN_FILE = os.path.abspath(os.environ.get("BIBLE_ADMIN_TOKEN_FILE") or os.path.join(HERE, ".token"))
 
@@ -626,6 +627,16 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_home_week_get()
         elif path == "/api/devotional-status":
             self.handle_api_devotional_status()
+        elif path.startswith("/api/devotional-editor/"):
+            # 內容管理所有 GET 也套用四項寫入權限檢查，避免落入舊的弱檢查分支
+            if not self.check_write_auth():
+                return
+            try:
+                self.handle_api_devotional_editor_get(path, parsed.query)
+            except devotional_editor.DevotionalEditorError as exc:
+                self.send_json({"error": exc.message}, code=exc.status)
+            except Exception:
+                self.send_json({"error": "伺服器處理請求時發生錯誤"}, code=500)
         elif path.startswith("/api/book/"):
             self.handle_api_book(path[len("/api/book/"):])
         elif path.startswith("/site-assets/"):
@@ -633,7 +644,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif path.startswith("/api/"):
             # 未認知的 API 端點
             self.send_json({"error": "找不到該操作端點"}, code=404)
-        elif path in ("/", "/index.html", "/admin.js", "/admin.css"):
+        elif path in ("/", "/index.html", "/admin.js", "/admin.css", "/devotional_editor.js"):
             # 靜態文件服務
             super().do_GET()
         else:
@@ -695,7 +706,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         # HEAD 套用與 do_GET 完全相同的路由規則；非靜態檔只回標頭、不送內容
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
-        if path in ("/", "/index.html", "/admin.js", "/admin.css"):
+        if path in ("/", "/index.html", "/admin.js", "/admin.css", "/devotional_editor.js"):
             # 靜態文件服務（只送標頭，不送 body）
             super().do_HEAD()
         else:
@@ -707,6 +718,18 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+
+        # 內容管理：所有 POST 都必須先過四項寫入權限，且不落入下方舊的弱檢查分支
+        if path.startswith("/api/devotional-editor/"):
+            if not self.check_write_auth():
+                return
+            try:
+                self.handle_api_devotional_editor_post(path)
+            except devotional_editor.DevotionalEditorError as exc:
+                self.send_json({"error": exc.message}, code=exc.status)
+            except Exception:
+                self.send_json({"error": "伺服器處理請求時發生錯誤"}, code=500)
+            return
 
         # 寫入端點（主頁設定、前台音樂、收藏卡圖、上傳）需要額外的權杖與 Host 檢查
         if path in ("/api/home", "/api/home/reset", "/api/zone-music", "/api/zone-music/reset",
@@ -996,6 +1019,97 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             data = devotional_status.collect_status(SITE_ROOT)
         except Exception:
             data = devotional_status.fallback_status()
+        self.send_json(data)
+
+    # ---------- 每日禱讀內容管理 ----------
+    def _devotional_editor(self):
+        return devotional_editor.Editor(SITE_ROOT)
+
+    def _read_editor_json(self):
+        raw = self.read_body(devotional_editor.EDITOR_BODY_MAX)
+        if raw is None:
+            self.reject_too_large()
+            return None
+        try:
+            body = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            raise devotional_editor.DevotionalEditorError("內容不是合法的 JSON", 400)
+        if not isinstance(body, dict):
+            raise devotional_editor.DevotionalEditorError("請求內容必須是物件", 400)
+        return body
+
+    def _devotional_operations(self, action, payload=None):
+        """147 尚未完成時保持 lazy import；模組不存在只讓這個端點 503，不影響 server 啟動。"""
+        try:
+            import devotional_operations
+        except ImportError:
+            raise devotional_editor.DevotionalEditorError("排程發布模組尚未安裝", 503)
+        try:
+            if action == "get_settings":
+                result = devotional_operations.get_settings()
+            elif action == "save_settings":
+                result = devotional_operations.save_settings(payload)
+            elif action == "publish_now":
+                result = devotional_operations.publish_now(payload)
+            else:
+                raise devotional_editor.DevotionalEditorError("找不到該操作端點", 404)
+        except Exception as exc:
+            if isinstance(exc, devotional_editor.DevotionalEditorError):
+                raise
+            status = getattr(exc, "status", 500)
+            message = getattr(exc, "message", None) or "排程發布操作失敗"
+            if status not in (400, 403, 404, 409, 503):
+                status, message = 500, "排程發布操作失敗"
+            raise devotional_editor.DevotionalEditorError(message, status)
+        if result is None:
+            return {"ok": True}
+        if isinstance(result, dict):
+            return result
+        return {"ok": True, "result": result}
+
+    def handle_api_devotional_editor_get(self, path, query):
+        action = path[len("/api/devotional-editor/"):]
+        params = urllib.parse.parse_qs(query or "", keep_blank_values=True)
+        editor = self._devotional_editor()
+        if action == "list":
+            date_from = (params.get("from") or [""])[0]
+            date_through = (params.get("through") or [""])[0]
+            if not date_from or not date_through:
+                raise devotional_editor.DevotionalEditorError("需要 from 與 through 日期", 400)
+            data = editor.list_entries(date_from, date_through)
+        elif action == "entry":
+            raw_id = (params.get("id") or [""])[0]
+            try:
+                entry_id = int(raw_id)
+            except (TypeError, ValueError):
+                raise devotional_editor.DevotionalEditorError("文章 id 格式不正確", 400)
+            data = editor.get_entry(entry_id)
+        elif action == "draft":
+            data = editor.get_draft((params.get("id") or [""])[0])
+        elif action == "settings":
+            data = self._devotional_operations("get_settings")
+        else:
+            raise devotional_editor.DevotionalEditorError("找不到該操作端點", 404)
+        self.send_json(data)
+
+    def handle_api_devotional_editor_post(self, path):
+        action = path[len("/api/devotional-editor/"):]
+        if action not in ("preview", "save", "approve", "settings", "publish"):
+            raise devotional_editor.DevotionalEditorError("找不到該操作端點", 404)
+        body = self._read_editor_json()
+        if body is None:
+            return
+        editor = self._devotional_editor()
+        if action == "preview":
+            data = editor.preview(body.get("reference"))
+        elif action == "save":
+            data = editor.save(body)
+        elif action == "approve":
+            data = editor.approve(body)
+        elif action == "settings":
+            data = self._devotional_operations("save_settings", body)
+        else:
+            data = self._devotional_operations("publish_now", body)
         self.send_json(data)
 
     # ---------- 抽經文卡四個主題的收藏卡圖 ----------

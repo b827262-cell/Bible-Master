@@ -1,0 +1,19 @@
+[Unit]
+Description=Bible-Master local devotional content administration
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/project/AI/Bible-Master
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=BIBLE_SITE_ROOT=%h/project/AI/Bible-Master/bible-site
+Environment=BIBLE_ADMIN_TOKEN_FILE=%h/.local/state/bible-master/admin-editor/token
+Environment=DEVOTIONAL_SSH_HOST=debian-toshiba
+Environment=DEVOTIONAL_DATABASE=bible_devotional
+ExecStart=/usr/bin/python3 -B -u %h/project/AI/Bible-Master/bible-site/admin/server.py --host 127.0.0.1 --port 8093
+Restart=on-failure
+RestartSec=3
+UMask=0077
+
+[Install]
+WantedBy=default.target

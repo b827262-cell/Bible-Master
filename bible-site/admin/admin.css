@@ -746,3 +746,420 @@ footer {
     --error-bg: rgba(248, 113, 113, 0.12);
   }
 }
+
+/* ===== 每日禱讀內容管理（設定／新增修改／審核／上架） ===== */
+#devotional-editor {
+  margin-bottom: 24px;
+}
+
+#devotional-editor .card-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dev-editor-header-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.dev-editor-block {
+  min-width: 0;
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+fieldset.dev-editor-block {
+  margin-inline: 0;
+}
+
+fieldset.dev-editor-block legend {
+  padding: 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dev-editor-block h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dev-editor-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dev-editor-mode {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-hint {
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dev-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+#devotional-editor .dev-editor-block > .dev-editor-field {
+  margin-bottom: 12px;
+}
+
+.dev-editor-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+#devotional-editor input[type="text"],
+#devotional-editor input[type="date"],
+#devotional-editor input[type="time"],
+#devotional-editor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+#devotional-editor textarea {
+  min-height: 96px;
+  line-height: 1.7;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#devotional-editor input:focus,
+#devotional-editor textarea:focus {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+
+#devotional-editor input:disabled,
+#devotional-editor textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dev-editor-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 0;
+  font-size: 0.9rem;
+}
+
+.dev-editor-check input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+}
+
+.dev-editor-check span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.dev-editor-actions .btn {
+  min-width: 120px;
+  min-height: 44px;
+}
+
+#devotional-editor .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#devotional-editor .btn:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+
+#devotional-editor .btn-primary {
+  background: #b45309;
+  color: #ffffff;
+}
+
+#devotional-editor .btn-primary:hover:not(:disabled) {
+  background: #92400e;
+}
+
+.dev-editor-status {
+  min-height: 1.5em;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-status.is-success {
+  color: var(--success);
+}
+
+.dev-editor-status.is-warning {
+  color: var(--warning);
+}
+
+.dev-editor-status.is-error {
+  color: var(--error);
+}
+
+.dev-editor-status.is-info {
+  color: var(--info);
+}
+
+.dev-editor-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 16px;
+  margin: 4px 0 10px;
+}
+
+.dev-editor-meta > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dev-editor-meta dt {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.dev-editor-meta dd {
+  margin: 0;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-list-wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.dev-editor-list-wrap > section {
+  min-width: 0;
+}
+
+.dev-editor-list-wrap h4 {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.dev-editor-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dev-editor-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.dev-editor-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dev-editor-item-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-item-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-item .btn {
+  min-height: 40px;
+}
+
+.dev-editor-scripture {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+}
+
+.dev-editor-scripture h4 {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.dev-editor-ranges {
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-ranges:empty {
+  display: none;
+}
+
+.dev-editor-verses {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dev-editor-verses li {
+  min-width: 0;
+}
+
+.dev-editor-verse-ref {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-verse-text {
+  display: block;
+  font-size: 0.92rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.dev-editor-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: dev-editor-spin 0.8s linear infinite;
+}
+
+.dev-editor-spinner[hidden] {
+  display: none;
+}
+
+@keyframes dev-editor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dev-editor-spinner {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  #devotional-editor {
+    padding: 16px;
+  }
+
+  .dev-editor-block {
+    padding: 12px;
+  }
+
+  .dev-editor-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dev-editor-item .btn {
+    width: 100%;
+  }
+
+  .dev-editor-actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* 本區語意色：亮色模式使用較深色階，確保小字與白底、按鈕白字皆 >=4.5。
+   暗色模式沿用原 success／warning，只提亮 info／error。 */
+@media (prefers-color-scheme: light) {
+  #devotional-editor {
+    --success: #047857;
+    --success-bg: rgba(4, 120, 87, 0.10);
+    --warning: #92400e;
+    --warning-bg: rgba(146, 64, 14, 0.10);
+    --info: #1d4ed8;
+    --info-bg: rgba(29, 78, 216, 0.10);
+    --error: #b91c1c;
+    --error-bg: rgba(185, 28, 28, 0.10);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #devotional-editor {
+    --info: #60a5fa;
+    --info-bg: rgba(96, 165, 250, 0.12);
+    --error: #f87171;
+    --error-bg: rgba(248, 113, 113, 0.12);
+  }
+}

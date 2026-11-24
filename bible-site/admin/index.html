@@ -624,6 +624,204 @@
       </div>
     </section>
 
+    <!-- 主區塊：每日禱讀內容管理（設定／新增修改／審核／上架） -->
+    <section class="card" id="devotional-editor" aria-labelledby="devotional-editor-title">
+      <div class="card-header">
+        <h2 id="devotional-editor-title">✍️ 每日禱讀內容管理</h2>
+        <span class="dev-editor-header-note">設定・新增／修改・審核・上架</span>
+      </div>
+
+      <p class="home-note">這一區可以調整每日上架設定、撰寫或修訂內容，並在人工核對後排入逐日上架。儲存草稿不會核准、也不會公開；內容是否已在正式站公開，請看上方「每日禱讀上架狀態」卡片。</p>
+
+      <!-- 1. 每日上架設定 -->
+      <section class="dev-editor-block" aria-labelledby="dev-editor-settings-title">
+        <div class="dev-editor-block-head">
+          <h3 id="dev-editor-settings-title">每日上架設定</h3>
+          <button type="button" class="btn btn-outline" id="dev-editor-settings-reload">重新載入設定</button>
+        </div>
+
+        <p class="dev-editor-hint">排程每天在設定的時間（台灣時區）檢查並上架當天的內容；「文章日期」是內容對應的日期，和排程執行時間不同。暫停只會停止之後的自動排程，已排入的內容與手動上架不受影響。</p>
+
+        <div class="dev-editor-grid">
+          <label class="dev-editor-check" for="dev-editor-enabled">
+            <input type="checkbox" id="dev-editor-enabled">
+            <span>啟用每日自動上架</span>
+          </label>
+          <div class="dev-editor-field">
+            <label for="dev-editor-start">開始日期（含當日）</label>
+            <input type="date" id="dev-editor-start">
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-end">截止日期（含當日）</label>
+            <input type="date" id="dev-editor-end">
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-time">每天執行時間（台灣時區）</label>
+            <input type="time" id="dev-editor-time" step="60">
+          </div>
+        </div>
+
+        <dl class="dev-editor-meta" aria-label="目前排程狀態">
+          <div><dt>今天（台灣）</dt><dd id="dev-editor-today">未知</dd></div>
+          <div><dt>上架服務</dt><dd id="dev-editor-service">未知</dd></div>
+          <div><dt>服務忙碌</dt><dd id="dev-editor-busy">未知</dd></div>
+          <div><dt>設定版本</dt><dd id="dev-editor-version">未知</dd></div>
+        </dl>
+
+        <p class="dev-editor-status" id="dev-editor-settings-warning" role="status" aria-live="polite"></p>
+
+        <div class="dev-editor-actions">
+          <button type="button" class="btn btn-primary" id="dev-editor-settings-save">儲存設定</button>
+        </div>
+
+        <p class="dev-editor-status" id="dev-editor-settings-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <!-- 2. 內容列表 -->
+      <section class="dev-editor-block" aria-labelledby="dev-editor-list-title">
+        <div class="dev-editor-block-head">
+          <h3 id="dev-editor-list-title">內容列表</h3>
+          <button type="button" class="btn btn-outline" id="dev-editor-list-refresh">重新讀取</button>
+        </div>
+
+        <p class="dev-editor-hint">日期只代表內容對應的日期，不代表已公開；是否已在正式站公開，請看上方「每日禱讀上架狀態」。既有文章與待審草稿分開列出，每篇文章會顯示自己的審核狀態。</p>
+
+        <div class="dev-editor-grid">
+          <div class="dev-editor-field">
+            <label for="dev-editor-list-from">日期範圍（起）</label>
+            <input type="date" id="dev-editor-list-from">
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-list-through">日期範圍（迄，含當日）</label>
+            <input type="date" id="dev-editor-list-through">
+          </div>
+        </div>
+
+        <div class="dev-editor-actions">
+          <button type="button" class="btn btn-outline" id="dev-editor-new">＋ 新增內容</button>
+        </div>
+
+        <p class="dev-editor-status" id="dev-editor-list-status" role="status" aria-live="polite"></p>
+
+        <div class="dev-editor-list-wrap">
+          <section aria-labelledby="dev-editor-approved-title">
+            <h4 id="dev-editor-approved-title">既有文章</h4>
+            <p class="dev-editor-empty" id="dev-editor-approved-empty">尚未讀取。</p>
+            <ul class="dev-editor-list" id="dev-editor-approved-list"></ul>
+          </section>
+          <section aria-labelledby="dev-editor-drafts-title">
+            <h4 id="dev-editor-drafts-title">待審草稿（未核准）</h4>
+            <p class="dev-editor-empty" id="dev-editor-drafts-empty">尚未讀取。</p>
+            <ul class="dev-editor-list" id="dev-editor-drafts-list"></ul>
+          </section>
+        </div>
+      </section>
+
+      <!-- 3. 新增／修改表單 -->
+      <section class="dev-editor-block" aria-labelledby="dev-editor-form-title">
+        <div class="dev-editor-block-head">
+          <h3 id="dev-editor-form-title">新增／修改內容</h3>
+          <span class="dev-editor-mode" id="dev-editor-mode">新增內容</span>
+        </div>
+
+        <p class="dev-editor-hint">經文正文一律按「預覽經文」從本站經文資料讀取，請不要手動輸入經文。修改既有文章時，儲存只會產生修訂草稿，原文章會保留到重新核准為止。</p>
+
+        <div class="dev-editor-grid">
+          <div class="dev-editor-field">
+            <label for="dev-editor-date">日期</label>
+            <input type="date" id="dev-editor-date" required>
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-title">主題</label>
+            <input type="text" id="dev-editor-title" maxlength="80" autocomplete="off" required>
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-reference">經文出處</label>
+            <input type="text" id="dev-editor-reference" maxlength="240" autocomplete="off" placeholder="例：約翰福音 3:16-17" required>
+          </div>
+          <div class="dev-editor-field">
+            <label for="dev-editor-source">來源網址（可留空）</label>
+            <input type="text" id="dev-editor-source" maxlength="2048" autocomplete="off" inputmode="url" placeholder="留空＝使用本站對應經文頁面">
+          </div>
+        </div>
+
+        <div class="dev-editor-field">
+          <label for="dev-editor-summary">默想</label>
+          <textarea id="dev-editor-summary" maxlength="6000" rows="4" required></textarea>
+        </div>
+        <div class="dev-editor-field">
+          <label for="dev-editor-reflection">反思</label>
+          <textarea id="dev-editor-reflection" maxlength="2000" rows="3" required></textarea>
+        </div>
+        <div class="dev-editor-field">
+          <label for="dev-editor-prayer">禱告</label>
+          <textarea id="dev-editor-prayer" maxlength="6000" rows="4" required></textarea>
+        </div>
+        <p class="dev-editor-hint">默想、反思、禱告可分段，換行會保留。</p>
+
+        <div class="dev-editor-actions">
+          <button type="button" class="btn btn-outline" id="dev-editor-preview">預覽經文</button>
+          <button type="button" class="btn btn-primary" id="dev-editor-save">儲存草稿</button>
+        </div>
+
+        <p class="dev-editor-status" id="dev-editor-form-status" role="status" aria-live="polite"></p>
+
+        <div class="dev-editor-scripture">
+          <h4>經文預覽（唯讀）</h4>
+          <p class="dev-editor-hint" id="dev-editor-scripture-note">尚未取得經文。</p>
+          <p class="dev-editor-ranges" id="dev-editor-ranges"></p>
+          <ol class="dev-editor-verses" id="dev-editor-scripture"></ol>
+        </div>
+      </section>
+
+      <!-- 4. 審核 -->
+      <fieldset class="dev-editor-block" id="dev-editor-review">
+        <legend>審核</legend>
+
+        <p class="dev-editor-hint">只有已儲存且沒有未儲存修改的草稿可以核准。修改任何內容欄位後，下面的確認會自動清除，必須重新儲存再審核。核准後才會排入逐日上架。</p>
+
+        <div class="dev-editor-grid">
+          <div class="dev-editor-field">
+            <label for="dev-editor-reviewer">審核者姓名</label>
+            <input type="text" id="dev-editor-reviewer" maxlength="80" autocomplete="name">
+          </div>
+        </div>
+
+        <label class="dev-editor-check" for="dev-editor-confirm-source">
+          <input type="checkbox" id="dev-editor-confirm-source">
+          <span>已核對來源與經文</span>
+        </label>
+        <label class="dev-editor-check" for="dev-editor-confirm-theology">
+          <input type="checkbox" id="dev-editor-confirm-theology">
+          <span>已審閱默想、反思與禱告</span>
+        </label>
+
+        <div class="dev-editor-actions">
+          <button type="button" class="btn btn-primary" id="dev-editor-approve">確認審核並排入上架</button>
+        </div>
+
+        <p class="dev-editor-status" id="dev-editor-review-status" role="status" aria-live="polite"></p>
+      </fieldset>
+
+      <!-- 5. 立即上架 -->
+      <section class="dev-editor-block" aria-labelledby="dev-editor-publish-title">
+        <h3 id="dev-editor-publish-title">立即上架已核准內容</h3>
+
+        <p class="dev-editor-hint">只會執行今天的上架服務，服務完成不代表 Cloudflare 網站已更新；完成後請重新整理正式站確認。今天不在設定的上架期間內，或上架服務正在執行時，無法按下。</p>
+
+        <p class="dev-editor-status" id="dev-editor-publish-reason"></p>
+
+        <div class="dev-editor-actions">
+          <button type="button" class="btn btn-primary" id="dev-editor-publish">
+            <span class="dev-editor-spinner" id="dev-editor-publish-spinner" hidden aria-hidden="true"></span>
+            <span id="dev-editor-publish-label">立即上架已核准內容</span>
+          </button>
+        </div>
+
+        <p class="dev-editor-status" id="dev-editor-publish-status" role="status" aria-live="polite"></p>
+      </section>
+    </section>
+
     <!-- 主區塊：前台音樂 -->
     <section class="card" id="zone-music-settings">
       <div class="card-header">
@@ -1679,5 +1877,6 @@
   </div>
 
   <script src="admin.js"></script>
+  <script src="devotional_editor.js"></script>
 </body>
 </html>

@@ -234,6 +234,37 @@ class Status(Offline):
             self.timer['TimersCalendar']=text
             with self.subTest(calendar=text):self.assertIsNone(self.collect()['schedule']['cutoff_date'])
 
+    def test_finite_month_rules_have_the_latest_cutoff(self):
+        november='{ OnCalendar=2026-11-16..30 06:00:00 Asia/Taipei ; next_elapse=n/a }'
+        december='{ OnCalendar=2026-12-01..16 06:00:00 Asia/Taipei ; next_elapse=n/a }'
+        for calendar in [november+' '+december,december+' '+november]:
+            with self.subTest(calendar=calendar):
+                self.timer['TimersCalendar']=calendar
+                self.assertEqual(self.collect()['schedule']['cutoff_date'],'2026-12-16')
+        self.timer['TimersCalendar']=november+' '+december+' { OnCalendar=*-*-* 06:00:00 Asia/Taipei }'
+        self.assertIsNone(self.collect()['schedule']['cutoff_date'])
+
+    def test_cross_month_taipei_cutoff_boundary(self):
+        self.timer['TimersCalendar']=('{ OnCalendar=2026-11-16..30 06:00:00 Asia/Taipei } '
+                                      '{ OnCalendar=2026-12-01..16 06:00:00 Asia/Taipei }')
+        before=self.collect(dt.datetime(2026,12,16,15,59,59,tzinfo=dt.timezone.utc))
+        after=self.collect(dt.datetime(2026,12,16,16,0,tzinfo=dt.timezone.utc))
+        self.assertIs(before['schedule']['expired'],False)
+        self.assertIs(after['schedule']['expired'],True)
+        self.assertEqual(after['release_state'],'cutoff')
+
+    def test_systemctl_preserves_multiple_calendar_property_lines(self):
+        raw=('ActiveState=active\nUnitFileState=enabled\n'
+             'NextElapseUSecRealtime=Tue 2026-11-17 06:00:00 CST\n'
+             'TimersCalendar={ OnCalendar=2026-12-01..16 06:00:00 Asia/Taipei }\n'
+             'TimersCalendar={ OnCalendar=2026-11-16..30 06:00:00 Asia/Taipei }\n')
+        with patch.object(status,'_run_bounded',return_value=(raw,None)):
+            values,error=_systemctl_show_real(status.TIMER_UNIT,status.TIMER_PROPS)
+        self.assertIsNone(error)
+        self.assertEqual(values['TimersCalendar'].count('OnCalendar='),2)
+        schedule=status._collect_schedule(values,None,dt.datetime(2026,11,16,tzinfo=status.TAIPEI))
+        self.assertEqual(schedule['cutoff_date'],'2026-12-16')
+
     def test_systemctl_commands_timeout_and_oversize(self):
         with patch.object(status.shutil,'which',return_value='/usr/bin/systemctl'), \
              patch.object(status.subprocess,'run',return_value=subprocess.CompletedProcess([],0,b'x'*(status.MAX_OUTPUT+1),b'')) as run:

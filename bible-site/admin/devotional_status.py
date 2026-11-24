@@ -148,17 +148,24 @@ def _run_bounded(cmd, timeout):
 
 
 def _systemctl_show(unit, props):
-    """回 (dict, error)；只讀指定 unit 的白名單屬性。"""
+    """回 (dict, error)；只讀指定 unit 的白名單屬性。
+       systemd 對多條 OnCalendar 會輸出多行同名 TimersCalendar=，必須全部累積後再交給
+       _parse_cutoff；其他屬性維持舊行為（同名取最後一行）。"""
     cmd = ["systemctl", "--user", "show", unit] + ["--property=" + p for p in props]
     out, err = _run_bounded(cmd, SYSTEMCTL_TIMEOUT)
     if err:
         return None, err
     values = {}
+    calendars = []
     for line in (out or "").splitlines():
         if "=" in line:
             key, value = line.split("=", 1)
-            if key in props:
+            if key == "TimersCalendar" and key in props:
+                calendars.append(value)
+            elif key in props:
                 values[key] = value
+    if calendars:
+        values["TimersCalendar"] = " ; ".join(calendars)
     if not values:
         return None, "systemd 沒有回傳可用屬性"
     return values, None
@@ -166,10 +173,11 @@ def _systemctl_show(unit, props):
 
 def _parse_cutoff(calendar):
     """從 TimersCalendar 的有限 OnCalendar 取截止日；無法唯一判定回 None。
-       只接受完整可辨識的單一有限規則；逗號列表、無限規則、混合規則或不同截止日一律 None。"""
+       只接受完整可辨識的有限規則；逗號列表、無限規則、混合規則或任何不合法日期一律 None。
+       多條有限規則取所有截止日的 max（例如 11/30 + 12/16 → 12/16）。"""
     if not isinstance(calendar, str):
         return None
-    chunks = re.findall(r"OnCalendar=([^;}]*)", calendar)
+    chunks = re.findall(r"OnCalendar=([^;}\n]*)", calendar)
     if not chunks:
         return None
     candidates = set()
@@ -197,7 +205,7 @@ def _parse_cutoff(calendar):
                 return None
             continue
         return None                                            # 未知或無限規則：不得推論截止日
-    return candidates.pop() if len(candidates) == 1 else None
+    return max(candidates) if candidates else None
 
 
 def _collect_schedule(timer, timer_err, now):
