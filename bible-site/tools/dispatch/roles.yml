@@ -76,6 +76,16 @@ roles:
     timeout_min: 30
     max_files: 2
     escalate_to: agy
+  freebuff:                 # freebuff TUI (Solar Pro 4，廣告贊助免費額度)：無 headless CLI 且條款要求人員在場互動，僅供人工/互動指派，不由 dispatch.py 自動呼叫
+    manual: true
+    dispatch:               # 2026-11-24 實測通過的派工流程，由 tools/freebuff_dispatch.py 執行
+      tool: bible-site/tools/freebuff_dispatch.py
+      transport: herdr-core # 走 herdr-core send，不經 dsh/overlay
+      resolve: dynamic      # terminal 與 tab id 每次動態解析，不硬編碼
+      steps: [tab.select, pane.focus, "herdr-core send"]
+      extra_enter: false    # send 自帶 Enter 會自動提交，再補按只會多送空回合
+      completion: freebuff-chat-store   # 讀 freebuff 自己的 chat-messages.json；不用 hc wait/turn/status
+      acceptance: manual    # 回覆內容由 PM／CodeBuddy 人工核對，工具不代為宣告通過
   cloud:                    # 貓聽 / DeepSeek cloud model: never called by the script (uses quota); the task is reported as needs-cloud
     manual: true
 

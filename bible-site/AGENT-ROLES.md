@@ -14,6 +14,20 @@
 
 目前可用性：tab2、tab3、tab5已回覆確認並待命。使用者回報tab4恢復後，PM重新下達角色；tab4已實際回覆「tab4 QA 已就緒」，確認目前模型與協作規則，恢復承接獨立QA任務。本次未派發新測試或功能修改。
 
+## Freebuff（互動式 CLI，2026-11-24 實測）
+
+| 項目 | 內容 |
+| --- | --- |
+| 終端 | 不固定；由 `foreground.argv` 的檔名 `freebuff` 動態解析（目前為 t7），tab id 亦每次動態取得 |
+| 模型 | Solar Pro 4（廣告贊助免費額度，時間制，用完即停） |
+| 能力（已驗證） | 唯讀程式審查、短文問答；能自行讀檔後給出條列意見 |
+| 能力邊界 | 行號與事實精確度不穩定：實測 3 條審查意見中 1 條為誤判、1 條行號錯誤。不可當最終驗收來源 |
+| 派工工具 | `bible-site/tools/freebuff_dispatch.py`（`roles.yml` 的 `freebuff.dispatch` 同步登錄） |
+| 派工流程 | 動態解析 terminal/tab → `herdr-app do tab.select` → `pane.focus` → `herdr-core send`（send 自帶 Enter，不再補按） |
+| 完成判定 | 讀 freebuff 自己的 `~/.config/manicode/projects/*/chats/*/chat-messages.json`；**不可**用 `hc wait`／`turn`／`status`（hc 未註冊 freebuff，turn 恆 0、status 恆 null） |
+| 驗收 | 一律人工／PM／CodeBuddy 核對回覆內容；工具只輸出原文，不宣告通過 |
+| 限制 | 無 headless、無 ACP；每次派工消耗免費額度，不適合高頻自動化 |
+
 ## 協作約定
 
 1. 每份實作任務由 PM 指定目標、唯一負責人、可改檔案、檢查指令與交付物。先回報現況與衝突，再修改授權檔案。
