@@ -124,7 +124,7 @@
     patternDark: "assets/pattern-dark.png"
   };
 
-  /* 底部膠囊導覽列只有五項，閱讀與卡片頁要對到它們所屬的入口，
+  /* 底部膠囊導覽列有六項，閱讀與卡片頁要對到它們所屬的入口，
      這樣每個前台頁面都恰好有一項被標成目前頁。 */
   var NAV_KEYS = {
     "": "home.html",
@@ -134,6 +134,7 @@
     "devotional.html": "devotional.html",
     "blessing.html": "blessing.html",
     "card.html": "blessing.html",
+    "gallery.html": "gallery.html",
     "search.html": "search.html"
   };
 
@@ -363,13 +364,14 @@
     return node;
   }
 
-  /* 在 <nav id="nav"> 內畫五項底部浮動膠囊導覽列；active 是呼叫端頁面的檔名。 */
+  /* 在 <nav id="nav"> 內畫六項底部浮動膠囊導覽列；active 是呼叫端頁面的檔名。 */
   function nav(active) {
     var links = [
       { href: "home.html", label: "首頁" },
       { href: "index.html", label: "目錄" },
       { href: "devotional.html", label: "禱讀" },
       { href: "blessing.html", label: "抽卡" },
+      { href: "gallery.html", label: "藝廊" },
       { href: "search.html", label: "搜尋" }
     ];
     var current = NAV_KEYS[active || ""] || "home.html";

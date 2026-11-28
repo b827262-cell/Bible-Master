@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  Bible.nav(null);
+  Bible.nav("gallery.html");
 
   var stageEl = document.getElementById("gal-stage");
   var imgEl = document.getElementById("gal-img");

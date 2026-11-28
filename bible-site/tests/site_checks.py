@@ -171,9 +171,9 @@ PALETTE = {  # design/sample-2026-11.html 的 :root（2026-11 改版唯一的視
     "--luk": ("#0e6b5b", "#55d3b7"), "--jhn": ("#3d55c4", "#8fa2ff")}
 SUNLIGHT = "#fdf2da"          # 樣本取樣：照片裡灑在人物身上的光；首页今日經文必須同色
 SUNLIGHT_RGB = "rgb(253, 242, 218)"
-NAV5 = [("首頁", "home.html"), ("目錄", "index.html"), ("禱讀", "devotional.html"), ("抽卡", "blessing.html"), ("搜尋", "search.html")]
+NAV5 = [("首頁", "home.html"), ("目錄", "index.html"), ("禱讀", "devotional.html"), ("抽卡", "blessing.html"), ("藝廊", "gallery.html"), ("搜尋", "search.html")]
 DOCK_PAGES = ["home.html", "index.html", "chapter.html?book=mat&ch=1", "search.html?q=耶穌", "card.html?book=luk&ch=1&v=1",
-              "blessing.html", "devotional.html"]
+              "blessing.html", "devotional.html", "gallery.html"]
 
 
 def css_vars(css):
@@ -503,8 +503,8 @@ def home_render(port, root=None, label=""):
     get = lambda key: next((h for t, h in links.items() if key in t), None)
     check("「進入四福音」連到 index.html、「抽一張經文卡」連到 blessing.html", get("進入四福音") == "index.html" and get("抽一張經文卡") == "blessing.html", json.dumps(links, ensure_ascii=False))
     check(f"「閱讀本章」{label}連到 home.json 指定那一章的那一節", get("閱讀本章") == f"chapter.html?book={cfg['book']}&ch={cfg['ch']}#v{cfg['v']}", str(get("閱讀本章")))
-    check("home.html 的導覽列有五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標成目前頁、h1 是「四福音」",
-          st.get("navCount") == 5 and st.get("navActive") == 1 and "四福音" in st.get("h1", ""), f"nav {st.get('navCount')}/{st.get('navActive')} h1 {st.get('h1')}")
+    check("home.html 的導覽列有六項（首頁、目錄、禱讀、抽卡、藝廊、搜尋）、恰有一項標成目前頁、h1 是「四福音」",
+          st.get("navCount") == 6 and st.get("navActive") == 1 and "四福音" in st.get("h1", ""), f"nav {st.get('navCount')}/{st.get('navActive')} h1 {st.get('h1')}")
 
 
 def home_variants():
@@ -698,7 +698,7 @@ def zone_render(port, root=None, label="", pages=None, width=None):
     check(f"zonemusic{tag}：沒有 JavaScript 錯誤", not err, "；".join(err[:3]))
     box = [s for s in seq if s]
     check(f"zonemusic{tag}：按鈕至少 44×44、在視窗內、頁面沒有水平溢出", bool(box) and all(s.get("w", 0) >= 44 and s.get("h", 0) >= 44 and s.get("right", 9999) <= s.get("vw", 0) and s.get("bottom", 9999) <= s.get("vh", 0) and s.get("scrollW", 9999) <= s.get("vw", 0) for s in box), json.dumps(box[:1], ensure_ascii=False))
-    check(f"zonemusic{tag}：導覽列是五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標成目前頁", bool(box) and all(s.get("count") == 5 and s.get("active") == 1 for s in box), json.dumps([(s.get("count"), s.get("active")) for s in box]))
+    check(f"zonemusic{tag}：導覽列是六項（首頁、目錄、禱讀、抽卡、藝廊、搜尋）、恰有一項標成目前頁", bool(box) and all(s.get("count") == 6 and s.get("active") == 1 for s in box), json.dumps([(s.get("count"), s.get("active")) for s in box]))
 
 
 def zone_variants():
@@ -1149,7 +1149,7 @@ def devotional_render(port, root, label=""):
     check(f"devotional{label}：換到沒有資料的日期會清空 #reading 並顯示「{DEVOTIONAL_MSG_NONE}」",
           c.get("status") == DEVOTIONAL_MSG_NONE and not (c.get("nodes") or []),
           json.dumps({"status": c.get("status"), "節點數": len(c.get("nodes") or [])}, ensure_ascii=False)[:200])
-    check(f"devotional{label}：導覽列有五項（首頁、目錄、禱讀、抽卡、搜尋）、恰一項標成目前頁且有回首頁連結",
+    check(f"devotional{label}：導覽列有六項（首頁、目錄、禱讀、抽卡、藝廊、搜尋）、恰一項標成目前頁且有回首頁連結",
           [n["text"] for n in a.get("nav") or []] == [t for t, _ in NAV5]
           and [n["href"] for n in a.get("nav") or []] == [h for _, h in NAV5]
           and a.get("navActive") == 1 and a.get("home"),
@@ -1402,7 +1402,7 @@ def restyle_shared():
           "、".join(x for x, ok in (("--r-lg", "--r-lg" in css), ("--r-md", "--r-md" in css), ("--display", "--display" in css), ("--body", "--body" in css)) if not ok))
     nav = re.search(r"function nav\(active\)(.*?)\n  \}", app, re.S)
     links = re.findall(r'\{\s*href:\s*"([^"]+)",\s*label:\s*"([^"]+)"', nav.group(1)) if nav else []
-    check("app.js 的共用導覽列是五項：首頁／目錄／禱讀／抽卡／搜尋，且 href 依序為 home／index／devotional／blessing／search",
+    check("app.js 的共用導覽列是六項：首頁／目錄／禱讀／抽卡／藝廊／搜尋，且 href 依序為 home／index／devotional／blessing／gallery／search",
           [l for _, l in links] == [t for t, _ in NAV5] and [h for h, _ in links] == [x for _, x in NAV5],
           json.dumps(links, ensure_ascii=False))
     check("app.js 在 nav() 裡用 aria-current=\"page\" 標目前頁（不是只有 .active，螢幕閱讀器才聽得到）",
@@ -1443,8 +1443,8 @@ def restyle_render(port):
         if not d:
             check(f"restyle {name} 有底部導覽列可量測", False, "探測頁找不到 #nav／.dock")
             continue
-        check(f"restyle {name}：導覽列恰好五項（首頁、目錄、禱讀、抽卡、搜尋）、恰有一項標為目前頁",
-              d.get("count") == 5 and d.get("active") == 1 and [i["text"] for i in d.get("items", [])] == [t for t, _ in NAV5],
+        check(f"restyle {name}：導覽列恰好六項（首頁、目錄、禱讀、抽卡、藝廊、搜尋）、恰有一項標為目前頁",
+              d.get("count") == 6 and d.get("active") == 1 and [i["text"] for i in d.get("items", [])] == [t for t, _ in NAV5],
               json.dumps({"count": d.get("count"), "active": d.get("active"), "texts": [i["text"] for i in d.get("items", [])]}, ensure_ascii=False))
         check(f"restyle {name}：導覽列是 position: fixed 的浮動膠囊，每項觸控區 ≥44×44",
               d.get("fixed") and d.get("small", 1) == 0, json.dumps({"position": d.get("position"), "small": d.get("small"),
@@ -1724,8 +1724,8 @@ def bookmarks_render(port):
           len(ar.get("items") or []) == 0 and "0" in (arb.get("summary") or "") and bool(cjk(ar.get("emptyText") or "")),
           json.dumps({"剩餘": len(ar.get("items") or []), "summary": arb.get("summary"), "emptyText": (ar.get("emptyText") or "")[:80]},
                      ensure_ascii=False)[:300])
-    check("bookmarks：收藏區出現與消失時，底部導覽列都仍維持五項",
-          bool(ib.get("found")) and ib.get("navCount") == 5 and arb.get("navCount") == 5,
+    check("bookmarks：收藏區出現與消失時，底部導覽列都仍維持六項",
+          bool(ib.get("found")) and ib.get("navCount") == 6 and arb.get("navCount") == 6,
           json.dumps({"打開時": [ib.get("found"), ib.get("navCount")], "移除後": arb.get("navCount")}, ensure_ascii=False))
     ci = bm.get("corruptIndex") or {}
     cc = bm.get("corruptChapter") or {}

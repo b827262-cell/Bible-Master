@@ -160,7 +160,7 @@ body {
   background: var(--river-soft);
 }
 
-/* ===== 底部浮動膠囊導覽列：五項（首頁／目錄／禱讀／抽卡／搜尋），由 Bible.nav() 畫出 ===== */
+/* ===== 底部浮動膠囊導覽列：六項（首頁／目錄／禱讀／抽卡／藝廊／搜尋），由 Bible.nav() 畫出 ===== */
 #nav,
 .dock {
   position: fixed;
@@ -227,6 +227,26 @@ body {
   font-weight: 700;
   border: 0;
   text-decoration: none;
+}
+
+@media (max-width: 420px) {
+  #nav,
+  .dock {
+    padding: 4px;
+  }
+
+  #nav .nav-list,
+  .dock .nav-list {
+    gap: 2px;
+  }
+
+  #nav a,
+  .dock a {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: .85rem;
+  }
 }
 
 /* ===== 頁面標題與說明 ===== */

@@ -157,9 +157,9 @@ def main(groups):
             plain = [k for k, ok in m["current"].items() if not ok]
             check(f"{p} 目前頁面／書卷除了顏色還有粗體或底線", not plain, "、".join(plain))
             dk = m.get("dock") or {}
-            if dk:   # 2026-11 改版：底部浮動膠囊導覽列（五項、恰一目前頁、觸控區、不遮音樂鍵、底部留白）
-                check(f"375px {p} 底部導覽列是 position: fixed、恰好五項、恰有一項標為目前頁",
-                      dk.get("position") == "fixed" and dk.get("count") == 5 and dk.get("active") == 1,
+            if dk:   # 底部浮動膠囊導覽列（六項、恰一目前頁、觸控區、不遮音樂鍵、底部留白）
+                check(f"375px {p} 底部導覽列是 position: fixed、恰好六項、恰有一項標為目前頁",
+                      dk.get("position") == "fixed" and dk.get("count") == 6 and dk.get("active") == 1,
                       json.dumps({k: dk.get(k) for k in ("position", "count", "active")}))
                 check(f"375px {p} 導覽列每項觸控區 ≥44×44", dk.get("small", 1) == 0, json.dumps({"small": dk.get("small")}))
                 check(f"{p} 導覽列目前頁除了顏色還有粗體（≥600），且底色與一般項不同",
