@@ -26,6 +26,8 @@
 | `site/assets/cover-5-fri.jpg` | 入口首頁一週封面：星期五「祈求尋見」（路加福音 11:9） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），417 KB；經文字色調亮為 `#f6dec8`（原 `#e29a57` 亮度不足） |
 | `site/assets/cover-6-sat.jpg` | 入口首頁一週封面：星期六「上好福分」（路加福音 10:42） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），439 KB；經文字色調亮為 `#eee0d1`（原 `#cba275` 亮度不足） |
 | `site/assets/cover-7-sun.jpg` | 入口首頁一週封面：星期日「生命的光」（約翰福音 8:12） | Codex 以 OpenAI `image_gen` 生成，2026-11-13 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9），516 KB；經文字色調亮為 `#f1e0ce`（原 `#d5a06c` 亮度不足） |
+| `site/assets/gallery-1-mon.jpg`～`gallery-7-sun.jpg` | 福音藝廊（`site/gallery.html`）一週七日寬幅電影感油畫經文圖（`data/gospel-gallery.json`） | 由 AGY 使用內建生圖工具依四福音經文意象生成並以 Pillow 轉出，2026-11-28 | 站長自有作品；公開授權條款由站長決定 | 1600×900（16:9）JPG，各約 156–394 KB，圖內無文字、無耶穌正面人像 |
+| `site/assets/gallery-1-mon.wav`～`gallery-7-sun.wav` | 福音藝廊（`site/gallery.html`）一週七日依經文調性合成之專屬柔和器樂循環配樂 | 由 `bible-site/tools/generate_gallery_music.py` 以純 Python 程式合成，2026-11-28 | 專案原創合成音檔；站長可隨時於 `data/gospel-gallery.json` 替換為自製 AI MP3 | 16-bit PCM 22050 Hz 單聲道無縫循環，各約 1.1–1.5 MB；AI 配樂提示詞見 `GOSPEL-GALLERY-BRIEF.md` |
 
 經文：和合本（公有領域），由 `bible-site/tools/build_data.py` 從維基文庫與 ebible.org 轉出。後台上傳的新素材請同樣登記在這裡。
 

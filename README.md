@@ -60,6 +60,7 @@ flowchart TB
 | 祝福經文 | 呈現祝福經文內容，收錄主題與單卡收藏卡圖（`blessing-art.json`） |
 | 每日禱讀 | 依日期呈現每日禱讀文章（`devotional.html`、`devotional.json`） |
 | 背景音樂 | 首頁、搜尋、卡片與祝福四區各自播放背景音樂（`music.js`、`zone-music.json`） |
+| 福音藝廊 | 一週七日 16:9 油畫與專屬器樂靜聽（`gallery.html`、`gallery.js`、`gospel-gallery.json`） |
 
 前台程式位於 [`bible-site/site/`](bible-site/site/)，經文與設定資料位於 [`bible-site/data/`](bible-site/data/)。
 

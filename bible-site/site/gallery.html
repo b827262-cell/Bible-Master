@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>福音藝廊 · 音樂與經文圖 · 四福音</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --gal-stage-bg: #12110f;
+      --gal-caption-bg: linear-gradient(180deg, rgba(14, 12, 10, 0) 0%, rgba(14, 12, 10, 0.56) 44%, rgba(14, 12, 10, 0.90) 100%);
+      --gal-ink: #f7f3eb;
+      --gal-sub: rgba(247, 243, 235, 0.84);
+      --gal-gold: #f5d49a;
+      --gal-glass: rgba(22, 20, 17, 0.72);
+      --gal-glass-line: rgba(245, 212, 154, 0.28);
+    }
+
+    .gal-wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px 16px 104px;
+    }
+
+    .gal-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .gal-title-group h1 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+      letter-spacing: 0.04em;
+    }
+
+    .gal-title-group p {
+      margin: 4px 0 0;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .gal-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 260px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--gal-stage-bg);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+    }
+
+    .gal-stage:fullscreen,
+    .gal-stage:-webkit-full-screen {
+      border-radius: 0;
+      width: 100vw;
+      height: 100vh;
+      aspect-ratio: auto;
+    }
+
+    .gal-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gal-top-bar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .gal-badge,
+    .gal-fs-btn {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      min-height: 40px;
+      border-radius: 9999px;
+      background: var(--gal-glass);
+      border: 1px solid var(--gal-glass-line);
+      color: var(--gal-ink);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .gal-fs-btn {
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.85rem;
+      min-height: 44px;
+    }
+
+    .gal-fs-btn:focus-visible,
+    .gal-ctrl-btn:focus-visible,
+    .gal-thumb:focus-visible,
+    .gal-vol:focus-visible {
+      outline: 3px solid var(--gal-gold);
+      outline-offset: 2px;
+    }
+
+    .gal-caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 48px 28px 24px;
+      background: var(--gal-caption-bg);
+      color: var(--gal-ink);
+    }
+
+    .gal-ref-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .gal-theme {
+      font-size: 0.9rem;
+      letter-spacing: 0.14em;
+      color: var(--gal-gold);
+      font-weight: 600;
+    }
+
+    .gal-ref {
+      font-size: 0.88rem;
+      color: var(--gal-sub);
+    }
+
+    .gal-verse {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.2vw, 1.48rem);
+      line-height: 1.75;
+      color: var(--gal-ink);
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+      max-width: 44em;
+    }
+
+    .gal-player {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface, var(--paper));
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .gal-player-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gal-ctrl-btn {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+      font-size: 0.94rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .gal-ctrl-btn.primary {
+      background: var(--accent, #2e5d4b);
+      color: var(--accent-fg, #fff);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .gal-track-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .gal-track-title {
+      font-weight: 600;
+      font-size: 0.96rem;
+    }
+
+    .gal-track-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .gal-player-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gal-vol-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .gal-vol {
+      width: 96px;
+      accent-color: var(--accent, #2e5d4b);
+    }
+
+    .gal-status {
+      margin: 8px 0 0;
+      font-size: 0.86rem;
+      color: var(--muted);
+      min-height: 1.4em;
+    }
+
+    .gal-strip {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .gal-thumb {
+      padding: 0;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--gal-stage-bg);
+      color: var(--gal-ink);
+      cursor: pointer;
+      text-align: left;
+      position: relative;
+      aspect-ratio: 16 / 10;
+      display: block;
+    }
+
+    .gal-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.82;
+    }
+
+    .gal-thumb.active {
+      border-color: var(--accent, #2e5d4b);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .gal-thumb.active img {
+      opacity: 1;
+    }
+
+    .gal-thumb-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 16px 8px 6px;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.78) 100%);
+      font-size: 0.78rem;
+      line-height: 1.25;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gal-thumb-day {
+      font-size: 0.7rem;
+      color: var(--gal-gold);
+    }
+
+    .gal-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .gal-bars i {
+      display: block;
+      width: 3px;
+      height: 5px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .gal-img {
+        transition: opacity 0.45s ease;
+      }
+      .gal-thumb {
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+      .gal-thumb:hover {
+        transform: translateY(-2px);
+      }
+      .gal-playing .gal-bars i:nth-child(1) {
+        animation: galBar 0.9s ease-in-out infinite alternate;
+      }
+      .gal-playing .gal-bars i:nth-child(2) {
+        animation: galBar 0.7s ease-in-out 0.2s infinite alternate;
+      }
+      .gal-playing .gal-bars i:nth-child(3) {
+        animation: galBar 1.0s ease-in-out 0.35s infinite alternate;
+      }
+      @keyframes galBar {
+        from { height: 4px; }
+        to { height: 14px; }
+      }
+    }
+
+    @media (max-width: 820px) {
+      .gal-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .gal-caption {
+        padding: 32px 18px 16px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .gal-stage {
+        aspect-ratio: 4 / 3;
+      }
+      .gal-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main class="gal-wrap">
+    <header class="gal-head">
+      <div class="gal-title-group">
+        <h1>福音藝廊・音樂與經文圖</h1>
+        <p id="gal-subtitle">一週七日，一幅寬幅經文油畫配一首專屬器樂，靜心默想四福音</p>
+      </div>
+      <a class="pill" href="home.html">← 回首頁</a>
+    </header>
+
+    <section class="gal-stage" id="gal-stage" aria-label="經文油畫與靜聽舞台">
+      <img class="gal-img" id="gal-img" src="assets/gallery-1-mon.jpg" alt="經文油畫載入中">
+      <div class="gal-top-bar">
+        <span class="gal-badge" id="gal-day-badge">週一 · 第 1 幅</span>
+        <button type="button" class="gal-fs-btn" id="gal-fs-btn" aria-label="切換全螢幕靜賞">⛶ 全螢幕靜賞</button>
+      </div>
+      <div class="gal-caption">
+        <div class="gal-ref-row">
+          <span class="gal-theme" id="gal-theme">載入中…</span>
+          <span class="gal-ref" id="gal-ref"></span>
+        </div>
+        <blockquote class="gal-verse" id="gal-verse">正在載入經文…</blockquote>
+      </div>
+    </section>
+
+    <section class="gal-player" aria-label="音樂播放控制">
+      <div class="gal-player-left">
+        <button type="button" class="gal-ctrl-btn" id="gal-prev" aria-label="上一幅">←</button>
+        <button type="button" class="gal-ctrl-btn primary" id="gal-play" aria-pressed="false">
+          <span class="gal-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="gal-play-text">播放專屬配樂</span>
+        </button>
+        <button type="button" class="gal-ctrl-btn" id="gal-next" aria-label="下一幅">→</button>
+        <div class="gal-track-meta">
+          <span class="gal-track-title" id="gal-track-title">專屬配樂</span>
+          <span class="gal-track-sub" id="gal-track-sub"></span>
+        </div>
+      </div>
+      <div class="gal-player-right">
+        <label class="gal-vol-wrap" for="gal-vol">
+          <span>音量</span>
+          <input class="gal-vol" id="gal-vol" type="range" min="0" max="1" step="0.05" value="0.75" aria-label="音樂音量">
+        </label>
+        <a class="pill" id="gal-read-link" href="chapter.html?book=mrk&ch=1#v35">閱讀本章 →</a>
+      </div>
+    </section>
+
+    <p class="gal-status" id="gal-status" role="status" aria-live="polite"></p>
+
+    <section class="gal-strip" id="gal-strip" aria-label="一週七日經文圖選單"></section>
+
+    <audio id="gal-audio" loop preload="none"></audio>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="gallery.js"></script>
+</body>
+</html>

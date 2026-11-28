@@ -7,7 +7,7 @@ import argparse, json, os, re, shutil, sys
 
 SITE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 REPO = os.path.abspath(os.path.join(SITE_ROOT, ".."))
-DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json", "devotional.json", "home-week.json"]
+DATA_FILES = ["mat.json", "mrk.json", "luk.json", "jhn.json", "blessing.json", "home.json", "zone-music.json", "blessing-art.json", "devotional.json", "home-week.json", "gospel-gallery.json"]
 ALWAYS_ASSETS = {"assets/jordan.jpg", "assets/home-music.mp3"}
 MAX_FILE = 25 * 1024 * 1024
 # Cloudflare joins the values of every matching rule for the same header, so each path may match at most ONE Cache-Control rule.
@@ -112,6 +112,22 @@ def referenced_assets():
             for day in days:
                 if isinstance(day, dict) and isinstance(day.get("image"), str) and day["image"].startswith("assets/"):
                     used.add(day["image"])
+
+    # 福音藝廊（音樂與經文圖區）：選配資料，包含 7 幅經文油畫與 7 首專屬配樂（支援 .wav / .mp3）。
+    gallery_path = os.path.join(SITE_ROOT, "data", "gospel-gallery.json")
+    if os.path.exists(gallery_path):
+        try:
+            gal_cfg = json.load(open(gallery_path, encoding="utf-8"))
+        except json.JSONDecodeError:
+            gal_cfg = {}
+        if isinstance(gal_cfg, dict) and isinstance(gal_cfg.get("items"), list):
+            for item in gal_cfg["items"]:
+                if not isinstance(item, dict):
+                    continue
+                for key in ("image", "audio"):
+                    val = item.get(key)
+                    if isinstance(val, str) and val.startswith("assets/"):
+                        used.add(val)
     return used
 
 

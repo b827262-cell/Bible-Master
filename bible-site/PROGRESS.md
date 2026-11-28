@@ -114,3 +114,4 @@
     - `tests/devotional_operations_checks.py`：23 項測試全部通過（exit code 0）。
     - `tests/deploy_checks.py`：全部檢查通過（結果：全部通過，exit code 0）。
   - **待收斂之版控狀態**：本地 main 落後 origin/main 10 個每日禱讀發布 commit，待總工程師驗收後整理提交。
+- 2026-11-28 08:18　福音藝廊建置（子任務 B 文件同步）：新增 7 幅 16:9 油畫與 7 首專屬器樂，前台 `gallery.html`／`gallery.js` 以 `data/gospel-gallery.json` 呈現一週七日主題，首頁 `home.html` 新增「七日藝廊・音樂與經文圖」入口卡；`tools/build_public.py` 與相關驗證（`check_all.py`、`visual_checks.py` 等）一併更新。本次僅同步 `README.md` 前台功能表與本紀錄，未改動 `pm:auto` 自動區塊。
